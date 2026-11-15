@@ -185,6 +185,37 @@ class OrkiCADExportSTEP:
         return (str(destination),)
 
 
+class OrkiCADExportOCCTSTEP:
+    """Cross-platform native STEP export with optional isolated OCCT runtime."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "spec_json": ("STRING", {"forceInput": True}),
+            "file_stem": ("STRING", {"default": "occt_part"}),
+        }, "optional": {
+            "occt_python_path": ("STRING", {"default": "Auto", "multiline": False}),
+        }}
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("step_path",)
+    FUNCTION = "export"
+    OUTPUT_NODE = True
+    CATEGORY = "OrkiCAD/Export"
+
+    def export(self, spec_json: str, file_stem: str, occt_python_path: str = "Auto"):
+        import re
+        import uuid
+        from orkicad_core.occt_step import render_occt_step
+
+        if not re.fullmatch(r"[a-zA-Z0-9_-]{1,50}", file_stem):
+            raise ValueError("file_stem must contain 1-50 ASCII letters, digits, _ or -")
+        binary = render_occt_step(_spec(spec_json), python_path=occt_python_path)
+        destination = _output_dir() / f"{file_stem}_{uuid.uuid4().hex[:10]}.step"
+        destination.write_bytes(binary)
+        return (str(destination),)
+
+
 class OrkiCADInterpretLocal:
     @classmethod
     def INPUT_TYPES(cls):
@@ -303,6 +334,7 @@ NODE_CLASS_MAPPINGS = {
     "OrkiCADSavedDesign": OrkiCADSavedDesign,
     "OrkiCADExportMesh": OrkiCADExportMesh,
     "OrkiCADExportSTEP": OrkiCADExportSTEP,
+    "OrkiCADExportOCCTSTEP": OrkiCADExportOCCTSTEP,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -314,6 +346,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "OrkiCADSavedDesign": "OrkiCAD · Saved parametric design",
     "OrkiCADExportMesh": "OrkiCAD · Export 3MF / OBJ / mesh",
     "OrkiCADExportSTEP": "OrkiCAD · Export native STEP (FreeCAD)",
+    "OrkiCADExportOCCTSTEP": "OrkiCAD · Export native STEP (OCCT)",
 }
 
 
