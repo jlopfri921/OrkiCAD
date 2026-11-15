@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer from './STLViewer'
+import { initialLanguage, messages, type Language } from './i18n'
 
 type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear'
 type Definition = { label: string; params: Record<string, number | string> }
@@ -15,6 +16,8 @@ const catalog: Record<PartType, Definition> = {
 }
 
 function App() {
+  const [language, setLanguage] = useState<Language>(initialLanguage)
+  const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
   const [params, setParams] = useState<Record<string, number | string>>(catalog.washer.params)
   const [scad, setScad] = useState('')
@@ -35,14 +38,12 @@ function App() {
       const text = await response.text()
       if (!text.trim()) {
         throw new Error(
-          `El servidor CAD no devolvió datos (HTTP ${response.status}). ` +
-          'Comprueba que el servidor Python está abierto en http://127.0.0.1:8765/api/health'
+          `${t.emptyResponse} (HTTP ${response.status}). ` + t.checkServer
         )
       }
       if (!contentType.includes('application/json')) {
         throw new Error(
-          `Respuesta inesperada del servidor (HTTP ${response.status}, tipo: ${contentType || 'desconocido'}). ` +
-          'Comprueba el servidor Python y la consola de Vite.'
+          `${t.wrongResponse} (HTTP ${response.status}, ${contentType || 'unknown'}). ` + t.checkVite
         )
       }
       let body: { error?: string; scad?: string }
@@ -50,13 +51,12 @@ function App() {
         body = JSON.parse(text)
       } catch {
         throw new Error(
-          `El servidor devolvió JSON no válido (HTTP ${response.status}). ` +
-          'Revisa la consola del servidor Python.'
+          `${t.badJSON} (HTTP ${response.status}). ` + t.checkVite
         )
       }
       if (!response.ok) throw new Error(body.error || `Error HTTP ${response.status}`)
       if (typeof body.scad !== 'string' || !body.scad.trim()) {
-        throw new Error('El servidor CAD no devolvió ningún modelo SCAD.')
+        throw new Error(t.noSCAD)
       }
       setScad(body.scad)
     } catch (e) {
@@ -80,14 +80,14 @@ function App() {
           const json = JSON.parse(raw) as { error?: string }
           detail = json.error || detail
         } catch { /* Non-JSON proxy errors are still displayed */ }
-        throw new Error(detail || `No se pudo generar STL: HTTP ${response.status}`)
+        throw new Error(detail || `${t.noSTL}: HTTP ${response.status}`)
       }
       const typeHeader = response.headers.get('content-type') || ''
       if (!typeHeader.includes('model/stl') && !typeHeader.includes('application/octet-stream')) {
-        throw new Error(`El servidor no devolvió STL (tipo: ${typeHeader || 'desconocido'}).`)
+        throw new Error(`${t.wrongSTL} (${typeHeader || 'unknown'}).`)
       }
       const buffer = await response.arrayBuffer()
-      if (buffer.byteLength < 84) throw new Error('El archivo STL recibido está vacío o incompleto.')
+      if (buffer.byteLength < 84) throw new Error(t.emptySTL)
       setStl(buffer)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -115,21 +115,55 @@ function App() {
     URL.revokeObjectURL(link.href)
   }
   return <main className="layout">
-    <header><div className="brand">◈ <strong>OrkiCAD</strong> <span>AI</span></div><small>Studio · CAD core prototype</small></header>
-    <section className="intro"><h1>Parametric CAD Studio</h1><p>Configure a component and generate real OpenSCAD source through the shared OrkiCAD Python core.</p></section>
+    <header>
+      <div className="brand">◈ <strong>OrkiCAD</strong> <span>AI</span></div>
+      <div className="header-controls">
+        <small>{t.subtitle}</small>
+        <label htmlFor="language">{t.language}</label>
+        <select id="language" aria-label={t.language} value={language}
+          onChange={e => setLanguage(e.target.value as Language)}>
+          <option value="es">Español</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </header>
+    <section className="intro"><h1>{t.title}</h1><p>{t.intro}</p></section>
     <div className="workbench"><section className="panel">
-      <h2>Component</h2>
-      <label htmlFor="type">Part type</label>
-      <select id="type" value={type} onChange={e => changeType(e.target.value as PartType)}>{Object.entries(catalog).map(([id, def]) => <option key={id} value={id}>{def.label}</option>)}</select>
-      <h2>Dimensions and parameters</h2>
-      <div className="fields">{Object.entries(params).map(([name, value]) => <div key={name}><label htmlFor={name}>{name.replace(/_/g, ' ')}</label><input id={name} type={typeof value === 'number' ? 'number' : 'text'} step={name === 'teeth' || name === 'diameter' ? '1' : 'any'} value={value} onChange={e => setParams(p => ({ ...p, [name]: typeof value === 'number' ? e.target.value === '' ? 0 : Number(e.target.value) : e.target.value }))} /></div>)}</div>
-      <div className="actions"><button disabled={working} onClick={generate}>{working ? 'Procesando…' : 'Generar SCAD'}</button><button disabled={working} onClick={renderSTL}>{working ? 'Procesando…' : 'Generar STL y ver en 3D'}</button></div>
+      <h2>{t.component}</h2>
+      <label htmlFor="type">{t.partType}</label>
+      <select id="type" value={type} onChange={e => changeType(e.target.value as PartType)}>
+        {(Object.keys(catalog) as PartType[]).map(id =>
+          <option key={id} value={id}>{t.parts[id]}</option>)}
+      </select>
+      <h2>{t.dimensions}</h2>
+      <div className="fields">{Object.entries(params).map(([name, value]) =>
+        <div key={name}><label htmlFor={name}>
+          {t.fields[name as keyof typeof t.fields] ?? name.replace(/_/g, ' ')}
+        </label><input id={name}
+          type={typeof value === 'number' ? 'number' : 'text'}
+          step={name === 'teeth' || name === 'diameter' ? '1' : 'any'}
+          value={value}
+          onChange={e => setParams(p => ({
+            ...p,
+            [name]: typeof value === 'number'
+              ? e.target.value === '' ? 0 : Number(e.target.value)
+              : e.target.value
+          }))} /></div>)}</div>
+      <div className="actions">
+        <button disabled={working} onClick={generate}>{working ? t.working : t.generateSCAD}</button>
+        <button disabled={working} onClick={renderSTL}>{working ? t.working : t.generateSTL}</button>
+      </div>
       {error && <p className="error" role="alert">{error}</p>}
-      </section><section className="panel output"><h2>Visor 3D</h2><STLViewer data={stl} /><p className="hint">Gira la pieza arrastrando el ratón; usa la rueda para ampliar. Requiere OpenSCAD y BOSL2 para las piezas mecánicas.</p><button className="secondary" disabled={!stl} onClick={downloadSTL}>Descargar STL</button><h2>Código OpenSCAD</h2>
-      <pre>{scad || 'Choose a part and click Generate SCAD. The local Python server must be running.'}</pre>
-      <button className="secondary" disabled={!scad} onClick={download}>Download .scad</button>
+      </section><section className="panel output">
+        <h2>{t.viewer}</h2>
+        <STLViewer data={stl} />
+        <p className="hint">{t.help}</p>
+        <button className="secondary" disabled={!stl} onClick={downloadSTL}>{t.downloadSTL}</button>
+        <h2>{t.code}</h2>
+        <pre>{scad || t.empty}</pre>
+        <button className="secondary" disabled={!scad} onClick={download}>{t.downloadSCAD}</button>
       </section></div>
-    <footer>Prototype · Units: millimetres · Validate geometry and manufacturing clearances before printing.</footer>
+    <footer>{t.footer}</footer>
   </main>
 }
 createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>)
