@@ -93,6 +93,24 @@ class ComfyNodeTests(unittest.TestCase):
                 json.dumps({"type": "washer", **PARTS["washer"]["fields"]}), "../escape"
             )
 
+    def test_ai_workflow_connects_to_render(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_ollama_text_to_stl.json"
+        workflow = json.loads(path.read_text(encoding="utf-8"))
+        node_types = {n["id"]: n["type"] for n in workflow["nodes"]}
+        self.assertIn("OrkiCADInterpretLocal", node_types.values())
+        self.assertIn("OrkiCADRenderSTL", node_types.values())
+        self.assertEqual(len(workflow["links"]), 2)
+        for edge in workflow["links"]:
+            self.assertIn(edge[1], node_types)
+            self.assertIn(edge[3], node_types)
+            self.assertEqual(edge[5], "STRING")
+        for node in workflow["nodes"]:
+            self.assertIn(node["type"], self.nodes.NODE_CLASS_MAPPINGS)
+
+    def test_ai_node_rejects_invalid_prompt_without_network(self):
+        with self.assertRaises(ValueError):
+            self.nodes.OrkiCADInterpretLocal().interpret("", "qwen3-coder:30b")
+
     def test_workflow_file_has_registered_nodes(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_parametric_stl.json"
         obj = json.loads(path.read_text(encoding="utf-8"))
