@@ -71,18 +71,18 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
             raise ParameterError("Mounting holes must not intersect the centered pocket")
         px = pocket_left
         py = (depth - pocket_d) / 2
-        cutters = "\\n".join(
+        cutters = "\n".join(
             f"  translate([{_fmt(x)},{_fmt(depth / 2)},-0.1]) "
             f"cylinder(h={_fmt(height + .2)}, d={_fmt(hole)}, $fn=96);"
             for x in (inset, width - inset)
         )
         result = (
-            "difference() {\\n"
-            f"  cube([{_fmt(width)},{_fmt(depth)},{_fmt(height)}]);\\n"
-            f"{cutters}\\n"
+            "difference() {\n"
+            f"  cube([{_fmt(width)},{_fmt(depth)},{_fmt(height)}]);\n"
+            f"{cutters}\n"
             f"  translate([{_fmt(px)},{_fmt(py)},{_fmt(height-cut)}]) "
-            f"cube([{_fmt(pocket_w)},{_fmt(pocket_d)},{_fmt(cut + .1)}]);\\n"
-            "}\\n"
+            f"cube([{_fmt(pocket_w)},{_fmt(pocket_d)},{_fmt(cut + .1)}]);\n"
+            "}\n"
         )
     elif kind == "mounting_plate":
         width = _number(spec, "width")
