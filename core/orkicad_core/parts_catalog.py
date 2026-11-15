@@ -6,6 +6,9 @@ from __future__ import annotations
 
 CATALOG_VERSION = "0.5-prototype"
 PARTS = {
+    "circular_plate": {"fields": {"outer_radius": 50, "thickness": 4,
+                                    "hole_count": 5, "hole_diameter": 3,
+                                    "bolt_circle_radius": 20}},
     "feature_model": {"fields": {"width": 100, "depth": 60, "height": 12,
                                   "operations": [
                                       {"op": "cut", "shape": "box", "position": [26, 15, 6], "size": [48, 30, 6.2]},
@@ -48,6 +51,9 @@ OPTIONS = {
 }
 # Each item is UI metadata, not arbitrary CAD source.
 FIELDS = {
+    "outer_radius": {"min": 0.1},
+    "bolt_circle_radius": {"min": 0.1},
+    "hole_count": {"min": 1, "max": 64, "step": 1},
     "outer_diameter": {"min": 0.1}, "inner_diameter": {"min": 0.1},
     "width": {"min": 0.1}, "depth": {"min": 0.1},
     "height": {"min": 0.1}, "wall": {"min": 0.1},
