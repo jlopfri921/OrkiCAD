@@ -33,10 +33,18 @@ class GeometryTests(unittest.TestCase):
         })
         self.assertIn("cube([56,36,25])", src)
 
+    def test_shallow_valid_box(self):
+        # A 3 mm wall in a 4 mm tall box leaves a 1 mm usable cavity.
+        scad = generate_scad({
+            "type": "open_box", "width": 20, "depth": 20,
+            "height": 4, "wall": 3,
+        })
+        self.assertIn("cube([14,14,4])", scad)
+
     def test_invalid_dimensions(self):
         for spec in (
             {"type": "washer", "outer_diameter": 8, "inner_diameter": 9, "thickness": 2},
-            {"type": "open_box", "width": 20, "depth": 20, "height": 4, "wall": 3},
+            {"type": "open_box", "width": 20, "depth": 20, "height": 4, "wall": 4},
             {"type": "washer", "outer_diameter": True, "inner_diameter": 3, "thickness": 1},
             {"type": "washer", "outer_diameter": float("nan"), "inner_diameter": 3, "thickness": 1},
             {"type": "unknown"},
