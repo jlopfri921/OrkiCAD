@@ -15,6 +15,7 @@ from .geometry import ParameterError
 from .parts_catalog import PARTS, validated_spec
 
 MAX_REQUEST = 2000
+DEFAULT_TIMEOUT_SECONDS = 180
 ALLOWED_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 
@@ -51,6 +52,14 @@ def interpret(prompt: str, *, model: str | None = None) -> dict:
         "assumptions that must be checked by the user). Never claim measured fit. "
         "Available templates: " + json.dumps(examples, ensure_ascii=False)
     )
+    timeout_raw = os.environ.get("ORKICAD_OLLAMA_TIMEOUT", str(DEFAULT_TIMEOUT_SECONDS))
+    try:
+        timeout = float(timeout_raw)
+    except ValueError as exc:
+        raise AIError("ORKICAD_OLLAMA_TIMEOUT must be a number of seconds") from exc
+    if not 5 <= timeout <= 600:
+        raise AIError("ORKICAD_OLLAMA_TIMEOUT must be between 5 and 600 seconds")
+
     payload = json.dumps({
         "model": model,
         "stream": False,
@@ -68,14 +77,28 @@ def interpret(prompt: str, *, model: str | None = None) -> dict:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=75) as response:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
             if response.status != 200:
                 raise AIError(f"Ollama returned HTTP {response.status}")
             raw = response.read(128 * 1024 + 1)
             if len(raw) > 128 * 1024:
                 raise AIError("Ollama response too large")
+    except TimeoutError as exc:
+        raise AIError(
+            f"Local Ollama did not respond within {timeout:g} seconds. "
+            "Check that Ollama is running, verify the exact installed model "
+            "with 'ollama list', warm it with 'ollama run <model>', "
+            "or select a smaller local model. "
+            "The request timeout can be adjusted using ORKICAD_OLLAMA_TIMEOUT."
+        ) from exc
+    except urllib.error.HTTPError as exc:
+        detail = exc.read(2048).decode("utf-8", errors="replace")
+        raise AIError(f"Ollama HTTP {exc.code}: {detail}") from exc
     except (OSError, urllib.error.URLError) as exc:
-        raise AIError(f"Local Ollama unavailable: {exc}") from exc
+        raise AIError(
+            f"Local Ollama connection failed at {endpoint}: {exc}. "
+            "Check that Ollama is running and listening on this loopback address."
+        ) from exc
     try:
         response = json.loads(raw)
         content = response["message"]["content"]
