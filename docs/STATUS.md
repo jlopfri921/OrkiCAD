@@ -273,3 +273,16 @@ Added `comfyui/workflows/orkicad_visual_feature_editor_stl_3mf_occt_step.json`, 
 **User-confirmed working:** Following the release of visual operation cards and the AI-free `comfyui/workflows/orkicad_visual_feature_editor_stl_3mf_occt_step.json` workflow, the maintainer reported **"funciona"**. This confirms a successful basic Windows ComfyUI Desktop trial of visual feature editing on the parametric model, with the existing STL/3MF/OCCT STEP export pipeline.
 
 **Evidence boundary:** The short success report does not independently confirm that every available add/remove/reorder/shape-switch control was tested, nor establish exact dimensional parity, exhaustive feature history correctness, Linux/macOS compatibility, or passing CI. Those remain separate acceptance criteria. The visual feature history is a sequential Boolean operations list rather than a full constraint-based CAD feature tree. No release tag.
+
+## Three-client architecture alignment and Studio parity increment (2026-11-15)
+
+**Architecture accepted:** Web + independently installable Windows/Linux/macOS Desktop + optional ComfyUI are three interfaces of **one OrkiCAD product**. They must share Core schemas, geometry generation, validation and STL/3MF/native OCCT STEP export. The release UX must not require manually entering a Python path or installing FreeCAD/ComfyUI. See `docs/adr/0007-three-clients-one-core.md`.
+
+**Source changes (not yet accepted in Studio runtime):**
+- Added a framework-neutral axonometric operation schematic `comfyui/orkicad_nodes/web/feature_viewport.js` and wired selectable operation outlines to existing ComfyUI operation cards. It is an approximate primitives visualization, *not* the final computed CAD solid. This code currently runs only in the ComfyUI frontend; extraction into a shared UI package and Studio integration remain tasks.
+- Extended `studio/frontend/src/main.tsx` with the shared `feature_model` catalog family and typed React `FeatureOperationsEditor.tsx` for ordered add/cut operations. Added end-user 3MF and OCCT STEP export buttons with no interpreter path inputs and ES/EN labels.
+- Extended the localhost development Studio API with `POST /api/3mf` and `POST /api/step`, both validating through the same OrkiCAD Core schemas. Added mocked binary-route regression tests; these tests do not prove real export backend availability.
+- Extended OCCT runtime resolution to automatically inspect project-local `.venv-occt` and prospective application `runtime/occt` directories before falling back to the running Python, with a source-level regression test. This does not create a bundled installer.
+- Added Studio React build and Python web API smoke-test steps to GitHub Actions and updated architecture/roadmap.
+
+**Outstanding acceptance:** Studio frontend TypeScript build and browser test, full STL/3MF/STEP export on the local web prototype, selection interaction inside ComfyUI, native desktop app packaging with bundled OCCT/OpenSCAD runtime, secured hosted web backend, production artifact downloads, and three-client cross-platform parity. The remote repository commits are not evidence of passing CI. No installer or hosted web deployment is claimed.
