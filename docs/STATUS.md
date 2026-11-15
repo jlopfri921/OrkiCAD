@@ -165,3 +165,7 @@ The maintainer reports that the box-lid STL produced by the OrkiCAD ComfyUI work
 - Added structural workflow and bad-prompt regression tests, and extended the English ComfyUI guide with Ollama preflight and known limitations.
 - The sample `qwen3-coder:30b` model name is provisional and must be verified with `ollama list` on the maintainer machine.
 - **Not yet runtime-verified:** Ollama output compatibility, actual AI-generated STL, the revised unit-test suite and dimensional validation. The prototype currently passes AI-generated parameters directly to export without a separate approval gate; production flows will require parameter review.
+
+## Ollama AI node timeout diagnostic / fix (2026-11-15)
+
+The maintainer's ComfyUI `OrkiCADInterpretLocal` run failed with `AIError: Local Ollama unavailable: timed out`. This is an AI-provider response timeout (previously fixed at 75 seconds), **not evidence of an OpenSCAD/STL failure**. An unverified source patch increases the default request deadline to 180 seconds (configurable via `ORKICAD_OLLAMA_TIMEOUT`, range 5–600) and gives targeted timeout, HTTP and connection messages. Offline tests were added for timeout and configuration validation. Check actual `ollama list`, `ollama ps`, loopback service status and local model warm-up before re-running the workflow. **The end-to-end AI workflow has not yet passed.**
