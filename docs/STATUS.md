@@ -37,3 +37,11 @@ Build deterministic components (washer, nut, screw, simple spur gear) with typed
 ## Multimodal CAD scope agreed 2026-11-15
 
 The project must extend beyond parameterized screws, nuts and gears to: bidirectional 2D/3D CAD; natural-language drawings/parts; sketch/photo/PDF digitization; OCR of handwritten and printed dimensions; single/multi-angle photographic reconstruction with calibration and text-defined measurements; SVG/DXF technical drawing export; STL/mesh splitting, joinery and print preparation; game/design meshes and PBR/UV/LOD assets. Optional AI providers include Ollama, OpenAI, Anthropic Claude and Google Gemini. All are **planned**, not yet verified implementations.
+
+## Windows verification update (2026-11-15)
+
+- Maintainer successfully installed `orkicad-core 0.0.1` in a dedicated virtual environment.
+- The sample washer `.scad` file was generated successfully from JSON using the CLI.
+- Initial Windows unit tests: 4 passed, 1 failed because the test incorrectly treated a valid shallow open box as invalid. The test fixture was corrected and a valid shallow-box regression case was added in commit `57b7e75`.
+- **Pending confirmation:** rerun all 6 unit tests on the Windows machine; test OpenSCAD CLI export to STL and inspect generated geometry.
+- This is not yet an end-to-end CAD/mesh validation or a stable release.
