@@ -137,9 +137,15 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect }: Props) {
       }
       const normal = hit.face.normal.clone().normalize()
       const axis = principalAxis(normal)
+      const tolerance = Math.max(radius * .006, 0.025)
+      const outerBoundary = !!axis && (
+        Math.abs(hit.point[axis] - bbox.min[axis]) < tolerance ||
+        Math.abs(hit.point[axis] - bbox.max[axis]) < tolerance
+      )
       onSelect.current?.({
         axis,
         direction: axis ? Math.sign(normal[axis]) : 0,
+        outerBoundary,
         normal: [normal.x, normal.y, normal.z],
       })
       showSelectedFace(hit.point, normal, hit.faceIndex ?? 0)
