@@ -17,3 +17,18 @@
 
 .unit-note{margin:12px 0 0;font-size:12px;line-height:1.45}
 .header-controls select{max-width:160px}
+
+/* Shared Studio Web/Desktop feature operation editor */
+.feature-history{display:grid;gap:10px;margin-top:10px;min-width:0}
+.feature-history .hint{margin:0}
+.feature-card{display:grid;gap:12px;border:1px solid #47617d;border-radius:10px;background:#0d1b2d;padding:10px;min-width:0}
+.feature-card.selected{border:2px solid #f5c770}
+.feature-toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.feature-toolbar button,.feature-history>button{margin-top:0;padding:7px 10px;font-size:12px}
+.feature-toolbar select{flex:1;min-width:105px;width:auto;padding:7px;font-size:12px}
+.feature-numbers{display:grid;gap:6px}
+.feature-numbers strong{font-size:12px;color:#cddfe9}
+.feature-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.feature-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.feature-three input,.feature-two input{padding:8px;font-size:13px}
+.fields>div:has(.feature-history){grid-column:1/-1}
