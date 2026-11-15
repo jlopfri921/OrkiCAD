@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
@@ -70,6 +70,14 @@ function App() {
   const [showReferencePlanes, setShowReferencePlanes] = useState(true)
   const [cameraCommand, setCameraCommand] = useState<CameraCommand | undefined>()
   const [expandedInspector, setExpandedInspector] = useState<'size' | 'details' | 'operations'>('size')
+  const [livePreview, setLivePreview] = useState(true)
+  const [previewPhase, setPreviewPhase] = useState<'idle' | 'pending' | 'rendering' | 'ready' | 'error'>('idle')
+  const [previewReady, setPreviewReady] = useState(false)
+  const [manualRender, setManualRender] = useState(0)
+  const lastManualRender = useRef(0)
+  const previewSerial = useRef(0)
+  const previewAbort = useRef<AbortController | null>(null)
+
   function moveCamera(action: CameraAction) {
     setCameraCommand(previous => ({ action, sequence: (previous?.sequence ?? 0) + 1 }))
   }
@@ -140,7 +148,8 @@ function App() {
       const nextType = proposal.type as PartType
       const template = activeCatalog[nextType].params
       const next = Object.fromEntries(Object.keys(template).map(key => [key, proposal[key] ?? template[key]]))
-      setType(nextType); setParams(next); setScad(''); setStl(null)
+      previewSerial.current += 1
+      setType(nextType); setParams(next); setScad(''); setPreviewReady(false)
       setReviewApproved(false)
       setAiNote(t.reviewDimensions)
     } catch (e) {
@@ -171,13 +180,15 @@ function App() {
   function updateParameter(name: string, value: ParamValue) {
     setParams(previous => ({ ...previous, [name]: value }))
     setScad('')
-    setStl(null)
+    previewSerial.current += 1
+    setPreviewReady(false)
     setReviewApproved(false)
     setSelectedFace(null)
   }
   function changeType(next: PartType) {
     setExpandedInspector('size')
-    setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setStl(null); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
+    previewSerial.current += 1
+    setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setPreviewReady(false); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
   }
   function useExample(index: number) {
     setPrompt(PROMPT_EXAMPLES[language][index]); setAiNote(""); setError(""); setCopiedExample(null)
@@ -232,36 +243,72 @@ function App() {
       setWorking(false)
     }
   }
-  async function renderSTL() {
-    if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
-    setWorking(true); setError(''); setStl(null)
-    try {
-      const response = await apiFetch('/api/stl', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
-        body: JSON.stringify({ type, ...params })
-      })
-      if (!response.ok) {
-        const raw = await response.text()
-        let detail = raw.slice(0, 400)
-        try {
-          const json = JSON.parse(raw) as { error?: string }
-          detail = json.error || detail
-        } catch { /* Non-JSON proxy errors are still displayed */ }
-        throw new Error(detail || `${t.noSTL}: HTTP ${response.status}`)
-      }
-      const typeHeader = response.headers.get('content-type') || ''
-      if (!typeHeader.includes('model/stl') && !typeHeader.includes('application/octet-stream')) {
-        throw new Error(`${t.wrongSTL} (${typeHeader || 'unknown'}).`)
-      }
-      const buffer = await response.arrayBuffer()
-      if (buffer.byteLength < 84) throw new Error(t.emptySTL)
-      setStl(buffer)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setWorking(false)
+  // Interactive CAD regeneration: inputs are debounced, the previous solid
+  // remains visible while a new validated STL is computed. Old responses
+  // cannot overwrite newer user edits. Web supports abort; desktop ignores
+  // stale responses through the shared generation counter.
+  useEffect(() => {
+    const requestedManual = manualRender !== lastManualRender.current
+    if (requestedManual) lastManualRender.current = manualRender
+    const serial = ++previewSerial.current
+    previewAbort.current?.abort()
+    previewAbort.current = null
+    if (!livePreview && !requestedManual) {
+      setPreviewPhase('idle')
+      return
     }
+    if (aiNote && !reviewApproved) {
+      setPreviewPhase('idle')
+      return
+    }
+    setPreviewPhase('pending')
+    const controller = new AbortController()
+    previewAbort.current = controller
+    const timer = window.setTimeout(async () => {
+      if (controller.signal.aborted || serial !== previewSerial.current) return
+      setPreviewPhase('rendering')
+      try {
+        const response = await apiFetch('/api/stl', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
+          body: JSON.stringify({ type, ...params }),
+          signal: controller.signal,
+        })
+        if (!response.ok) {
+          const raw = await response.text()
+          let detail = raw.slice(0, 400)
+          try { detail = (JSON.parse(raw) as { error?: string }).error || detail }
+          catch { /* Non-JSON proxy errors are still displayed */ }
+          throw new Error(detail || 'STL generation failed: HTTP ' + response.status)
+        }
+        const typeHeader = response.headers.get('content-type') || ''
+        if (!typeHeader.includes('model/stl') && !typeHeader.includes('application/octet-stream')) {
+          throw new Error('Unexpected STL response: ' + (typeHeader || 'unknown'))
+        }
+        const buffer = await response.arrayBuffer()
+        if (buffer.byteLength < 84) throw new Error('Empty or incomplete STL model')
+        if (serial !== previewSerial.current || controller.signal.aborted) return
+        setStl(buffer)
+        setPreviewReady(true)
+        setPreviewPhase('ready')
+        setError('')
+      } catch (reason) {
+        if (serial !== previewSerial.current || controller.signal.aborted) return
+        setPreviewReady(false)
+        setPreviewPhase('error')
+        setError(reason instanceof Error ? reason.message : String(reason))
+      }
+    }, requestedManual ? 0 : 650)
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+      if (previewAbort.current === controller) previewAbort.current = null
+    }
+  }, [type, params, aiNote, reviewApproved, livePreview, manualRender])
+
+  function renderSTL() {
+    if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
+    setManualRender(count => count + 1)
   }
   function openSave(format: ExportFormat) {
     setSaveStatus('')
@@ -271,7 +318,7 @@ function App() {
 
   async function produceExport(format: ExportFormat): Promise<Blob> {
     if (format === 'stl') {
-      if (!stl) throw new Error(language === 'es'
+      if (!stl || !previewReady) throw new Error(language === 'es'
         ? 'Primero genera la vista 3D para obtener el STL.'
         : 'Generate the 3D preview before saving an STL.')
       return new Blob([stl], { type: 'model/stl' })
@@ -332,7 +379,7 @@ function App() {
   }
 
   function downloadSTL() {
-    if (stl) openSave('stl')
+    if (stl && previewReady) openSave('stl')
   }
 
   function download() {
@@ -469,6 +516,11 @@ function App() {
         <div className="viewport-heading">
           <div><div className="section-overline">02 / MODEL</div><h2>{ui.viewport}</h2></div>
           <div className="viewport-badges">
+            <label className="reference-toggle live-preview-toggle">
+              <input type="checkbox" checked={livePreview}
+                onChange={event => setLivePreview(event.target.checked)} />
+              {language === 'es' ? 'Vista dinámica' : 'Live preview'}
+            </label>
             <span>◈ 3D</span><span>{units === 'metric' ? 'mm' : 'in'}</span>
             <label className="reference-toggle">
               <input type="checkbox" checked={showReferencePlanes}
@@ -529,7 +581,7 @@ function App() {
           </div>}
           <div className="viewport-action-row">
             <button className="action-primary" disabled={exportBlocked} onClick={renderSTL}>◈ {ui.render}</button>
-            <button className="secondary" disabled={!stl} onClick={downloadSTL}>↓ STL</button>
+            <button className="secondary" disabled={!stl || !previewReady} onClick={downloadSTL}>↓ STL</button>
           </div>
         </div>
         <div className="output-bar">
