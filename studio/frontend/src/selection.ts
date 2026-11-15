@@ -7,6 +7,7 @@ export type PrincipalAxis = 'x' | 'y' | 'z'
 export interface FaceSelection {
   axis: PrincipalAxis | null
   direction: number
+  outerBoundary: boolean
   normal: [number, number, number]
 }
 
@@ -24,9 +25,12 @@ export function fieldForSelectedFace(
     bottle_cap: { z: ['height'] },
     corner_plate: { x: ['width'], y: ['depth'], z: ['thickness'] },
     machined_block: { x: ['width'], y: ['depth'], z: ['height'] },
-    feature_model: { x: ['width'], y: ['depth'], z: ['height'] },
+    // The highest Z of a feature-model may belong to a boss, not the base.
+    feature_model: { x: ['width'], y: ['depth'] },
   }
-  const candidates = face.axis ? map[part]?.[face.axis] ?? [] : []
+  // A drilled cylindrical wall can have an X/Y normal too, but is not a
+  // width or depth face. Only match surfaces on the overall bounds.
+  const candidates = face.axis && face.outerBoundary ? map[part]?.[face.axis] ?? [] : []
   return candidates.find(key => available.includes(key)) ?? null
 }
 
