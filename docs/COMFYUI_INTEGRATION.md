@@ -142,3 +142,30 @@ git pull --ff-only origin main
 ```
 
 Restart ComfyUI Desktop completely (native node signatures changed), load the new workflow and verify the 3D preview with rotation/zoom. Native preview compatibility, viewer scaling, and new tests require the maintainer's on-device verification.
+
+## Visual parameter editor (experimental; pending Desktop acceptance test)
+
+The `OrkiCADReviewSpec` node now includes an embedded DOM-based, catalog-driven parameter editor served from `comfyui/orkicad_nodes/web/parametric_editor.js`. The ComfyUI custom-node package exports `WEB_DIRECTORY = "./web"`. This editor is supported by an allowlisted metadata endpoint at `GET /orkicad/catalog` and requires no JavaScript build step.
+
+Features in this initial implementation:
+
+- Spanish/English text selector local to the review node.
+- Millimetres/inches display toggle; all backend values remain canonical millimetres (25.4 mm/in).
+- Number inputs with schema minima and integer treatment for tooth counts; select controls for categorical options.
+- Each change updates the existing `overrides_json` widget without sending source code or custom geometry to the backend. Approval automatically resets to **false** whenever the edited values change.
+- The AI node now returns both its original result and a ComfyUI `ui.proposed_spec` payload. The JavaScript extension uses it to populate the downstream review node automatically after the model runs.
+- Existing workflows and backend approval rules remain in place. Run the AI once, review its parameters in the editor, set `approve_for_export = true`, then run again for STL output and 3D preview.
+
+**Known limitations:** The first, unapproved run still fails deliberately at the Python review node. The browser-side editor is client-side and has not yet been validated in the maintainer's exact ComfyUI Desktop version. On some ComfyUI frontend releases the `addDOMWidget` API or link events may differ. Editing parameters after an approval resets the approval switch. A changed AI prompt is not yet bound to a server-side cryptographic approval of that exact proposal, so this is **not a safe approval control for critical designs**. The rendered preview updates on the next completed generation, not continuously while typing. A standalone native CAD application UI with richer geometry editing remains a separate roadmap target.
+
+### Update and test on Windows
+
+```powershell
+cd F:\orkicad-ai-github
+git pull --ff-only origin main
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+Fully exit the ComfyUI Desktop launcher, restart it, reload the ComfyUI browser UI (Ctrl+Shift+R), then reimport `comfyui/workflows/orkicad_ollama_review_preview_stl.json`. Run once with `approve_for_export = false` to populate the visual review UI, then edit values using the form, toggle the same boolean approval field to true, and rerun.
+
+If the form does not appear, verify that `GET http://127.0.0.1:<comfy-port>/orkicad/catalog` returns catalog metadata and inspect the browser developer-console errors and ComfyUI frontend version. Avoid assuming a fixed port: use the address shown by ComfyUI Desktop.
