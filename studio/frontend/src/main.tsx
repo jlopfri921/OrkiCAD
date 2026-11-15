@@ -126,7 +126,7 @@ function App() {
     }
   }
   async function generate() {
-    if (!reviewApproved) { setError(t.approvalRequired); return }
+    if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
     setWorking(true); setError('')
     try {
       const response = await fetch('/api/scad', {
@@ -165,7 +165,7 @@ function App() {
     }
   }
   async function renderSTL() {
-    if (!reviewApproved) { setError(t.approvalRequired); return }
+    if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
     setWorking(true); setError(''); setStl(null)
     try {
       const response = await fetch('/api/stl', {
@@ -196,7 +196,7 @@ function App() {
     }
   }
   async function exportFormat(format: "3mf" | "step") {
-    if (!reviewApproved) { setError(t.approvalRequired); return }
+    if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
     setWorking(true); setError("")
     try {
       const response = await fetch("/api/" + format, {
