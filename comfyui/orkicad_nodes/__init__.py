@@ -162,6 +162,8 @@ class OrkiCADExportSTEP:
         return {"required": {
             "spec_json": ("STRING", {"forceInput": True}),
             "file_stem": ("STRING", {"default": "cad_part"}),
+        }, "optional": {
+            "freecad_path": ("STRING", {"default": "Auto", "multiline": False}),
         }}
 
     RETURN_TYPES = ("STRING",)
@@ -170,14 +172,14 @@ class OrkiCADExportSTEP:
     OUTPUT_NODE = True
     CATEGORY = "OrkiCAD/Export"
 
-    def export(self, spec_json: str, file_stem: str):
+    def export(self, spec_json: str, file_stem: str, freecad_path: str = "Auto"):
         import re
         import uuid
         from orkicad_core.step_export import render_step
 
         if not re.fullmatch(r"[a-zA-Z0-9_-]{1,50}", file_stem):
             raise ValueError("file_stem must contain 1-50 ASCII letters, digits, _ or -")
-        binary = render_step(_spec(spec_json))
+        binary = render_step(_spec(spec_json), freecad_path=freecad_path)
         destination = _output_dir() / f"{file_stem}_{uuid.uuid4().hex[:10]}.step"
         destination.write_bytes(binary)
         return (str(destination),)
