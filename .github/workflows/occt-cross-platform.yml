@@ -1,0 +1,37 @@
+name: Native STEP - Windows Linux macOS
+
+on:
+  push:
+    paths:
+      - "core/orkicad_core/occt*.py"
+      - "core/orkicad_core/step_export.py"
+      - "core/orkicad_core/parts_catalog.py"
+      - "tests/test_occt_integration.py"
+      - ".github/workflows/occt-cross-platform.yml"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-occt-step:
+    name: OCCT STEP / ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-24.04, macos-14]
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install portable CAD runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "cadquery-ocp>=7.9,<9"
+      - name: Verify actual OCP availability
+        run: python -c "import OCP; print('OCP loaded')"
+      - name: Run native STEP round-trip tests
+        run: python -m unittest discover -s tests -p test_occt_integration.py -v
+      - name: Run core and workflow regression tests
+        run: python -m unittest discover -s tests -p test_catalog_and_comfyui.py -v
