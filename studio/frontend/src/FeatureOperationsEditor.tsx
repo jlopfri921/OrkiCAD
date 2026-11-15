@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import FeatureSchematic from './FeatureSchematic'
+import { anchoredFeature, type FeatureAnchor } from './featureAnchors'
 
 export type Feature = {
   op: 'add' | 'cut'
@@ -85,6 +86,23 @@ export default function FeatureOperationsEditor({ operations, onChange, language
           onClick={() => onChange(operations.filter((_, i) => i !== index))}>{text.remove}</button>
       </div>
       <div className="feature-numbers">
+        <label htmlFor={'feature-anchor-' + index}>{isEs ? 'Referencia rápida de posición' : 'Quick position reference'}</label>
+        <select id={'feature-anchor-' + index} defaultValue="" key={index + '-' + item.shape}
+          aria-label={isEs ? 'Alinear operación ' + (index + 1) : 'Align operation ' + (index + 1)}
+          onChange={event => {
+            const anchor = event.target.value as FeatureAnchor
+            if (!anchor) return
+            setFeature(index, anchoredFeature(item, anchor, { width, depth, height }))
+            event.target.value = ''
+          }}>
+          <option value="">{isEs ? 'Seleccionar referencia…' : 'Choose reference…'}</option>
+          <option value="absolute-origin">{isEs ? 'Origen absoluto (0,0,0)' : 'Absolute origin (0,0,0)'}</option>
+          <option value="base-center">{isEs ? 'Centro de la base (X/Y)' : 'Base center (X/Y)'}</option>
+          <option value="top-center">{isEs ? 'Centro de la cara superior' : 'Top face center'}</option>
+        </select>
+        <p className="feature-anchor-help">{isEs
+          ? 'X/Y/Z están referidos al 0,0,0 global. Las cajas usan una esquina de inicio; los cilindros, el centro de su eje en X/Y y su base en Z.'
+          : 'X/Y/Z refer to global 0,0,0. Boxes use their start corner; cylinders use their axis centre in X/Y and their base in Z.'}</p>
         <strong>{text.position} (X / Y / Z mm)</strong>
         <div className="feature-three">
           {item.position.map((value, axis) => <label key={axis}>{'XYZ'[axis]}
