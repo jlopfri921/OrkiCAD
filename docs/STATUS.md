@@ -338,3 +338,7 @@ Maintainer requested the **three principal planes of the global coordinate syste
 - Added source-level `tests/test_absolute_datum_contract.py` and CI source check.
 
 **Acceptance boundary:** code has been committed, but rendering the three planes, toggling, clicking mesh faces, and anchor positions have not been visually user-tested on Windows and need the next React build/runtime acceptance. Tauri installer packaging, actual CAD B-rep topology selection and fully shared direct manipulation in ComfyUI remain future work.
+
+### Shared schematic datum plane parity (2026-11-16)
+
+Extended the framework-neutral SVG operation schematic in canonical `shared/ui/feature_viewport.js` to draw three semi-transparent origin planes (XY, XZ, YZ) and a visibly labelled **0,0,0** where the planes meet. Synchronized the exact file to both `studio/frontend/src/feature_viewport.js` and `comfyui/orkicad_nodes/web/feature_viewport.js`, preserving the already established shared source contract. This means the Studio Web/Desktop feature schematic and ComfyUI feature schematic all show the **same origin** and three datum planes, though the full Three.js STL 3D reference geometry is Studio-only pending ComfyUI embedding. Existing CI shared-UI parity and the new absolute-datum contract checks require equality. This commit has not yet undergone live Windows visual acceptance.
