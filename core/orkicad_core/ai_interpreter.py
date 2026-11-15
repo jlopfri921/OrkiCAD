@@ -55,8 +55,8 @@ def validate_prompt_shape(prompt: str, spec: dict) -> dict:
     """
     p = prompt.casefold()
     is_circular_plate = bool(re.search(
-        r"(?:placa|disco|plate|disk|disc)\\s+(?:de\\s+forma\\s+)?(?:circular|redond[ao]|round)"
-        r"|(?:circular|round)\\s+(?:placa|plate|disk|disc)", p
+        r"(?:placa|disco|plate|disk|disc)\s+(?:de\s+forma\s+)?(?:circular|redond[ao]|round)"
+        r"|(?:circular|round)\s+(?:placa|plate|disk|disc)", p
     ))
     if is_circular_plate and spec.get("type") != "circular_plate":
         raise AIError(
