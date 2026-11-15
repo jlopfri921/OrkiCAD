@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer from './STLViewer'
 import { initialLanguage, messages, type Language } from './i18n'
+import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
 
 type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear'
 type Definition = { label: string; params: Record<string, number | string> }
@@ -17,6 +18,7 @@ const catalog: Record<PartType, Definition> = {
 
 function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage)
+  const [units, setUnits] = useState<UnitSystem>('metric')
   const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
   const [params, setParams] = useState<Record<string, number | string>>(catalog.washer.params)
@@ -24,6 +26,11 @@ function App() {
   const [stl, setStl] = useState<ArrayBuffer | null>(null)
   const [error, setError] = useState('')
   const [working, setWorking] = useState(false)
+  function updateParameter(name: string, value: number | string) {
+    setParams(previous => ({ ...previous, [name]: value }))
+    setScad('')
+    setStl(null)
+  }
   function changeType(next: PartType) {
     setType(next); setParams({ ...catalog[next].params }); setScad(''); setStl(null); setError('')
   }
@@ -125,6 +132,12 @@ function App() {
           <option value="es">Español</option>
           <option value="en">English</option>
         </select>
+        <label htmlFor="units">{t.units}</label>
+        <select id="units" aria-label={t.units} value={units}
+          onChange={e => setUnits(e.target.value as UnitSystem)}>
+          <option value="metric">{t.metric}</option>
+          <option value="imperial">{t.imperial}</option>
+        </select>
       </div>
     </header>
     <section className="intro"><h1>{t.title}</h1><p>{t.intro}</p></section>
@@ -139,16 +152,20 @@ function App() {
       <div className="fields">{Object.entries(params).map(([name, value]) =>
         <div key={name}><label htmlFor={name}>
           {t.fields[name as keyof typeof t.fields] ?? name.replace(/_/g, ' ')}
+          {fieldUnit(type, name, units) ? ` (${fieldUnit(type, name, units)})` : ''}
         </label><input id={name}
           type={typeof value === 'number' ? 'number' : 'text'}
           step={name === 'teeth' || name === 'diameter' ? '1' : 'any'}
-          value={value}
-          onChange={e => setParams(p => ({
-            ...p,
-            [name]: typeof value === 'number'
-              ? e.target.value === '' ? 0 : Number(e.target.value)
+          value={typeof value === 'number'
+            ? displayNumber(value, units, usesLinearUnits(type, name))
+            : value}
+          onChange={e => updateParameter(name,
+            typeof value === 'number'
+              ? canonicalNumber(e.target.value === '' ? 0 : Number(e.target.value),
+                  units, usesLinearUnits(type, name))
               : e.target.value
-          }))} /></div>)}</div>
+          )} /></div>)}</div>
+      <p className="hint unit-note">{t.unitNote}</p>
       <div className="actions">
         <button disabled={working} onClick={generate}>{working ? t.working : t.generateSCAD}</button>
         <button disabled={working} onClick={renderSTL}>{working ? t.working : t.generateSTL}</button>
