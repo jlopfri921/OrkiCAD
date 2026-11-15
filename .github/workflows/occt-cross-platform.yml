@@ -7,6 +7,9 @@ on:
       - "core/orkicad_core/feature_program.py"
       - "core/orkicad_core/geometry.py"
       - "core/orkicad_core/step_export.py"
+      - "core/orkicad_core/studio_server.py"
+      - "studio/frontend/**"
+      - "tests/test_studio_server.py"
       - "core/orkicad_core/parts_catalog.py"
       - "tests/test_occt_integration.py"
       - "tests/test_feature_program.py"
@@ -40,3 +43,25 @@ jobs:
         run: python -m unittest discover -s tests -p test_occt_integration.py -v
       - name: Run core and workflow regression tests
         run: python -m unittest discover -s tests -p test_catalog_and_comfyui.py -v
+
+  test-studio-web:
+    name: Studio web shared-core API + React build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install shared Python core
+        run: python -m pip install -e .
+      - name: Test web Studio shared CAD API contracts
+        run: python -m unittest discover -s tests -p test_studio_server.py -v
+      - name: Install Studio frontend dependencies
+        working-directory: studio/frontend
+        run: npm install --no-audit --no-fund
+      - name: Type-check and build React frontend
+        working-directory: studio/frontend
+        run: npm run build
