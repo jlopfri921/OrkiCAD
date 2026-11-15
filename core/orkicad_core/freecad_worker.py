@@ -19,7 +19,21 @@ def _solid(spec):
     vector = App.Vector
     box = Part.makeBox
     cylinder = Part.makeCylinder
-    if k == "washer":
+    if k == "machined_block":
+        width, depth, height = (spec[key] for key in ("width", "depth", "height"))
+        shape = box(width, depth, height)
+        for x in (spec["hole_inset"], width - spec["hole_inset"]):
+            hole = cylinder(spec["hole_diameter"] / 2, height + .2,
+                            vector(x, depth / 2, -.1))
+            shape = shape.cut(hole)
+        pocket_w = spec["pocket_width"]
+        pocket_d = spec["pocket_depth"]
+        cut = spec["pocket_cut_depth"]
+        pocket = box(pocket_w, pocket_d, cut + .1,
+                     vector((width - pocket_w) / 2,
+                            (depth - pocket_d) / 2, height - cut))
+        shape = shape.cut(pocket)
+    elif k == "washer":
         outer = cylinder(spec["outer_diameter"] / 2, spec["thickness"])
         bore = cylinder(spec["inner_diameter"] / 2,
                         spec["thickness"] + 0.2, vector(0, 0, -0.1))
