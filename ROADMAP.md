@@ -23,3 +23,7 @@ This roadmap describes **targets**, not delivered functionality. Milestones have
 6. Introduce Studio frontend and provider adapters after CAD core is solid.
 
 Progress belongs in [docs/STATUS.md](docs/STATUS.md). User-visible changes belong in [CHANGELOG.md](CHANGELOG.md).
+
+## Broader multimodal scope
+
+In addition to parametric CAD components, upcoming milestones will cover 2D-to-3D and 3D-to-2D technical drawings; text and LLM to plans/solids; hand sketches and dimensioned scanned drawings; single- and multi-photo reconstruction with user-specified measurements; printing-ready mesh repair and STL splitting with connectors; game/design asset generation and optimization; SVG/DXF/STEP/STL/3MF/GLB exports; optional Ollama and cloud providers. These are **proposed capabilities**, not implemented features. Each needs test cases and engineering validation before release.
