@@ -6,6 +6,10 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ### Added
 
+- BOSL2-backed M3–M12 screw/nut and involute spur gear SCAD source generation, validated JSON examples and unit-test source.
+- Optional CLI `--bosl2-dir` and Windows guide for external BOSL2 installation.
+
+
 - First Python prototype: validated washer, mounting plate and open-box OpenSCAD generators, CLI, JSON examples, basic tests and GitHub Actions configuration.
 
 - Initial project vision and planned architecture.
