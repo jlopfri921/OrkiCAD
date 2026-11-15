@@ -29,8 +29,33 @@ function App() {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
         body: JSON.stringify({ type, ...params })
       })
-      const body = await response.json()
-      if (!response.ok) throw new Error(body.error ?? 'Generation failed')
+      const contentType = response.headers.get('content-type') ?? ''
+      const text = await response.text()
+      if (!text.trim()) {
+        throw new Error(
+          `El servidor CAD no devolvió datos (HTTP ${response.status}). ` +
+          'Comprueba que el servidor Python está abierto en http://127.0.0.1:8765/api/health'
+        )
+      }
+      if (!contentType.includes('application/json')) {
+        throw new Error(
+          `Respuesta inesperada del servidor (HTTP ${response.status}, tipo: ${contentType || 'desconocido'}). ` +
+          'Comprueba el servidor Python y la consola de Vite.'
+        )
+      }
+      let body: { error?: string; scad?: string }
+      try {
+        body = JSON.parse(text)
+      } catch {
+        throw new Error(
+          `El servidor devolvió JSON no válido (HTTP ${response.status}). ` +
+          'Revisa la consola del servidor Python.'
+        )
+      }
+      if (!response.ok) throw new Error(body.error || `Error HTTP ${response.status}`)
+      if (typeof body.scad !== 'string' || !body.scad.trim()) {
+        throw new Error('El servidor CAD no devolvió ningún modelo SCAD.')
+      }
       setScad(body.scad)
     } catch (e) {
       setScad(''); setError(e instanceof Error ? e.message : String(e))
