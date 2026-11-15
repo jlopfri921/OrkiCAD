@@ -38,6 +38,9 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
     if not isinstance(spec, Mapping):
         raise ParameterError("spec must be an object")
     kind = spec.get("type")
+    if kind == "feature_model":
+        from .feature_program import generate_feature_scad
+        return generate_feature_scad(spec)
     if kind == "washer":
         outer = _number(spec, "outer_diameter")
         inner = _number(spec, "inner_diameter")
