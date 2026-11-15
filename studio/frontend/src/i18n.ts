@@ -42,12 +42,13 @@ export const messages = {
     wrongSTL: 'El servidor no devolvió un archivo STL',
     emptySTL: 'El archivo STL está vacío o incompleto.',
     parts: {
-      washer: 'Arandela', mounting_plate: 'Placa de montaje', open_box: 'Caja abierta',
+      circular_plate: 'Placa circular con taladros radiales', washer: 'Arandela', mounting_plate: 'Placa de montaje', open_box: 'Caja abierta',
       metric_screw: 'Tornillo métrico', metric_nut: 'Tuerca métrica', spur_gear: 'Engranaje recto',
       box_lid: 'Tapadera de caja', bottle_cap: 'Tapón de botella',
       corner_plate: 'Placa con esquinas', machined_block: 'Bloque mecanizado', feature_model: 'Modelo por operaciones'
     },
     fields: {
+      outer_radius: 'Radio exterior', hole_count: 'Número de taladros', bolt_circle_radius: 'Radio de distribución de taladros',
       outer_diameter: 'Diámetro exterior', inner_diameter: 'Diámetro interior',
       thickness: 'Espesor', width: 'Anchura', depth: 'Profundidad',
       hole_diameter: 'Diámetro del agujero', hole_inset: 'Margen del agujero',
@@ -107,12 +108,13 @@ export const messages = {
     wrongSTL: 'The server did not return an STL file',
     emptySTL: 'The STL file is empty or incomplete.',
     parts: {
-      washer: 'Washer', mounting_plate: 'Mounting plate', open_box: 'Open box',
+      circular_plate: 'Circular plate with radial holes', washer: 'Washer', mounting_plate: 'Mounting plate', open_box: 'Open box',
       metric_screw: 'Metric screw', metric_nut: 'Metric nut', spur_gear: 'Spur gear',
       box_lid: 'Box lid', bottle_cap: 'Bottle cap',
       corner_plate: 'Corner plate', machined_block: 'Machined block', feature_model: 'Feature model'
     },
     fields: {
+      outer_radius: 'Outer radius', hole_count: 'Hole count', bolt_circle_radius: 'Hole pitch radius',
       outer_diameter: 'Outer diameter', inner_diameter: 'Inner diameter',
       thickness: 'Thickness', width: 'Width', depth: 'Depth',
       hole_diameter: 'Hole diameter', hole_inset: 'Hole inset',
