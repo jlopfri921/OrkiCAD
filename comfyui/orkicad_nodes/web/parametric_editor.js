@@ -12,6 +12,8 @@ const STRINGS = {
     units: "Unidades", reset: "Restablecer propuesta", type: "Pieza",
     angle: "grados", invalid: "Introduce un número válido.",
     catalog: "No se pudo cargar el catálogo de piezas.", overrides: "Los cambios se guardan en overrides_json.",
+    freeze: "Copiar diseño para editar sin IA", copied: "Diseño copiado. Pégalo en base_spec_json del nodo Saved parametric design.",
+    copyFailed: "No se pudo copiar: utiliza el JSON del nodo como alternativa.",
   },
   en: {
     title: "Parametric editor", noProposal: "Run the AI once to receive part parameters.",
@@ -20,6 +22,8 @@ const STRINGS = {
     units: "Units", reset: "Reset to proposal", type: "Part",
     angle: "degrees", invalid: "Enter a valid number.",
     catalog: "Could not load the parts catalog.", overrides: "Changes are saved to overrides_json.",
+    freeze: "Copy design for AI-free edits", copied: "Design copied. Paste into base_spec_json of Saved parametric design.",
+    copyFailed: "Unable to copy; use the node JSON as an alternative.",
   },
 };
 let catalogPromise;
@@ -80,7 +84,9 @@ function paint(node) {
   });
   line.append(element("span", t.units + ":"), units, lang);
   host.append(line);
-  const proposal = node.properties?.orkicad_proposal;
+  const saved = node.type === "OrkiCADSavedDesign" || node.comfyClass === "OrkiCADSavedDesign";
+  const baseWidget = node.widgets?.find((w) => w.name === "base_spec_json");
+  const proposal = saved ? parseObject(baseWidget?.value) : node.properties?.orkicad_proposal;
   const entry = node.__orkicadCatalog?.parts?.[proposal?.type];
   if (!proposal || !entry) {
     host.append(element("div", node.__orkicadCatalogError ? t.catalog : t.noProposal));
@@ -159,6 +165,25 @@ function paint(node) {
     paint(node);
   });
   host.append(reset);
+  if (!saved) {
+    const freeze = element("button", t.freeze, {
+      cursor: "pointer", padding: "5px 8px", margin: "8px 0 0 5px",
+      background: "#274b65", border: "1px solid #6c9fbc", color: "white",
+    });
+    freeze.addEventListener("click", async () => {
+      // Validate again at the saved-design Python node on each generation.
+      const frozen = { ...proposal, ...parseObject(overridesWidget?.value) };
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(frozen, null, 2));
+        freeze.textContent = t.copied;
+      } catch (err) {
+        console.warn("[OrkiCAD] clipboard write failed", err);
+        freeze.textContent = t.copyFailed;
+      }
+    });
+    host.append(freeze);
+  }
+  if (saved) return;
   host.append(element("p", approvedWidget?.value ? t.approved : t.pending, {
     fontSize: "12px", marginTop: "8px",
   }));
@@ -221,7 +246,7 @@ app.registerExtension({
         if (typeof proposed === "string") refreshReviewLinkedTo(this, proposed);
       };
     }
-    if (nodeData.name === "OrkiCADReviewSpec") {
+    if (nodeData.name === "OrkiCADReviewSpec" || nodeData.name === "OrkiCADSavedDesign") {
       const previous = nodeType.prototype.onNodeCreated;
       nodeType.prototype.onNodeCreated = function () {
         previous?.apply(this, arguments);
@@ -230,7 +255,8 @@ app.registerExtension({
     }
   },
   loadedGraphNode(node) {
-    if (node.comfyClass === "OrkiCADReviewSpec" || node.type === "OrkiCADReviewSpec") {
+    if (["OrkiCADReviewSpec", "OrkiCADSavedDesign"].includes(node.comfyClass) ||
+        ["OrkiCADReviewSpec", "OrkiCADSavedDesign"].includes(node.type)) {
       setupReview(node);
       paint(node);
     }
