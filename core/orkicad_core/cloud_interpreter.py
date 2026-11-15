@@ -11,7 +11,7 @@ import re
 import urllib.error
 import urllib.request
 
-from .ai_interpreter import AIError, build_cad_instruction, MAX_REQUEST
+from .ai_interpreter import AIError, build_cad_instruction, validate_prompt_shape, MAX_REQUEST
 from .parts_catalog import validated_spec
 
 PROVIDERS = ("openai", "anthropic", "gemini")
@@ -94,7 +94,7 @@ def interpret_cloud(prompt: str, *, provider: str, model: str, api_key: str) -> 
                              for candidate in result["candidates"]
                              for part in candidate["content"]["parts"])
         # Responses stay JSON-only; no executing or evaluating source.
-        return validated_spec(json.loads(text))
+        return validate_prompt_shape(prompt, validated_spec(json.loads(text)))
     except (KeyError, IndexError, TypeError, ValueError) as exc:
         raise AIError(
             "Provider response did not contain a valid OrkiCAD CAD JSON specification. "
