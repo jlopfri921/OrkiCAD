@@ -107,6 +107,37 @@ function paint(node) {
     const current = Object.hasOwn(overrides, key) ? overrides[key] : proposal[key];
     fields.append(element("label", key.replaceAll("_", " ") +
       (isAngle ? " (°)" : isCount ? "" : " (" + units.value + ")")));
+    if (desc.editor === "feature_operations") {
+      const editor = element("textarea");
+      editor.rows = 10;
+      editor.value = JSON.stringify(current, null, 2);
+      editor.style.cssText = "width:100%;min-height:200px;box-sizing:border-box;background:#292929;color:white;border:1px solid #666;padding:6px;font:11px monospace;resize:vertical;";
+      editor.setAttribute("aria-label", "operations JSON (mm)");
+      // Operations always use millimetres; changing the display units must not
+      // silently rescale or rewrite a nested feature program.
+      const existingLabel = fields.lastChild;
+      if (existingLabel) existingLabel.textContent = "operations (JSON, mm)";
+      editor.addEventListener("change", () => {
+        let parsed;
+        try {
+          parsed = JSON.parse(editor.value);
+          if (!Array.isArray(parsed)) throw new Error("Expected an array");
+        } catch {
+          editor.setCustomValidity("Invalid operations JSON array");
+          editor.reportValidity();
+          return;
+        }
+        editor.setCustomValidity("");
+        const updated = parseObject(overridesWidget?.value);
+        updated[key] = parsed;
+        if (overridesWidget) overridesWidget.value = JSON.stringify(updated);
+        if (approvedWidget) approvedWidget.value = false;
+        app.graph?.setDirtyCanvas(true, true);
+        paint(node);
+      });
+      fields.append(editor);
+      continue;
+    }
     const input = desc.options?.length ? element("select") : element("input");
     if (desc.options?.length) {
       for (const option of desc.options) input.append(new Option(option, option));
