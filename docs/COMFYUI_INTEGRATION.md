@@ -115,3 +115,30 @@ Use the exact model name shown in the installed model list. Cold loading, CPU of
 ```
 
 Exit and restart **the entire ComfyUI Desktop launcher** for user environment changes to take effect. A connection timeout does not show whether the model is correctly installed, and the longer timeout is not a substitute for model and hardware diagnosis.
+
+## Interactive STL preview in ComfyUI (experimental)
+
+ComfyUI provides a native **Preview3D** node capable of displaying STL files in an interactive viewport. OrkiCAD now exposes **two** outputs from `OrkiCADRenderSTL`:
+
+- `stl_path`: absolute file path for external use (unchanged first output).
+- `preview_path`: output-relative path `orkicad/<generated-name>.stl` for the native ComfyUI viewer.
+
+A new example is available at `comfyui/workflows/orkicad_ollama_review_preview_stl.json`, connecting:
+
+`OrkiCADInterpretLocal → OrkiCADReviewSpec → OrkiCADRenderSTL → Preview3D`
+
+The `Preview3D` node is built into supported ComfyUI versions, so this example does not bundle Three.js or install additional visualization packages. The workflow connects the **second** `RenderSTL` output to the preview node's `model_file` input. ComfyUI's current upstream code marks this simpler Preview3D entry as **deprecated** in favor of Preview3DAdvanced (which requires a typed 3D file), so this path remains experimental and subject to the installed Desktop build. If the node cannot be resolved, check whether **Preview 3D** is present and report the exact node type/version instead of installing unrelated extensions.
+
+### Approval gate
+
+`OrkiCADReviewSpec` requires `approve_for_export = true` and validates any `overrides_json` before passing the AI-produced part spec onward. The default is **false**: the first run raises a readable refusal with the proposed JSON parameters; **no STL is exported by this gate**. Read the dimensions in the error message, edit the `overrides_json` widget (e.g. `{"box_width":80,"box_depth":50}`), set `approve_for_export` true, and re-run. This is an interim manual safeguard, **not yet a complete interactive CAD parameter editor**.
+
+### Maintainer check
+
+```powershell
+cd F:\orkicad-ai-github
+git pull --ff-only origin main
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+Restart ComfyUI Desktop completely (native node signatures changed), load the new workflow and verify the 3D preview with rotation/zoom. Native preview compatibility, viewer scaling, and new tests require the maintainer's on-device verification.
