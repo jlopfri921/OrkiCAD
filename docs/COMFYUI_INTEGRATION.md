@@ -263,3 +263,53 @@ Then **fully restart** ComfyUI Desktop to inherit the new variable. The sample m
 The native STEP node now accepts an optional `freecad_path` text field (default `Auto`) **per workflow**. Users can enter a full `FreeCADCmd.exe` path or the FreeCAD `bin` directory without changing system-wide variables. Resolution order is: explicit node setting, optional `ORKICAD_FREECAD_CMD` user environment setting, system PATH, and common Windows `Program Files/FreeCAD*/bin` paths. The exported workflow defaults to `Auto`, avoiding machine-specific absolute paths. Existing workflows without this optional widget remain supported. This change is pending ComfyUI Desktop runtime validation.
 
 **Long-term target:** an OrkiCAD-owned B-rep geometry and export backend built on a packaged OpenCascade (OCCT) library. This would avoid requiring users to install the full FreeCAD application for STEP, IGES and related native CAD formats. The current FreeCADCmd-based export is a **temporary optional adapter**, and no independent packaged OCCT STEP backend has yet been implemented. Release engineering must validate OCCT redistribution and platform packaging; the first iteration should target washer, plate, box and lid.
+
+## FreeCAD-independent multi-platform STEP via OrkiCAD OCCT (experimental)
+
+A second native STEP backend is now implemented using **`cadquery-ocp` / OpenCascade** without FreeCAD. It constructs analytic B-rep solids directly from allowlisted validated CAD parameters for **washer, mounting_plate, open_box and box_lid**. It does not transform STL triangles into STEP surfaces.
+
+The pipeline supports Windows, Linux and macOS **at source level**, with a native multi-OS acceptance matrix in `.github/workflows/occt-cross-platform.yml`. Actual installer/ComfyUI compatibility on each OS has yet to be established. Python wheels are supplied separately for supported architectures by the upstream `cadquery-ocp` project; OCCT is not bundled into the OrkiCAD prototype.
+
+### Install into a dedicated Python environment
+
+Use a Python version supported by the platform's `cadquery-ocp` wheel (3.11 or 3.13 in the current CI matrix). Keep the OCCT package **outside ComfyUI's own Python** to avoid modifying its PyTorch packages:
+
+**Windows PowerShell:**
+```powershell
+cd F:\orkicad-ai-github
+py -3.13 -m venv .venv-occt
+.\.venv-occt\Scripts\python.exe -m pip install --upgrade pip
+.\.venv-occt\Scripts\python.exe -m pip install -e . "cadquery-ocp>=7.9,<9"
+.\.venv-occt\Scripts\python.exe -c "import OCP; print('OCCT runtime ready')"
+```
+
+**Linux / macOS shell:**
+```sh
+python3 -m venv .venv-occt
+.venv-occt/bin/python -m pip install --upgrade pip
+.venv-occt/bin/python -m pip install -e . 'cadquery-ocp>=7.9,<9'
+.venv-occt/bin/python -c 'import OCP; print("OCCT runtime ready")'
+```
+
+These instructions apply to a source checkout and assume a working Python installation and pip access. The resulting environment is an **optional STEP export dependency**, not a requirement for STL/3MF, AI interaction or parametric editing. Installers must eventually provision this runtime automatically, where licensing and binary compatibility permit.
+
+### ComfyUI workflow
+
+Load `comfyui/workflows/orkicad_ollama_review_preview_stl_3mf_occt_step.json` after updating OrkiCAD and restarting ComfyUI.
+
+The graph branches the manually approved AI proposal to:
+- `OrkiCADRenderSTL → Preview3D`
+- `OrkiCADExportMesh` set to `3mf`
+- `OrkiCADExportOCCTSTEP`
+
+Set the STEP node's optional `occt_python_path` to **the absolute path to the dedicated virtual environment's Python**, or configure `ORKICAD_OCCT_PYTHON` for the ComfyUI server. `Auto` uses that environment variable if set, otherwise the running ComfyUI interpreter (which is unlikely to have OCP). Do not hardcode any developer paths in distributable workflows.
+
+Run the existing validation suite:
+```sh
+python -m unittest discover -s tests -v
+```
+When executed from the OCCT virtual environment, `tests/test_occt_integration.py` actually exports, reimports and validates four native STEP solids. This is **not** a substitute for CAD interoperability tests in independent applications.
+
+### Current status and caveats
+
+The code is committed, and the Python-level `OCP` STEP writer API and round-trip serialization were smoke-tested in an available development environment, but **the full OrkiCAD OCCT worker and ComfyUI graph have not yet been exercised on the maintainer's Windows installation**. The automated Windows/Linux/macOS matrix is present in the repository; green jobs must be checked separately. The first engine has no screws, gears, bottle threads, analytic fillets or parametric feature-history tree, and no packaged installer yet. OCCT STEP is a true B-rep exchange file, but it is not an editable feature-history FreeCAD project.
