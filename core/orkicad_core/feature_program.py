@@ -17,7 +17,7 @@ EXAMPLE_OPERATIONS = [
      "radius": 3, "height": 12.2},
     {"op": "cut", "shape": "cylinder", "position": [88, 30, -0.1],
      "radius": 3, "height": 12.2},
-    {"op": "add", "shape": "cylinder", "position": [50, 30, 11.8],
+    {"op": "add", "shape": "cylinder", "position": [50, 50, 11.8],
      "radius": 7, "height": 8},
 ]
 
