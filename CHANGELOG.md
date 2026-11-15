@@ -34,3 +34,9 @@ All notable changes will be recorded here, grouped by released version. The proj
 - Added Python regression tests for shared catalog entries, prototype box lids and bottle caps, node registration and workflow structure.
 - Added English installation and security guidance in `docs/COMFYUI_INTEGRATION.md`.
 - The integration reuses `orkicad_core` and does not independently execute AI-generated source code.
+
+### Source committed — local AI to CAD workflow (pending on-device test)
+
+- Added a second ComfyUI JSON example combining local Ollama interpretation with validated parametric SCAD/STL generation.
+- Documented required local model selection and the prototype limitation of rendering from AI-proposed values without a dedicated review step.
+- Added workflow wiring and validation regression tests. No new release has been tagged.
