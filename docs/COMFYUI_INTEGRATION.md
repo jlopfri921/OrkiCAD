@@ -169,3 +169,24 @@ git pull --ff-only origin main
 Fully exit the ComfyUI Desktop launcher, restart it, reload the ComfyUI browser UI (Ctrl+Shift+R), then reimport `comfyui/workflows/orkicad_ollama_review_preview_stl.json`. Run once with `approve_for_export = false` to populate the visual review UI, then edit values using the form, toggle the same boolean approval field to true, and rerun.
 
 If the form does not appear, verify that `GET http://127.0.0.1:<comfy-port>/orkicad/catalog` returns catalog metadata and inspect the browser developer-console errors and ComfyUI frontend version. Avoid assuming a fixed port: use the address shown by ComfyUI Desktop.
+
+## Edit and regenerate without Ollama: standalone saved designs
+
+**New nodes and sample workflow (experimental):**
+
+- `OrkiCADSavedDesign` (display name **OrkiCAD · Saved parametric design**) has local `base_spec_json` and `overrides_json` widgets. It validates the stored design on every run and does not use, contact, or depend on Ollama.
+- `comfyui/workflows/orkicad_saved_design_preview_stl.json` connects **Saved parametric design → Render STL → Preview3D**. The included self-contained lid is 80 × 50 mm with a 0.3 mm clearance and can be edited in the visual parameter form.
+- The original review node's visual editor now has a **Copy design for AI-free edits** button. It copies the AI proposal plus current edited measurements into a standalone JSON specification.
+
+**Workflow to transfer an AI-created part into the independent editor:**
+
+1. Open and run the existing `orkicad_ollama_review_preview_stl.json` workflow once to obtain a supported CAD proposal.
+2. In its `OrkiCADReviewSpec` visual form, adjust the dimensions if necessary, then click **Copy design for AI-free edits**. Browser clipboard permissions may require HTTPS or localhost; if clipboard is unavailable, copy the original and overridden JSON manually.
+3. Open `orkicad_saved_design_preview_stl.json` as **a separate ComfyUI workflow**.
+4. Paste the copied JSON into the `base_spec_json` widget of the `OrkiCADSavedDesign` node; leave `overrides_json` as `{}`, or set additional overrides.
+5. Edit dimensions directly in its parameter editor and queue the workflow. Only the CAD Core and OpenSCAD are called. **Ollama is not part of this workflow and will not be invoked on subsequent CAD changes.**
+6. Inspect the regenerated output in the native 3D preview. Editing values is not yet an instantaneous mesh update; it triggers an STL regeneration only when the workflow is queued.
+
+All saved specifications are parsed through the central allowlisted catalog and geometric validator. This editor still supports the prototype's current eight part families, not freeform CAD geometry. The new saved-design workflow does not have a separate approval gate by default: selecting **Queue** is treated as the user's explicit instruction to regenerate a local draft STL. Check all tolerances before physical printing.
+
+**Acceptance pending:** The Python regression tests and JavaScript controls have been updated in source but are not yet independently validated against the maintainer's Desktop installation. After `git pull --ff-only origin main`, run the project's unit tests and restart ComfyUI fully; use `Ctrl+Shift+R` to refresh the ComfyUI interface.
