@@ -90,7 +90,7 @@ The official [OrkiCAD AI logo](logo_OrkiCAD-AI.png) is stored in the repository 
 ## Mesh inspection and early Studio preview
 
 - **Mesh inspector:** basic watertightness, connected-component count, volume and bounding-box checks, with a JSON report; requires the optional Python `mesh` extra. [Mesh validation guide](docs/MESH_VALIDATION.md).
-- **Studio frontend prototype:** React/TypeScript component editor with a localhost Python CAD API. It generates and downloads SCAD source but **does not yet contain a 3D viewer or Tauri/Rust desktop packaging**. [Run Studio prototype](docs/STUDIO_PROTOTYPE.md).
+- **Studio Web + Desktop developer prototype:** one shared React/TypeScript interface with a modern responsive three-panel CAD workspace, local AI and optional cloud models, parametric operation editor, real STL 3D viewport and SCAD/STL/3MF/native OCCT STEP exports. A Tauri 2 desktop developer shell now starts its local Core worker automatically. **No independently installable production Desktop package or secured hosted Web edition is released.** [Web instructions](docs/STUDIO_PROTOTYPE.md) · [Desktop developer setup and limits](docs/STUDIO_DESKTOP.md).
 - Windows validation of the initial STL samples is logged in [project status](docs/STATUS.md); the new inspector and Studio frontend still need local execution testing.
 
 ## Languages
