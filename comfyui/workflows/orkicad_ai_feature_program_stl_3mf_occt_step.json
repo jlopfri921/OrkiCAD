@@ -31,7 +31,7 @@
         "Node name for S&R": "OrkiCADInterpretLocal"
       },
       "widgets_values": [
-        "Create a feature_model from a 100 x 60 x 12 mm box. Apply exactly four ordered operations: cut a 48 x 30 x 6 mm box at position [26,15,7]; cut vertical cylinder radius 3 height 12.2 at [12,30,-0.1]; cut the same cylinder at [88,30,-0.1]; add a cylinder boss radius 7 height 8 at [50,50,11.8]. Output strict JSON with type, width, depth, height, operations; each operation has only op, shape, position, and size (box) or radius and height (cylinder). No scripts.",
+        "Create a feature_model from a 100 x 60 x 12 mm box. Apply exactly four ordered operations: cut a 48 x 30 x 6.2 mm box at position [26,15,6]; cut vertical cylinder radius 3 height 12.2 at [12,30,-0.1]; cut the same cylinder at [88,30,-0.1]; add a cylinder boss radius 7 height 8 at [50,50,11.8]. Output strict JSON with type, width, depth, height, operations; each operation has only op, shape, position, and size (box) or radius and height (cylinder). No scripts.",
         "qwen3-coder:30b"
       ]
     },
