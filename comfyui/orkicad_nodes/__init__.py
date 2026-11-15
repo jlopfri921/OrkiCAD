@@ -140,7 +140,8 @@ class OrkiCADInterpretLocal:
         from orkicad_core.ai_interpreter import interpret
         proposal = interpret(prompt, model=ollama_model)
         # The downstream part remains editable, not verified for mechanical fit.
-        return (json.dumps(proposal, ensure_ascii=False, sort_keys=True),)
+        serialized = json.dumps(proposal, ensure_ascii=False, sort_keys=True)
+        return {"ui": {"proposed_spec": [serialized]}, "result": (serialized,)}
 
 
 class OrkiCADReviewSpec:
@@ -204,3 +205,22 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "OrkiCADInterpretLocal": "OrkiCAD · Local AI → CAD parameters",
     "OrkiCADReviewSpec": "OrkiCAD · Review & approve CAD",
 }
+
+
+# ComfyUI serves this JavaScript automatically alongside the registered nodes.
+WEB_DIRECTORY = "./web"
+
+# Only expose allowlisted catalog metadata; never arbitrary filesystem data.
+def _register_catalog_route():
+    try:
+        from server import PromptServer
+        from aiohttp import web
+        from orkicad_core.parts_catalog import catalog_public
+    except ImportError:
+        return
+
+    @PromptServer.instance.routes.get("/orkicad/catalog")
+    async def orkicad_catalog(_request):
+        return web.json_response(catalog_public())
+
+_register_catalog_route()
