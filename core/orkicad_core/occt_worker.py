@@ -50,6 +50,24 @@ def make_shape(spec):
             shape = operation.Shape()
             if not BRepCheck_Analyzer(shape).IsValid():
                 raise RuntimeError(f"OCCT feature operation {index} produced an invalid solid")
+    elif kind == "circular_plate":
+        import math
+        radius = spec["outer_radius"]
+        height = spec["thickness"]
+        count = spec["hole_count"]
+        pitch_radius = spec["bolt_circle_radius"]
+        shape = cylinder(radius, height)
+        for index in range(count):
+            angle = 2 * math.pi * index / count
+            x = pitch_radius * math.cos(angle)
+            y = pitch_radius * math.sin(angle)
+            cutter = cylinder(spec["hole_diameter"] / 2, height + .2,
+                              x, y, -.1)
+            subtraction = BRepAlgoAPI_Cut(shape, cutter)
+            subtraction.Build()
+            if not subtraction.IsDone() or subtraction.Shape().IsNull():
+                raise RuntimeError(f"OCCT circular plate hole {index} failed")
+            shape = subtraction.Shape()
     elif kind == "corner_plate":
         from OCP.BRepFilletAPI import (
             BRepFilletAPI_MakeFillet, BRepFilletAPI_MakeChamfer
