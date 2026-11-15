@@ -364,3 +364,25 @@ The existing visual Review editor now exposes an **operations JSON textarea** fo
 **Run on the maintainer's ComfyUI:** pull `main`, restart ComfyUI Desktop, load the workflow above, confirm the local Ollama model, review the feature operations, set the STEP node `occt_python_path` to the existing dedicated OCCT Python environment, and approve. Three branches produce native STL/3MF via OpenSCAD and analytic STEP via OCCT. The optional legacy FreeCADCmd backend does **not** implement `feature_model`; it is intentionally excluded from that adapter's allowlist.
 
 **Limits:** no rotations or transforms beyond translation, sketches, revolutions, arbitrary solids, local history-tree references, fillet selectors or assemblies. The OCCT worker ran this example's four operations as valid single-solid booleans in an isolated smoke check, but full ComfyUI acceptance and cross-format parity are not yet verified. Linux and macOS remain CI targets rather than maintainer-verified hosts.
+
+## Visual feature history editor (experimental, 2026-11-15)
+
+The `feature_model` operations list now has a **visual operation history** in the existing ComfyUI `OrkiCADReviewSpec` and `OrkiCADSavedDesign` DOM editors. The interface provides one numbered operation card per feature, with:
+
+- `Add solid` / `Subtract solid` selector; box/cylinder primitive selector.
+- Numeric `X/Y/Z` position inputs; box `X/Y/Z` size or cylinder radius/height inputs.
+- **Move up / Move down**, **Remove**, and **Add operation** controls; maximum eight operations, minimum one.
+- An optional collapsed **Advanced JSON (mm)** editor bound to the same canonical operations list.
+
+Every change updates the existing `overrides_json` widget, marks the ComfyUI graph dirty, and **resets `approve_for_export`** on AI-review nodes. The Python Core remains the final authority for all numeric bounds, allowed primitive/operation combinations, and solid topology. Moving an operation can change or invalidate its result; native OCCT validates the resulting B-rep during export.
+
+**Units:** position, size, radius and height inside feature cards are deliberately shown in **millimetres** regardless of the separate overall editor unit display. The external length controls may display inches but nested operations stay in their documented canonical units. This avoids accidentally rescaling stored geometry.
+
+**Two workflow choices:**
+
+1. `comfyui/workflows/orkicad_ai_feature_program_stl_3mf_occt_step.json` — Ollama proposes the starting geometry; the user edits cards, explicitly approves, and exports.
+2. `comfyui/workflows/orkicad_visual_feature_editor_stl_3mf_occt_step.json` — no Ollama required. `OrkiCADSavedDesign` contains an editable initial `feature_model`; edit cards and directly export STL, 3MF and native OCCT STEP.
+
+For Windows Desktop, update the Git working tree, **restart ComfyUI** to reload the JS extension and Python catalog, import either workflow, and set the OCCT node's optional `occt_python_path` to the locally installed OCCT Python interpreter (the supplied workflows use `Auto` without machine-specific paths). Use the existing `python -m unittest discover -s tests -v` runner for static and Python validations. This is a visual **feature operations list**, not a sketch constraint solver, viewport gizmo editor, multi-part assembly system, or full feature-tree dependency graph.
+
+**Acceptance:** source committed, but actual UI operation-card interactions and exporter outcomes need a fresh maintainer test. The previous JSON-based feature-model workflow was reported functional on Windows.
