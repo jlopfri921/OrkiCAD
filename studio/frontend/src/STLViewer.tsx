@@ -8,6 +8,7 @@ type Props = {
   data: ArrayBuffer | null
   emptyMessage?: string
   onFaceSelect?: (selection: FaceSelection | null) => void
+  showReferencePlanes?: boolean
 }
 
 function principalAxis(normal: THREE.Vector3): PrincipalAxis | null {
@@ -21,10 +22,14 @@ function principalAxis(normal: THREE.Vector3): PrincipalAxis | null {
  * coplanar triangles as one face when possible. Selection is intentionally
  * not presented as stable OCCT topology/feature identity.
  */
-export default function STLViewer({ data, emptyMessage, onFaceSelect }: Props) {
+export default function STLViewer({ data, emptyMessage, onFaceSelect, showReferencePlanes = true }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const onSelect = useRef(onFaceSelect)
   onSelect.current = onFaceSelect
+  const references = useRef<THREE.Group | null>(null)
+  useEffect(() => {
+    if (references.current) references.current.visible = showReferencePlanes
+  }, [showReferencePlanes])
 
   useEffect(() => {
     const element = host.current
@@ -41,6 +46,11 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect }: Props) {
 
     const geometry = new STLLoader().parse(data)
     geometry.computeBoundingBox()
+    // Keep world model coordinates invariant: CAD origin is (0,0,0).
+    // The STL mesh may be centered for navigation, but the reference frame
+    // must be shifted by the exact same amount, never moved to the mesh center.
+    const worldBounds = geometry.boundingBox?.clone() ?? new THREE.Box3()
+    const worldCenter = worldBounds.getCenter(new THREE.Vector3())
     geometry.computeVertexNormals()
     geometry.center()
     const material = new THREE.MeshStandardMaterial({
@@ -51,6 +61,47 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect }: Props) {
     const bbox = geometry.boundingBox ?? new THREE.Box3().setFromObject(mesh)
     const size = bbox.getSize(new THREE.Vector3())
     const radius = Math.max(size.x, size.y, size.z, 1)
+
+    // Three standard CAD datum planes, intersecting at the ABSOLUTE origin:
+    // XY (Z=0), XZ (Y=0), YZ (X=0). Transparent and non-selectable.
+    const datum = new THREE.Group()
+    datum.name = 'CAD global reference (0,0,0)'
+    datum.position.copy(worldCenter).multiplyScalar(-1)
+    datum.visible = showReferencePlanes
+    references.current = datum
+    const guideSize = Math.max(radius * 1.65, 35)
+    const planeDefinitions: Array<{ name: string; rotation: [number,number,number]; color: number }> = [
+      { name: 'XY · Z=0', rotation: [0, 0, 0], color: 0x5199ca },
+      { name: 'XZ · Y=0', rotation: [Math.PI / 2, 0, 0], color: 0x67c49f },
+      { name: 'YZ · X=0', rotation: [0, Math.PI / 2, 0], color: 0xd8a16b },
+    ]
+    for (const entry of planeDefinitions) {
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(guideSize, guideSize),
+        new THREE.MeshBasicMaterial({
+          color: entry.color, transparent: true, opacity: 0.065,
+          side: THREE.DoubleSide, depthWrite: false,
+        }),
+      )
+      plane.name = entry.name
+      plane.rotation.set(...entry.rotation)
+      datum.add(plane)
+      const border = new THREE.LineSegments(
+        new THREE.EdgesGeometry(plane.geometry),
+        new THREE.LineBasicMaterial({ color: entry.color, transparent: true, opacity: .55 }),
+      )
+      border.rotation.copy(plane.rotation)
+      datum.add(border)
+    }
+    const axes = new THREE.AxesHelper(guideSize * .68)
+    datum.add(axes)
+    const origin = new THREE.Mesh(
+      new THREE.SphereGeometry(Math.max(radius * .014, .28), 12, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false }),
+    )
+    origin.renderOrder = 20
+    datum.add(origin)
+    scene.add(datum)
     camera.position.set(radius * 1.5, -radius * 1.9, radius * 1.35)
     camera.near = Math.max(.001, radius / 1000)
     camera.far = Math.max(100, radius * 100)
@@ -177,6 +228,14 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect }: Props) {
       renderer.domElement.removeEventListener('pointerup', onPointerUp)
       clearHighlight()
       controls.dispose()
+      references.current = null
+      datum.traverse(object => {
+        if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
+          object.geometry.dispose()
+          const materials = Array.isArray(object.material) ? object.material : [object.material]
+          materials.forEach(material => material.dispose())
+        }
+      })
       geometry.dispose()
       material.dispose()
       renderer.dispose()
