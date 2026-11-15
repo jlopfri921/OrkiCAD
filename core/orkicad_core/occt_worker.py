@@ -30,7 +30,25 @@ def make_shape(spec):
         ).Shape()
 
     kind = spec["type"]
-    if kind == "washer":
+    if kind == "machined_block":
+        width, depth, height = (
+            spec[key] for key in ("width", "depth", "height")
+        )
+        shape = box(width, depth, height)
+        hole = spec["hole_diameter"]
+        inset = spec["hole_inset"]
+        for x in (inset, width - inset):
+            shape = BRepAlgoAPI_Cut(
+                shape, cylinder(hole / 2, height + .2, x, depth / 2, -.1)
+            ).Shape()
+        pocket_w = spec["pocket_width"]
+        pocket_d = spec["pocket_depth"]
+        cut = spec["pocket_cut_depth"]
+        tool = box(pocket_w, pocket_d, cut + .1,
+                   (width - pocket_w) / 2, (depth - pocket_d) / 2,
+                   height - cut)
+        shape = BRepAlgoAPI_Cut(shape, tool).Shape()
+    elif kind == "washer":
         outer = cylinder(spec["outer_diameter"] / 2, spec["thickness"])
         hole = cylinder(
             spec["inner_diameter"] / 2, spec["thickness"] + .2, z=-.1
