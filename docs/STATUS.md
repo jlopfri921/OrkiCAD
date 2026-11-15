@@ -197,3 +197,7 @@ Added a self-contained `OrkiCADSavedDesign` node that builds a validated part sp
 ## Export formats beyond STL — mesh-format support committed (2026-11-15)
 
 Added an allowlisted `render_mesh` Core API and `OrkiCADExportMesh` ComfyUI node to export OpenSCAD-supported **3MF, OBJ, OFF, AMF, STL** formats, retaining the existing STL interface. Added the standalone workflow `comfyui/workflows/orkicad_saved_design_preview_export_3mf.json` with simultaneous STL preview and 3MF export. Added tests validating the format boundary and workflow graph, and an English explanation of why true STEP/IGES/BREP needs a separate native FreeCAD/OpenCascade B-rep backend. **No STEP exporter exists yet**; mesh-to-STEP faceting is intentionally not represented as precise CAD. Updated code not yet run on maintainer's Desktop or real OpenSCAD 2026 for 3MF output; no release tag.
+
+## AI-to-3MF in one ComfyUI graph (2026-11-15)
+
+The maintainer confirms that the existing non-AI multi-format exporter generated a 3MF correctly. Following the request that 3MF also be integrated **with Ollama in the same workflow**, added `comfyui/workflows/orkicad_ollama_review_preview_stl_3mf.json`: Ollama → visual approval → parallel STL/Preview3D and direct OpenSCAD 3MF generation. Both branches use a single validated and approved specification. Added a topology regression test. **Awaiting maintainer's real combined-workflow acceptance test.** This does not yet constitute STEP B-rep support.
