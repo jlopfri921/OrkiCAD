@@ -8,6 +8,7 @@ import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSy
 
 type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model'
 type ParamValue = number | string | Feature[]
+type AIProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini'
 type Definition = { label: string; params: Record<string, ParamValue> }
 const PROMPT_EXAMPLES = {
   es: [
@@ -44,6 +45,10 @@ function App() {
   const [catalogData, setCatalogData] = useState<Record<string, { fields: { key: string; default: ParamValue; options?: string[] }[] }> | null>(null)
   const [prompt, setPrompt] = useState('')
   const [aiModel, setAiModel] = useState('')
+  const [aiProvider, setAiProvider] = useState<AIProvider>('ollama')
+  const [apiKey, setApiKey] = useState('')
+  const [ollamaModels, setOllamaModels] = useState<string[]>([])
+  const [modelsError, setModelsError] = useState('')
   const [aiNote, setAiNote] = useState('')
   const [providerInfo, setProviderInfo] = useState('')
   const [params, setParams] = useState<Record<string, ParamValue>>(catalog.washer.params)
@@ -64,6 +69,11 @@ function App() {
         setProviderInfo(selected.endpoint || '')
       }
     }).catch(() => {})
+    fetch('/api/ollama/models').then(async response => {
+      const body = await response.json()
+      if (!response.ok) throw Error(body.error || 'Ollama unavailable')
+      setOllamaModels(Array.isArray(body.models) ? body.models.filter((x: unknown) => typeof x === 'string') : [])
+    }).catch(err => setModelsError(String(err)))
   }, [])
   const activeCatalog = catalogData
     ? Object.fromEntries(Object.entries(catalogData).map(([id, desc]) => [
@@ -78,7 +88,7 @@ function App() {
       const response = await fetch('/api/interpret', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
-        body: JSON.stringify({ prompt, model: aiModel || undefined })
+        body: JSON.stringify({ prompt, model: aiModel || undefined, provider: aiProvider, ...(aiProvider === 'ollama' ? {} : { api_key: apiKey }) })
       })
       const raw = await response.text()
       let result: { error?: string; spec?: Record<string, ParamValue>; review_required?: boolean }
@@ -99,6 +109,9 @@ function App() {
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
+      // Keep credentials in component memory only; never put keys into CAD files,
+      // browser storage, URL parameters, export names, or log messages.
+      setApiKey('')
       setWorking(false)
     }
   }
@@ -284,11 +297,46 @@ function App() {
           </div>
         )}
       </div>
-      <label htmlFor="ai-model">{t.aiModel}</label>
-      <input id="ai-model" type="text" value={aiModel}
-        onChange={e => setAiModel(e.target.value)} />
-      <p className="hint">{t.aiLocalOnly}: {providerInfo || 'http://127.0.0.1:11434'}</p>
-      <button disabled={working || prompt.trim().length < 3} onClick={interpretPrompt}>
+      <label htmlFor="ai-provider">{t.aiProvider}</label>
+      <select id="ai-provider" value={aiProvider}
+        onChange={e => {
+          const selected = e.target.value as AIProvider
+          setAiProvider(selected)
+          setAiModel(selected === 'ollama' ? (ollamaModels[0] || '') : '')
+          setApiKey('')
+          setAiNote('')
+          setReviewApproved(false)
+        }}>
+        <option value="ollama">Ollama ({t.localProvider})</option>
+        <option value="openai">OpenAI (API)</option>
+        <option value="anthropic">Claude / Anthropic (API)</option>
+        <option value="gemini">Google Gemini (API)</option>
+      </select>
+      {aiProvider === 'ollama' ? <>
+        <label htmlFor="ai-model">{t.aiModel}</label>
+        <div className="model-picker">
+          <select id="ollama-model-picker" aria-label={t.chooseModel} value={ollamaModels.includes(aiModel) ? aiModel : ''}
+            onChange={e => setAiModel(e.target.value)}>
+            <option value="">{t.chooseModel}</option>
+            {ollamaModels.map(model => <option key={model} value={model}>{model}</option>)}
+          </select>
+          <input id="ai-model" type="text" value={aiModel}
+            placeholder={t.modelIdPlaceholder} aria-label={t.manualModel}
+            onChange={e => setAiModel(e.target.value)} />
+        </div>
+        {modelsError && <p className="hint">{t.modelListUnavailable}: {modelsError}</p>}
+      </> : <>
+        <label htmlFor="ai-model">{t.cloudModel}</label>
+        <input id="ai-model" type="text" value={aiModel}
+          placeholder={t.cloudModelPlaceholder} onChange={e => setAiModel(e.target.value)} />
+        <label htmlFor="ai-api-key">{t.apiKey}</label>
+        <input id="ai-api-key" type="password" value={apiKey}
+          autoComplete="off" spellCheck={false}
+          placeholder={t.apiKeyPlaceholder} onChange={e => setApiKey(e.target.value)} />
+        <p className="hint">{t.cloudSecurityNotice}</p>
+      </>}
+      {aiProvider === 'ollama' && <p className="hint">{t.aiLocalOnly}: {providerInfo || 'http://127.0.0.1:11434'}</p>}
+      <button disabled={working || prompt.trim().length < 3 || !aiModel.trim() || (aiProvider !== 'ollama' && apiKey.trim().length < 8)} onClick={interpretPrompt}>
         {working ? t.working : t.aiInterpret}
       </button>
       {aiNote && <p className="ai-review" role="status">{aiNote}</p>}
