@@ -29,7 +29,7 @@ else:
 @unittest.skipUnless(HAS_OCCT, "cadquery-ocp not installed")
 class OCCTSTEPIntegrationTests(unittest.TestCase):
     def test_all_supported_part_families_have_readable_valid_step_solids(self):
-        for kind in ("washer", "mounting_plate", "open_box", "box_lid", "machined_block"):
+        for kind in ("washer", "mounting_plate", "open_box", "box_lid", "machined_block", "corner_plate"):
             with self.subTest(kind=kind):
                 spec = {"type": kind, **PARTS[kind]["fields"]}
                 data = render_occt_step(spec, python_path=sys.executable)
@@ -50,6 +50,30 @@ class OCCTSTEPIntegrationTests(unittest.TestCase):
                         solids += 1
                         it.Next()
                     self.assertEqual(solids, 1)
+
+
+    def test_round_vs_chamfer_step_geometry_is_distinct(self):
+        from OCP.GProp import GProp_GProps
+        from OCP.BRepGProp import BRepGProp
+        import tempfile
+        base = {"type": "corner_plate", **PARTS["corner_plate"]["fields"]}
+        volumes = {}
+        for style in ("round", "chamfer"):
+            with self.subTest(style=style):
+                spec = {**base, "corner_style": style}
+                data = render_occt_step(spec, python_path=sys.executable)
+                with tempfile.TemporaryDirectory() as temp:
+                    target = Path(temp) / "corner.step"
+                    target.write_bytes(data)
+                    reader = STEPControl_Reader()
+                    self.assertEqual(reader.ReadFile(str(target)), IFSelect_RetDone)
+                    reader.TransferRoots()
+                    shape = reader.OneShape()
+                    self.assertTrue(BRepCheck_Analyzer(shape).IsValid())
+                    props = GProp_GProps()
+                    BRepGProp.VolumeProperties_s(shape, props)
+                    volumes[style] = props.Mass()
+        self.assertGreater(volumes["round"], volumes["chamfer"])
 
 
 if __name__ == "__main__":
