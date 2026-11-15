@@ -5,17 +5,19 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .geometry import generate_scad
-from .stl_render import RenderError, render_stl
+from .stl_render import RenderError, render_stl, render_mesh
+from .occt_step import OCCTExportError, render_occt_step
+from .parts_catalog import validated_spec
 from .parts_catalog import catalog_public
 from .ai_interpreter import AIError, interpret
 import os
 
-MAX_BYTES = 8192
+MAX_BYTES = 16384
 
 
 class StudioHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        if self.path not in ("/api/scad", "/api/stl", "/api/interpret"):
+        if self.path not in ("/api/scad", "/api/stl", "/api/3mf", "/api/step", "/api/interpret"):
             self.send_error(404)
             return
         if self.headers.get("X-OrkiCAD-Client") != "studio":
@@ -32,9 +34,13 @@ class StudioHandler(BaseHTTPRequestHandler):
         try:
             spec = json.loads(self.rfile.read(size))
             if self.path == "/api/scad":
-                scad = generate_scad(spec)
+                scad = generate_scad(validated_spec(spec))
             elif self.path == "/api/stl":
-                binary = render_stl(spec)
+                binary = render_stl(validated_spec(spec))
+            elif self.path == "/api/3mf":
+                binary = render_mesh(validated_spec(spec), format="3mf")
+            elif self.path == "/api/step":
+                binary = render_occt_step(validated_spec(spec))
             else:
                 if not isinstance(spec, dict):
                     raise ValueError("Expected an object containing a prompt")
@@ -43,7 +49,7 @@ class StudioHandler(BaseHTTPRequestHandler):
         except (ValueError, UnicodeDecodeError) as exc:
             self._json(400, {"error": str(exc)})
             return
-        except (RenderError, AIError) as exc:
+        except (RenderError, OCCTExportError, AIError) as exc:
             self._json(422, {"error": str(exc)})
             return
         if self.path == "/api/interpret":
@@ -52,11 +58,18 @@ class StudioHandler(BaseHTTPRequestHandler):
         elif self.path == "/api/scad":
             self._json(200, {"scad": scad})
         else:
+            suffix, content_type = {
+                "/api/stl": ("stl", "model/stl"),
+                "/api/3mf": ("3mf", "model/3mf"),
+                "/api/step": ("step", "application/step"),
+            }[self.path]
             self.send_response(200)
-            self.send_header("Content-Type", "model/stl")
-            self.send_header("Content-Disposition", 'attachment; filename="orkicad.stl"')
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Disposition",
+                             f'attachment; filename="orkicad.{suffix}"')
             self.send_header("Content-Length", str(len(binary)))
             self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
             self.end_headers()
             self.wfile.write(binary)
 
