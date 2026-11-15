@@ -5,13 +5,14 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .geometry import generate_scad
+from .stl_render import RenderError, render_stl
 
 MAX_BYTES = 8192
 
 
 class StudioHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        if self.path != "/api/scad":
+        if self.path not in ("/api/scad", "/api/stl"):
             self.send_error(404)
             return
         if self.headers.get("X-OrkiCAD-Client") != "studio":
@@ -27,11 +28,26 @@ class StudioHandler(BaseHTTPRequestHandler):
             return
         try:
             spec = json.loads(self.rfile.read(size))
-            scad = generate_scad(spec)
+            if self.path == "/api/scad":
+                scad = generate_scad(spec)
+            else:
+                binary = render_stl(spec)
         except (ValueError, UnicodeDecodeError) as exc:
             self._json(400, {"error": str(exc)})
             return
-        self._json(200, {"scad": scad})
+        except RenderError as exc:
+            self._json(422, {"error": str(exc)})
+            return
+        if self.path == "/api/scad":
+            self._json(200, {"scad": scad})
+        else:
+            self.send_response(200)
+            self.send_header("Content-Type", "model/stl")
+            self.send_header("Content-Disposition", 'attachment; filename="orkicad.stl"')
+            self.send_header("Content-Length", str(len(binary)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(binary)
 
     def do_GET(self):
         if self.path == "/api/health":
