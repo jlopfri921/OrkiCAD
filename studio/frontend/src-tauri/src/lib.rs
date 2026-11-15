@@ -63,6 +63,7 @@ fn studio_request(
     }
     let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(190))
+        .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .build()
         .map_err(|_| "Could not initialize private CAD transport")?;
@@ -173,6 +174,7 @@ fn start_worker(app: &tauri::App) -> Result<StudioWorker, String> {
         .map_err(|_| "Could not start bundled OrkiCAD CAD worker")?;
     let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_millis(350))
+        .no_proxy()
         .build()
         .map_err(|_| "Could not initialize CAD worker health check")?;
     let deadline = Instant::now() + Duration::from_secs(12);
