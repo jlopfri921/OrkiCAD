@@ -130,3 +130,11 @@ Next suggested step: improve the 3D viewport with camera controls, dimensional o
 - Changing display units does not mutate a generated part or its stored dimensions. Editing a parameter invalidates outdated SCAD/STL previews to avoid mismatched downloads.
 - Metric screw nominal designation and gear module remain metric standard values; angles and counts are unchanged.
 - **Pending maintainer verification:** run `npm run build` and confirm unit switch and STL dimensions remain unchanged for a sample washer.
+
+## First ComfyUI node integration — source committed (2026-11-15)
+
+- Added `comfyui/orkicad_nodes/__init__.py` with native `OrkiCADPartSpec`, `OrkiCADGenerateSCAD`, `OrkiCADRenderSTL` and `OrkiCADInterpretLocal` nodes.
+- Added `comfyui/workflows/orkicad_parametric_stl.json` and `tests/test_catalog_and_comfyui.py`.
+- Added English integration guide in [COMFYUI_INTEGRATION.md](COMFYUI_INTEGRATION.md).
+- **Unverified:** local Python tests after commit, actual ComfyUI Desktop node discovery and workflow import/run, new box lid/cap mesh quality, Studio production build and Ollama inference. No prerelease is tagged.
+- **Next verification:** run the test suite and actual ComfyUI workflow, then inspect the generated lid STL. Keep the project internal version at `0.0.1` until evidence supports the proposed `0.1.0-alpha.1`.
