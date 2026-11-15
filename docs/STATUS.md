@@ -138,3 +138,13 @@ Next suggested step: improve the 3D viewport with camera controls, dimensional o
 - Added English integration guide in [COMFYUI_INTEGRATION.md](COMFYUI_INTEGRATION.md).
 - **Unverified:** local Python tests after commit, actual ComfyUI Desktop node discovery and workflow import/run, new box lid/cap mesh quality, Studio production build and Ollama inference. No prerelease is tagged.
 - **Next verification:** run the test suite and actual ComfyUI workflow, then inspect the generated lid STL. Keep the project internal version at `0.0.1` until evidence supports the proposed `0.1.0-alpha.1`.
+
+## Maintainer Windows test results — 2026-11-15, 18:17 local
+
+The maintainer pulled the latest ComfyUI source integration through commit `d5b114f` and ran `.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -v`: **28 tests ran, all OK** (1.085 seconds). The suite includes shared catalog validation, closure source checks, ComfyUI node registration, workflow JSON structure, original CAD generators and development API smoke tests. A deliberately missing STL file prints an expected diagnostic but its unit test passed.
+
+The maintainer also ran `npm run build` in `studio/frontend`: TypeScript compilation succeeded and Vite 5.4.21 successfully generated a production build (36 modules, 1.52 seconds). Rollup reported one approximately 650 kB JavaScript bundle above its 500 kB advisory chunk threshold; this is a **performance warning**, not a build failure.
+
+The earlier `npm install` audit reported **two dependency vulnerabilities (one moderate, one high)**. Investigate with `npm audit`; avoid blindly running `npm audit fix --force` without assessing major-version or API changes.
+
+**Still not verified:** loading nodes inside ComfyUI Desktop, importing/running the supplied workflow, rendering the newly added lid/cap via OpenSCAD, working Ollama inference and Studio interaction tests for units/languages. No official alpha release yet.
