@@ -26,3 +26,11 @@ All notable changes will be recorded here, grouped by released version. The proj
 - Added an early React/TypeScript Studio part-parameter interface connected to a local Python CAD endpoint, with API tests.
 - Recorded successful basic topological checks for four sample STL meshes from maintainer-provided Windows logs.
 - **Unverified:** Studio frontend build, inspector command and end-to-end browser/API interaction on maintainer machine.
+
+### Source committed — ComfyUI prototype (unverified on ComfyUI Desktop)
+
+- Added the first four ComfyUI-native nodes: part specification, OpenSCAD source generation, STL rendering and local Ollama parameter interpretation.
+- Added an example LiteGraph workflow JSON for an editable box lid; workflow execution is **pending validation** on the maintainer's ComfyUI Desktop installation.
+- Added Python regression tests for shared catalog entries, prototype box lids and bottle caps, node registration and workflow structure.
+- Added English installation and security guidance in `docs/COMFYUI_INTEGRATION.md`.
+- The integration reuses `orkicad_core` and does not independently execute AI-generated source code.
