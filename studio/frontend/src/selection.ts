@@ -15,6 +15,7 @@ export function fieldForSelectedFace(
   part: string, face: FaceSelection, available: string[],
 ): string | null {
   const map: Record<string, Partial<Record<PrincipalAxis, string[]>>> = {
+    circular_plate: { x: ['outer_radius'], y: ['outer_radius'], z: ['thickness'] },
     washer: { z: ['thickness'] },
     mounting_plate: { x: ['width'], y: ['depth'], z: ['thickness'] },
     open_box: { x: ['width'], y: ['depth'], z: ['height'] },
