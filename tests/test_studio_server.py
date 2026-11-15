@@ -131,6 +131,25 @@ class StudioServerTests(unittest.TestCase):
             self.assertEqual(result["spec"], example)
             local.assert_called_once_with("Diseña una arandela", model="local-coder")
 
+    def test_exact_circular_plate_prompt_bypasses_rectangular_ai_templates(self):
+        prompt = ("diseña una placa circular y por tanto sin esquinas, no quiero "
+                  "una pieza cuadrada, tiene que ser un circulo de 50 mm de radio "
+                  "y con un cinco orificios circulares de 3 mm de diametro "
+                  "que formen una matriz circular a 20 mm del centro de "
+                  "la circunferencia principal. la placa tiene 4 mm de grosor")
+        request = json.dumps({"provider": "ollama", "prompt": prompt,
+                              "model": "nonexistent-model"})
+        with patch("orkicad_core.studio_server.interpret") as ai:
+            status, result = self.request("POST", "/api/interpret", request, {
+                "X-OrkiCAD-Client": "studio",
+            })
+        self.assertEqual(status, 200)
+        self.assertEqual(result["spec"], {
+            "type": "circular_plate", "outer_radius": 50, "thickness": 4,
+            "hole_count": 5, "hole_diameter": 3, "bolt_circle_radius": 20,
+        })
+        ai.assert_not_called()
+
     def test_reject_missing_client_header(self):
         status, _ = self.request("POST", "/api/scad", "{}")
         self.assertEqual(status, 403)
