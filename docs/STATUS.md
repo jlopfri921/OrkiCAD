@@ -326,3 +326,15 @@ Committed fixes:
 - Source contract checks updated for Windows icon generation and retry availability.
 
 **Not yet accepted:** fresh Windows Tauri build past `tauri-build`, private worker start, live `/api/ollama/models` and actual dropdown population, full desktop model interpretation. The prior log shows an error in Tauri build, not a completed app launch. For Web preview in a browser, `npm run dev` alone is insufficient: start the Python Studio server on 127.0.0.1:8765 as well. For Tauri Desktop, `npm run tauri:dev` must finish Rust build and open the native window; only then does its private worker initialize.
+
+## Native CAD datum reference and intuitive operation coordinates (2026-11-16)
+
+Maintainer requested the **three principal planes of the global coordinate system** and an unmistakable absolute (0,0,0), to avoid unintuitive numerical feature placement. The shared React Studio Web/Desktop source now adds an actual Three.js datum frame inside the 3D STL viewport:
+
+- **XY plane (Z=0), XZ plane (Y=0), YZ plane (X=0)**: translucent reference planes with colored outlines, axis helper and an explicit origin marker; all are drawn in the same world coordinate frame.
+- The mesh may be translated internally for convenient orbit navigation, but the origin frame is translated by exactly the original uncentered mesh bbox center, preserving original model coordinates. The center of the object is **not** arbitrarily declared to be the CAD origin. A UI checkbox shows/hides planes and a legend identifies each.
+- The right inspector explicitly states that dimensions and feature positions refer to the global 0,0,0. The operations editor provides reference presets: absolute origin, base centre in XY (retaining current Z), and a top-face-centric preset. For box features, the position is the initial minimum corner; for cylinders it is the axis centre in X/Y and bottom in Z. This is a non-destructive edit to canonical Core `feature_model` coordinates, not a change in world origin.
+- Earlier STL triangle face selection already highlights mesh polygons and conservatively focuses an editable global dimension if a surface lies on an outside bound. Native OCCT B-rep face identity/feature provenance and a STEP-style true direct solid edit mode remain **not yet implemented**. STL triangle selection cannot reliably identify hole or fillet features and must not imply STEP precision.
+- Added source-level `tests/test_absolute_datum_contract.py` and CI source check.
+
+**Acceptance boundary:** code has been committed, but rendering the three planes, toggling, clicking mesh faces, and anchor positions have not been visually user-tested on Windows and need the next React build/runtime acceptance. Tauri installer packaging, actual CAD B-rep topology selection and fully shared direct manipulation in ComfyUI remain future work.
