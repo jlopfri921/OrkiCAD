@@ -1,6 +1,7 @@
 // OrkiCAD AI: catalog-driven, client-side CAD parameter editor for ComfyUI.
 // All backend inputs remain canonical millimetres and validated by OrkiCAD Core.
 import { app } from "../../scripts/app.js";
+import { createFeatureViewport } from "./feature_viewport.js";
 
 const MM_PER_INCH = 25.4;
 const NO_UNITS = new Set(["teeth", "pressure_angle"]);
@@ -75,7 +76,7 @@ function featureTemplate(shape = "box", op = "cut") {
     ? { op, shape, position: [12, 12, -0.1], radius: 3, height: 12.2 }
     : { op, shape: "box", position: [10, 10, 3], size: [20, 20, 5] };
 }
-function featureEditor({ node, current, overridesWidget, approvedWidget, t }) {
+function featureEditor({ node, current, overridesWidget, approvedWidget, t, model }) {
   const panel = element("div", undefined, {
     gridColumn: "1 / -1", display: "grid", gap: "7px", width: "100%",
     padding: "8px", border: "1px solid #555", borderRadius: "5px",
@@ -134,6 +135,18 @@ function featureEditor({ node, current, overridesWidget, approvedWidget, t }) {
   panel.append(element("div", t.features + " · " + operations.length + "/" + MAX_FEATURES, {
     fontWeight: "700", marginBottom: "3px",
   }));
+  // Schematic selection is shared with the numbered operation cards.
+  // The reusable viewport module does not know about ComfyUI or exports.
+  const viewportHost = element("div");
+  panel.append(viewportHost);
+  createFeatureViewport({
+    container: viewportHost,
+    language: node.properties?.orkicad_language === "en" ? "en" : "es",
+    onSelect: (index) => {
+      node.__orkicadSelectedFeature = index;
+      paint(node);
+    },
+  }).update({ ...model, operations }, node.__orkicadSelectedFeature ?? -1);
   operations.forEach((feature, i) => {
     const block = element("div", undefined, {
       border: "1px solid #484848", borderRadius: "5px", padding: "7px",
@@ -142,6 +155,15 @@ function featureEditor({ node, current, overridesWidget, approvedWidget, t }) {
     const header = element("div", undefined, {
       display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap",
     });
+    const selected = node.__orkicadSelectedFeature === i;
+    if (selected) {
+      block.style.border = "2px solid #f8cd76";
+      block.style.background = "#34302b";
+    }
+    header.append(makeButton(selected ? "● " + String(i + 1) : "○ " + String(i + 1), () => {
+      node.__orkicadSelectedFeature = i;
+      paint(node);
+    }));
     header.append(element("strong", String(i + 1) + "."));
     header.append(select(
       [["add", t.add], ["cut", t.cut]], feature.op,
@@ -303,6 +325,7 @@ function paint(node) {
       fields.lastChild.textContent = t.features + " (mm)";
       fields.append(featureEditor({
         node, current, overridesWidget, approvedWidget, t,
+        model: { ...proposal, ...overrides },
       }));
       continue;
     }
