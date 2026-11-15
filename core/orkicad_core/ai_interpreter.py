@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from urllib.parse import urlsplit
@@ -36,9 +37,34 @@ def build_cad_instruction() -> str:
         "markdown, code, keys outside the schema, or executable source. "
         "If some dimensions are not given, use the example defaults (these are "
         "assumptions that must be checked by the user). Never claim measured fit. "
+        "Important: Preserve topology and explicitly specified outline. If user requests a circular disk, "
+        "use circular_plate with a cylinder base, NOT mounting_plate, corner_plate or a box. "
+        "Distinguish radius from diameter, count radial through holes exactly, and use bolt_circle_radius "
+        "for each hole center distance from global origin. Do not approximate missing shapes by rectangles. "
         "Available templates: " + json.dumps(examples, ensure_ascii=False)
     )
     return instruction
+
+
+
+def validate_prompt_shape(prompt: str, spec: dict) -> dict:
+    """Reject a model silently substituting a box for a requested circular disk.
+
+    This is deliberately conservative: use it only for explicit circular-plate
+    requests, not instructions about a circular detail inside a rectangular part.
+    """
+    p = prompt.casefold()
+    is_circular_plate = bool(re.search(
+        r"(?:placa|disco|plate|disk|disc)\\s+(?:de\\s+forma\\s+)?(?:circular|redond[ao]|round)"
+        r"|(?:circular|round)\\s+(?:placa|plate|disk|disc)", p
+    ))
+    if is_circular_plate and spec.get("type") != "circular_plate":
+        raise AIError(
+            "The requested outside shape is a circular plate, but the AI "
+            "selected a different geometry. No rectangular substitute was generated. "
+            "Choose circular_plate and retry or change its parameters directly."
+        )
+    return spec
 
 
 def interpret(prompt: str, *, model: str | None = None) -> dict:
@@ -109,7 +135,7 @@ def interpret(prompt: str, *, model: str | None = None) -> dict:
         response = json.loads(raw)
         content = response["message"]["content"]
         raw_spec = json.loads(content)
-        return validated_spec(raw_spec)
+        return validate_prompt_shape(prompt, validated_spec(raw_spec))
     except (KeyError, TypeError, ValueError, json.JSONDecodeError,
             ParameterError) as exc:
         raise AIError(
