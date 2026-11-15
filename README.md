@@ -44,3 +44,21 @@ OrkiCAD AI is designed around **one reusable Python CAD core and two user experi
 ## Get involved
 
 See [ROADMAP.md](ROADMAP.md) and [CONTRIBUTING.md](CONTRIBUTING.md). This is an early-stage project; contributions and design discussion are welcome.
+
+## Multimodal CAD and 3D workflows — extended scope
+
+This is a **CAD-first 2D/3D ecosystem**, not just a parametric part generator. The following capabilities are **planned**:
+
+- **Parametric components**: screws, nuts, washers, gears, pulleys, shafts, housings, enclosures and brackets.
+- **Text/chat/LLM → CAD**: structured dimensional specifications into constrained 2D plans or editable 3D parts.
+- **2D ↔ 3D**: plans, SVG/DXF or sketches to solids; 3D solids to orthographic views, sections and dimensioned 2D drawings.
+- **Image/sketch/PDF → CAD**: OCR and vectorization of linework, callouts and handwritten dimensions, followed by reconstruction.
+- **Single/multiple photos → 3D/CAD**: reconstruct objects from one or several angles, with user-specified dimensions in drawings, annotated photographs or chat. Calibration and engineering validation are mandatory for claimed accuracy.
+- **3D model and STL splitting**: split along chosen planes, separate components/shells, create printable sections, connectors, locating pins and clearances.
+- **3D printing preparation**: inspect/repair meshes, validate scale, thickness and watertightness; export STL/3MF and integrate slicers.
+- **Game/design asset preparation**: mesh optimization, UV mapping, PBR textures, LODs and GLB/glTF.
+- **Import/export**: SCAD, STEP, STL, 3MF, DXF, SVG, GLB where the backend and geometry representation permit.
+
+Two planned interfaces share a core: **OrkiCAD Studio** (Tauri 2 + Rust + React/TypeScript) and **OrkiCAD ComfyUI** (custom nodes/workflows). AI providers: local **Ollama** and optional **OpenAI, Anthropic Claude, Google Gemini** APIs.
+
+Read the [complete vision](docs/VISION_AND_WORKFLOWS.md), [workflow catalog](docs/WORKFLOW_CATALOG.md), [reconstruction requirements](docs/RECONSTRUCTION.md), [3D printing and assets](docs/3D_PRINTING_AND_ASSETS.md) and [mesh splitting](docs/MESH_SPLITTING.md).
