@@ -150,6 +150,11 @@ function App() {
       const template = activeCatalog[nextType].params
       const next = Object.fromEntries(Object.keys(template).map(key => [key, proposal[key] ?? template[key]]))
       previewSerial.current += 1
+      // An AI proposal is not yet an approved/rendered shape. Never leave
+      // the previous rectangular mesh underneath a newly proposed disk.
+      setStl(null)
+      setSelectedFace(null)
+      setSelectedDimension(null)
       setType(nextType); setParams(next); setScad(''); setPreviewReady(false)
       setReviewApproved(false)
       setAiNote(t.reviewDimensions)
@@ -190,6 +195,9 @@ function App() {
   function changeType(next: PartType) {
     setExpandedInspector('size')
     previewSerial.current += 1
+    // Changing part family changes topology: the last mesh must be cleared.
+    // Keeping it visible made users mistake an old square for their new disk.
+    setStl(null)
     setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setPreviewReady(false); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
   }
   function useExample(index: number) {
