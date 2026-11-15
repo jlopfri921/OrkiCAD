@@ -74,7 +74,7 @@ class ComfyNodeTests(unittest.TestCase):
         self.assertEqual(set(self.nodes.NODE_CLASS_MAPPINGS), {
             "OrkiCADPartSpec", "OrkiCADGenerateSCAD",
             "OrkiCADRenderSTL", "OrkiCADInterpretLocal",
-            "OrkiCADReviewSpec", "OrkiCADSavedDesign",
+            "OrkiCADReviewSpec", "OrkiCADSavedDesign", "OrkiCADExportMesh",
         })
 
     def test_part_to_scad(self):
@@ -185,6 +185,25 @@ class ComfyNodeTests(unittest.TestCase):
         self.assertEqual(flow["links"], [
             [1, 1, 0, 2, 0, "STRING"], [2, 2, 1, 3, 0, "STRING"]
         ])
+
+    def test_mesh_export_rejects_unlisted_format(self):
+        from orkicad_core.stl_render import RenderError, render_mesh
+        with self.assertRaisesRegex(RenderError, "Unsupported mesh"):
+            render_mesh({"type": "washer", **PARTS["washer"]["fields"]}, format="step")
+
+    def test_export_node_rejects_path_traversal(self):
+        with self.assertRaisesRegex(ValueError, "file_stem"):
+            self.nodes.OrkiCADExportMesh().export(
+                json.dumps({"type": "washer", **PARTS["washer"]["fields"]}),
+                "3mf", "../part"
+            )
+
+    def test_mesh_export_workflow_wiring(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_saved_design_preview_export_3mf.json"
+        workflow = json.loads(path.read_text(encoding="utf-8"))
+        types = {node["id"]: node["type"] for node in workflow["nodes"]}
+        self.assertEqual(types[4], "OrkiCADExportMesh")
+        self.assertEqual(workflow["links"][2], [3, 1, 0, 4, 0, "STRING"])
 
     def test_preview_workflow_wiring(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl.json"
