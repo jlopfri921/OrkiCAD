@@ -50,3 +50,21 @@ Optional existing model/workflow installation is separate, for example `D:\comfy
 ## Future setup scripts
 
 When working code exists, add `scripts/bootstrap-windows.ps1`, `scripts/doctor.ps1` and dependency lockfiles to create isolated environments, verify engine executables, check versions, and test export pipelines. No such automated setup is implemented in the planning phase.
+
+## Brand asset (local)
+
+Expected local path: `F:\orkicad-ai\logo_OrkiCAD-AI.png`.
+
+When the image is present locally and the Git checkout is configured, publish it from PowerShell:
+
+```powershell
+Set-Location 'F:\orkicad-ai'
+git status
+# Verify you are on the correct Git branch and that the file exists
+Test-Path '.\logo_OrkiCAD-AI.png'
+git add -- 'logo_OrkiCAD-AI.png'
+git commit -m 'branding: add OrkiCAD AI logo'
+git push origin main
+```
+
+Never commit unrelated files automatically. After the image is on GitHub, the README can display it using `![OrkiCAD AI](logo_OrkiCAD-AI.png)`.
