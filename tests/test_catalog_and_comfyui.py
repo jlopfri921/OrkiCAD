@@ -198,6 +198,23 @@ class ComfyNodeTests(unittest.TestCase):
                 "3mf", "../part"
             )
 
+    def test_ai_workflow_exports_both_stl_and_3mf(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl_3mf.json"
+        flow = json.loads(path.read_text(encoding="utf-8"))
+        nodes = {node["id"]: node for node in flow["nodes"]}
+        self.assertEqual(nodes[1]["type"], "OrkiCADInterpretLocal")
+        self.assertEqual(nodes[2]["type"], "OrkiCADReviewSpec")
+        self.assertEqual(nodes[3]["type"], "OrkiCADRenderSTL")
+        self.assertEqual(nodes[4]["type"], "Preview3D")
+        self.assertEqual(nodes[5]["type"], "OrkiCADExportMesh")
+        self.assertEqual(nodes[5]["widgets_values"][0], "3mf")
+        self.assertIn([1, 1, 0, 2, 0, "STRING"], flow["links"])
+        self.assertIn([2, 2, 0, 3, 0, "STRING"], flow["links"])
+        self.assertIn([3, 3, 1, 4, 0, "STRING"], flow["links"])
+        self.assertIn([4, 2, 0, 5, 0, "STRING"], flow["links"])
+        self.assertEqual(flow["last_node_id"], 5)
+        self.assertEqual(flow["last_link_id"], 4)
+
     def test_mesh_export_workflow_wiring(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_saved_design_preview_export_3mf.json"
         workflow = json.loads(path.read_text(encoding="utf-8"))
