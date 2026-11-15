@@ -67,3 +67,30 @@ Run the JSON workflow in the ComfyUI UI. This file is authored for a standard Li
 - [ ] STL output is present, nonempty, watertight and dimensionally plausible.
 - [ ] AI node is tested with an available local Ollama model and offline failure handling is confirmed.
 - [ ] The Studio frontend builds successfully with the shared dynamic catalog.
+
+## First local AI workflow: text → Ollama → parametric STL
+
+A second importable example is now available:
+
+`comfyui/workflows/orkicad_ollama_text_to_stl.json`
+
+Pipeline: `OrkiCADInterpretLocal` → `OrkiCADGenerateSCAD` and `OrkiCADRenderSTL`.
+
+**Preflight:** verify that Ollama is running locally and list available models with `ollama list` from Windows PowerShell. The sample workflow specifies `qwen3-coder:30b` as a *provisional example model*, **not a guarantee of installation**. Change the `ollama_model` widget to an exact locally installed model name before running. OrkiCAD's default endpoint is `http://127.0.0.1:11434`; other loopback-only endpoints can be supplied using the `ORKICAD_OLLAMA_URL` environment variable before starting ComfyUI.
+
+Steps:
+1. Update the OrkiCAD repository with `git pull --ff-only origin main`.
+2. Restart ComfyUI Desktop completely, including any background backend still running.
+3. Import `comfyui/workflows/orkicad_ollama_text_to_stl.json` into the workflow editor.
+4. Set the `ollama_model` field to a locally available Ollama model from `ollama list`.
+5. Read or modify the natural language prompt. The included example describes a rectangular fitted box lid with numerical dimensions.
+6. Execute the workflow. If Ollama parses a supported part and its values pass the Core validator, OpenSCAD renders an STL under ComfyUI's `output/orkicad` directory.
+7. Open the resulting STL in Studio or an external 3D viewer and inspect geometry, dimensions and mechanical fit assumptions. The workflow does **not yet provide an embedded ComfyUI STL preview**.
+
+**Important prototype limitation:** this example connects the AI proposal directly to rendering, so running it implies acceptance of any valid **assumed default measurements**. This is suitable only for low-risk test prints. A separate explicit review/approval stage, labeled defaults, and a rich dynamic parameter editor are required before a production-ready release. Users should not treat this flow as a verified fit for bottle threads or load-bearing mechanical designs.
+
+**Troubleshooting:**
+- `Local Ollama unavailable`: Ollama is not running at the configured local endpoint; verify with `ollama list` or the local API and restart Ollama/ComfyUI as appropriate.
+- `model not found` or HTTP 404: set the exact model tag shown by `ollama list`; there is no implicit remote model download.
+- `unsupported CAD parameters`: the model output could not be validated against an existing registered part template. Ask for a supported part family and explicit measurements.
+- No file visible in UI: this first node saves STL on disk and has no embedded visual preview.
