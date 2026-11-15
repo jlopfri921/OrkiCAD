@@ -220,3 +220,58 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .absolute-origin-note span{font-size:11px;line-height:1.6;color:#9fbdc6}
 .feature-anchor-help{font-size:10px;line-height:1.55;color:#97b6c9;margin:2px 0 4px}
 @media(max-width:820px){.datum-legend{top:65px;max-width:90%}.viewport-badges{flex-wrap:wrap}}
+
+/* Compact CAD inspector: independent scroll; no full-page tower of fields. */
+@media(min-width:761px){
+  .studio-shell{height:100dvh;min-height:620px;overflow:hidden}
+  .studio-main{height:calc(100dvh - 98px);min-height:0;overflow:hidden}
+  .studio-sidebar{min-height:0;overflow:hidden}
+  .studio-sidebar .sidebar-content{min-height:0;overflow-y:auto;scrollbar-gutter:stable;
+    overscroll-behavior:contain}
+  .studio-center{min-height:0;overflow-y:auto;scrollbar-gutter:stable;
+    overscroll-behavior:contain}
+  .viewport-frame{min-height:300px;flex:1 1 300px}
+  .studio-sidebar .sidebar-header{padding:17px 19px 13px}
+  .properties-sidebar .sidebar-content{padding:12px 15px;display:flex;gap:9px}
+  .properties-sidebar .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.inspector-compact-header{display:grid;gap:6px;margin:0 0 4px}
+.inspector-compact-header>span{color:#8fa7b9;font-size:10px;font-weight:700}
+.inspector-compact-header select{margin:0;font-size:12px}
+.inspector-section{border:1px solid #2d4354;background:#102030;border-radius:9px;overflow:hidden;flex:none}
+.inspector-section-toggle{width:100%;border:0;border-radius:0;background:#15283a;
+  padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;
+  color:#d6e8f2;text-align:left;font-size:12px}
+.inspector-section-toggle:hover:not(:disabled){background:#22384e;border-color:transparent}
+.inspector-section-toggle>span:first-child{flex:1}
+.inspector-section-count{border-radius:6px;background:#294357;color:#91c9da;
+  min-width:24px;padding:3px 6px;text-align:center;font-size:10px}
+.inspector-section-body{padding:11px 9px 13px}
+.inspector-section-body .fields{gap:9px}
+.inspector-section-body .fields>div:has(.feature-history){grid-column:1/-1}
+.inspector-section-body .fields label{min-height:0;margin-bottom:6px}
+.inspector-section-body .fields input,.inspector-section-body .fields select{padding:8px 9px}
+.inspector-reference-help{border:1px solid #314454;border-radius:8px;background:#142535}
+.inspector-reference-help summary{font-size:11px;color:#a7d0d3;cursor:pointer;padding:10px}
+.inspector-reference-help p{font-size:11px;line-height:1.6;color:#97b4be;padding:0 12px 11px;margin:0}
+.feature-history{gap:7px}
+.feature-history .feature-card{padding:8px;gap:7px}
+.feature-history .feature-card:not(.selected){background:#10202e;border-color:#35475a}
+.feature-history .feature-card:not(.selected) .feature-toolbar{margin:0}
+.feature-history .feature-anchor-help{font-size:10px}
+/* In-canvas accessible buttons; allow orbit/pan without scrolling panels. */
+.cad-camera-toolbar{position:absolute;z-index:5;right:15px;bottom:43px;display:flex;
+  flex-direction:column;gap:7px;max-width:min(90%,190px);pointer-events:auto}
+.camera-toolbar-group{display:flex;gap:3px;padding:5px;background:#0a1726e8;
+  border:1px solid #3a5569;border-radius:9px;box-shadow:0 6px 20px #0005}
+.camera-toolbar-group button{flex:1 1 0;min-width:0;background:#20364a;
+  border:1px solid #3d5a6e;border-radius:5px;padding:7px 4px;color:#cfe8f1;
+  font-size:11px;line-height:1;min-height:30px}
+.camera-toolbar-group button:hover:not(:disabled){background:#356176;color:#fff}
+.camera-toolbar-group button:disabled{opacity:.42}
+@media(max-width:760px){
+  .properties-sidebar .sidebar-content{display:flex;gap:9px}
+  .inspector-section-body .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cad-camera-toolbar{right:10px;bottom:38px}
+  .camera-toolbar-group button{min-height:28px}
+}
