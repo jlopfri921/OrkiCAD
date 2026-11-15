@@ -11,14 +11,26 @@
 
 OrkiCAD AI is a local-first, multilingual **parametric CAD, 2D/3D, AI and manufacturing ecosystem**. Its interfaces share a Python core:
 
-- **OrkiCAD Studio Desktop:** Tauri 2 / Rust / React/TypeScript; independent of ComfyUI, with optional web interface.
-- **OrkiCAD ComfyUI:** installable custom nodes, JSON workflows and potentially an embedded parameter editor.
+- **OrkiCAD Studio Desktop:** Tauri 2 / Rust shell sharing Studio Web React UI, with a bundled native OCCT runtime and no ComfyUI dependency.
+- **OrkiCAD Studio Web:** required browser client using the same React UI and an authenticated server-side CAD runtime.
+- **OrkiCAD ComfyUI:** optional nodes, JSON workflows and reusable parameter editor.
 - **OrkiCAD Core:** versioned part schemas, validated geometric generators, exporters, mesh inspection, provider adapters and jobs.
 - **Engine adapters:** OpenSCAD/BOSL2 initially; CadQuery/OCCT and FreeCAD for more advanced solid modeling, B-rep and STEP.
 - **AI adapters:** local Ollama initially; optional explicit connections to OpenAI, Anthropic Claude and Google Gemini.
 - **Multimodal adapters:** OCR, image/PDF-to-vector, photo reconstruction, image-to-3D, texture and asset workflows via ComfyUI.
 
 **Non-negotiable:** AI transforms requests into *structured, validated parametric specifications* and **must not execute arbitrary AI-generated Python, SCAD or shell code**. Both product interfaces consume one shared, versioned catalog of part types and parameter metadata.
+
+## Mandatory three-client parity (2026-11-15)
+
+OrkiCAD is **one product with three synchronized interfaces**: independent **Windows/Linux/macOS desktop**, authenticated **web**, and optional **ComfyUI**. No divergent geometry engines, inconsistent editable project formats, or separate feature roadmaps.
+
+- **Desktop:** one-click installation, a license-reviewed bundled OCCT native runtime and one-click STEP export; no FreeCAD, manual Python paths or ComfyUI prerequisite. Tauri 2 wraps the same React Studio UI as the web edition.
+- **Web:** shared Studio editor plus authenticated/sandboxed backend exports. Never expose the unauthenticated localhost development server to the public Internet.
+- **ComfyUI:** workflow and node adapters use Core contracts and automatic backend discovery in supported packages; developer overrides do not define the product UX.
+- **Acceptance:** every feature tracks Core parity and Web, Desktop and ComfyUI implementation/validation status. Mark missing clients incomplete.
+
+**Progress evidence:** user-confirmed Windows ComfyUI feature-program and visual editor workflows; new Studio Web source includes the same validated feature schema, ordered operation editor and native STEP/3MF endpoints, but requires browser acceptance. Automatic OCCT runtime detection is transitional. Tauri installers and a secure Internet-hosted web edition are not yet delivered. [Architecture decision](docs/adr/0007-three-clients-one-core.md).
 
 ## Documentation policy — confirmed 2026-11-15
 
@@ -98,7 +110,7 @@ Version numbers represent **verified milestones**, not daily revisions. Several 
 
 **Acceptance criteria for FreeCAD-independent STEP:** on a clean supported Windows system without FreeCAD installed, OrkiCAD Studio and a supported ComfyUI workflow can export a valid analytic STEP for the four initial part families, while STL/3MF continue to function; exported STEP round-trips in independent CAD readers with expected units, dimensions, shape validity and solid count; the OCCT runtime is distributed in compliance with its applicable licenses.
 
-**Current status:** this is an **approved target, not implemented**. The existing FreeCADCmd-based native STEP prototype is dependency-optional and its Windows execution has not yet been verified. Continue tracking evidence in `docs/STATUS.md`. The roadmap's `0.5.0` B-rep milestone should treat this independent native backend as a stretch goal requiring the clean-install acceptance above; do not imply the requirement is already fulfilled.
+**Current status:** Native OCCT STEP without FreeCAD is validated in the maintainer-reported Windows ComfyUI workflow. A path-free installed desktop release, secured hosted web exports, clean-install and independent CAD interoperability remain unverified product delivery gates. See `docs/STATUS.md`.
 
 ## Next execution plan (priority ordered)
 
