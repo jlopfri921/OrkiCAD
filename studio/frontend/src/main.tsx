@@ -531,6 +531,19 @@ function App() {
           </div>
         </div>
         <div className="viewport-frame">
+          {(previewPhase === 'pending' || previewPhase === 'rendering') &&
+            <div className="preview-computing" role="status">
+              <span className="preview-pulse" aria-hidden="true"></span>
+              {language === 'es'
+                ? previewPhase === 'pending' ? 'Preparando cambios…' : 'Actualizando geometría…'
+                : previewPhase === 'pending' ? 'Preparing changes…' : 'Updating geometry…'}
+            </div>}
+          {stl && !previewReady && (previewPhase === 'error' || previewPhase === 'idle') &&
+            <div className="preview-stale" role="status">
+              {language === 'es'
+                ? previewPhase === 'error' ? 'Última vista válida · revisa las medidas' : 'Vista anterior · pulsa Actualizar'
+                : previewPhase === 'error' ? 'Last valid view · check dimensions' : 'Previous view · click Update'}
+            </div>}
           <div className="viewport-grid" aria-hidden="true"></div>
           <div className="cad-camera-toolbar" role="toolbar" aria-label={language === 'es' ? 'Navegación de la cámara CAD' : 'CAD camera navigation'}>
             <div className="camera-toolbar-group">
