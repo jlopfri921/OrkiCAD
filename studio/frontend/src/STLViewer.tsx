@@ -3,9 +3,9 @@ import * as THREE from 'three'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-type Props = { data: ArrayBuffer | null }
+type Props = { data: ArrayBuffer | null; emptyMessage?: string }
 
-export default function STLViewer({ data }: Props) {
+export default function STLViewer({ data, emptyMessage }: Props) {
   const host = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -81,6 +81,6 @@ export default function STLViewer({ data }: Props) {
   }, [data])
 
   return <div className="viewer" ref={host} aria-label="Visor STL 3D interactivo">
-    {!data && <div className="viewer-empty">Genera un STL para ver la pieza en 3D.<br />Ratón: arrastrar para girar · rueda para zoom.</div>}
+    {!data && <div className="viewer-empty">{emptyMessage || 'Generate an STL to view the part in 3D.'}</div>}
   </div>
 }
