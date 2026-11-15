@@ -172,3 +172,19 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
   .studio-statusbar{height:auto;min-height:35px;flex-wrap:wrap}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+
+/* Explicit Save As confirmation shared by Studio Web and Tauri Desktop. */
+.save-overlay{position:fixed;inset:0;z-index:200;display:grid;place-items:center;
+  padding:20px;background:#030912c9;backdrop-filter:blur(9px)}
+.save-dialog{width:min(100%,480px);max-height:min(650px,90vh);overflow-y:auto;
+  background:#142131;border:1px solid #426078;border-radius:16px;padding:27px;
+  box-shadow:0 30px 100px #000b,0 0 0 1px #69d6d022}
+.save-dialog h2{font-size:22px;margin:9px 0;letter-spacing:-.3px}
+.save-dialog>p{font-size:13px;color:#a8bccd;line-height:1.65}
+.save-dialog label{margin:20px 0 8px}
+.save-filename-row{display:flex;align-items:center;gap:10px}
+.save-filename-row input{flex:1;min-width:0;font-size:15px}
+.save-filename-row span{font-weight:700;color:#7fe7d8;font-size:13px}
+.save-dialog-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:26px}
+.save-dialog-actions button{padding:12px 16px}
+@media(max-width:500px){.save-dialog{padding:20px}.save-dialog-actions button{flex:1}}
