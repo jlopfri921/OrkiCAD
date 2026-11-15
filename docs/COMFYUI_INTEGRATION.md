@@ -190,3 +190,19 @@ If the form does not appear, verify that `GET http://127.0.0.1:<comfy-port>/orki
 All saved specifications are parsed through the central allowlisted catalog and geometric validator. This editor still supports the prototype's current eight part families, not freeform CAD geometry. The new saved-design workflow does not have a separate approval gate by default: selecting **Queue** is treated as the user's explicit instruction to regenerate a local draft STL. Check all tolerances before physical printing.
 
 **Acceptance pending:** The Python regression tests and JavaScript controls have been updated in source but are not yet independently validated against the maintainer's Desktop installation. After `git pull --ff-only origin main`, run the project's unit tests and restart ComfyUI fully; use `Ctrl+Shift+R` to refresh the ComfyUI interface.
+
+## Multi-format mesh export (source committed; runtime validation pending)
+
+The OrkiCAD Core now provides `render_mesh(spec, format=...)` for allowlisted OpenSCAD output formats **STL, 3MF, OBJ, OFF and AMF**, retaining the original `render_stl` API for backwards compatibility. The ComfyUI `OrkiCADExportMesh` node exposes formats through a dropdown and saves exports with safe generated names under ComfyUI's `output/orkicad` directory.
+
+Try the new example:
+
+`comfyui/workflows/orkicad_saved_design_preview_export_3mf.json`
+
+This links a self-contained saved design to both the original STL→Preview3D path **and** a 3MF exporter. It does not call Ollama. Change the format dropdown to OBJ/OFF/AMF/STL as required. The new node's Python and native OpenSCAD format compatibility **require a real Windows retest** after updating/restarting ComfyUI Desktop.
+
+### Why STEP, IGES, and BREP require another backend
+
+OpenSCAD emits tessellated meshes, not native boundary-representation (B-rep) CAD solids. Merely importing STL triangles and writing a STEP extension would store faceted surfaces, **not regain cylinders, analytic curves or editable design history**. For STEP/STP, IGES and native BREP, the planned OrkiCAD implementation is a **second, geometry-native FreeCAD/OpenCascade backend** that builds the part's analytic B-rep directly from the validated parameter specification and then exports STEP. FreeCAD provides `Part.TopoShape.exportStep`, `exportIges` and `exportBrep`; fully editable FreeCAD `.FCStd` documents additionally need a document/feature-tree design. The first implementation should support simple catalog families (washer, plate, box, lid), then tackle precise BOSL2-style threaded parts and gear construction separately. **STEP/IGES/BREP/FCStd export is not implemented in the current prototype and must not be presented in the UI as available.**
+
+Exporting DXF, SVG or PDF from OpenSCAD is generally suitable for 2D projections/sketches rather than treating them as drop-in equivalents to a 3D solid.
