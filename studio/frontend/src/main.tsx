@@ -579,9 +579,13 @@ function App() {
               <div className="face-quick-row">
                 <input id="selected-dimension-range" type="range"
                   aria-label={language === 'es' ? 'Modificar medida en tiempo real' : 'Adjust dimension live'}
-                  min="0.1" max={Math.max(50, Math.ceil((params[selectedDimension] as number) * 2 / 10) * 10)}
-                  step="0.5" value={params[selectedDimension] as number}
-                  onChange={event => updateParameter(selectedDimension, Number(event.target.value))} />
+                  min={displayNumber(0.1, units, usesLinearUnits(type, selectedDimension))}
+                  max={displayNumber(Math.max(50, Math.ceil((params[selectedDimension] as number) * 2 / 10) * 10),
+                    units, usesLinearUnits(type, selectedDimension))}
+                  step={units === 'imperial' && usesLinearUnits(type, selectedDimension) ? '0.02' : '0.5'}
+                  value={displayNumber(params[selectedDimension] as number, units, usesLinearUnits(type, selectedDimension))}
+                  onChange={event => updateParameter(selectedDimension,
+                    canonicalNumber(Number(event.target.value), units, usesLinearUnits(type, selectedDimension)))} />
                 <strong>{displayNumber(params[selectedDimension] as number, units, usesLinearUnits(type, selectedDimension))}
                   <small>{fieldUnit(type, selectedDimension, units)}</small></strong>
               </div>
