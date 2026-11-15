@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer from './STLViewer'
 import { apiFetch } from './api'
+import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
 import FeatureOperationsEditor, { type Feature } from './FeatureOperationsEditor'
 import { initialLanguage, messages, type Language } from './i18n'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
@@ -59,6 +60,10 @@ function App() {
   const [working, setWorking] = useState(false)
   const [reviewApproved, setReviewApproved] = useState(false)
   const [copiedExample, setCopiedExample] = useState<number | null>(null)
+  const [savePending, setSavePending] = useState<ExportFormat | null>(null)
+  const [saveStem, setSaveStem] = useState('')
+  const [saveBusy, setSaveBusy] = useState(false)
+  const [saveStatus, setSaveStatus] = useState('')
   useEffect(() => {
     apiFetch('/api/catalog').then(r => { if (!r.ok) throw Error('Catalog unavailable'); return r.json() })
       .then(body => setCatalogData(body.parts))
@@ -225,51 +230,82 @@ function App() {
       setWorking(false)
     }
   }
-  async function exportFormat(format: "3mf" | "step") {
-    if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
-    setWorking(true); setError("")
+  function openSave(format: ExportFormat) {
+    setSaveStatus('')
+    setSaveStem('orkicad_' + type)
+    setSavePending(format)
+  }
+
+  async function produceExport(format: ExportFormat): Promise<Blob> {
+    if (format === 'stl') {
+      if (!stl) throw new Error(language === 'es'
+        ? 'Primero genera la vista 3D para obtener el STL.'
+        : 'Generate the 3D preview before saving an STL.')
+      return new Blob([stl], { type: 'model/stl' })
+    }
+    if (format === 'scad') {
+      if (!scad) throw new Error(language === 'es'
+        ? 'Primero genera el código OpenSCAD.'
+        : 'Generate OpenSCAD source before saving.')
+      return new Blob([scad], { type: 'text/plain;charset=utf-8' })
+    }
+    const response = await apiFetch('/api/' + format, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
+      body: JSON.stringify({ type, ...params }),
+    })
+    if (!response.ok) {
+      const raw = await response.text()
+      let detail = raw.slice(0, 500)
+      try { detail = (JSON.parse(raw) as { error?: string }).error || detail }
+      catch { /* Proxy errors might not be JSON */ }
+      throw new Error(detail || 'CAD export failed (' + response.status + ')')
+    }
+    const blob = await response.blob()
+    if (!blob.size) throw new Error('Empty CAD export')
+    return blob
+  }
+
+  async function confirmSave() {
+    const format = savePending
+    if (!format || saveBusy) return
     try {
-      const response = await apiFetch("/api/" + format, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-OrkiCAD-Client": "studio" },
-        body: JSON.stringify({ type, ...params }),
-      })
-      if (!response.ok) {
-        const raw = await response.text()
-        try { throw new Error((JSON.parse(raw) as { error?: string }).error || raw.slice(0, 500)) }
-        catch (error) { if (error instanceof SyntaxError) throw new Error(raw.slice(0, 500)); throw error }
+      // Validate before opening the operating-system picker.
+      normalizeExportName(saveStem, format)
+      setSaveBusy(true)
+      setError('')
+      // This call is triggered by a click, preserving web picker activation.
+      const result = await saveExport(format, saveStem, () => produceExport(format))
+      setSavePending(null)
+      if (result === 'saved') {
+        setSaveStatus(language === 'es' ? 'Archivo guardado correctamente.' : 'File saved successfully.')
+      } else if (result === 'browser-download') {
+        setSaveStatus(language === 'es'
+          ? 'Descarga iniciada. La carpeta de destino depende de la configuración de tu navegador.'
+          : 'Download started. The save location depends on your browser settings.')
+      } else {
+        setSaveStatus(language === 'es' ? 'Guardado cancelado.' : 'Save cancelled.')
       }
-      const blob = await response.blob()
-      if (!blob.size) throw new Error("Empty CAD export")
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement("a")
-      link.href = url
-      link.download = "orkicad_" + type + "." + format
-      link.click()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-    } catch (error) {
-      setError(error instanceof Error ? error.message : String(error))
-    } finally { setWorking(false) }
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason))
+    } finally {
+      setSaveBusy(false)
+    }
   }
+
+  function exportFormat(format: '3mf' | 'step') {
+    if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
+    openSave(format)
+  }
+
   function downloadSTL() {
-    if (!stl) return
-    const blob = new Blob([stl], { type: 'model/stl' })
-    const link = document.createElement('a')
-    const uri = URL.createObjectURL(blob)
-    link.href = uri
-    link.download = `orkicad_${type}.stl`
-    link.click()
-    setTimeout(() => URL.revokeObjectURL(uri), 1000)
+    if (stl) openSave('stl')
   }
+
   function download() {
-    if (!scad) return
-    const blob = new Blob([scad], { type: 'text/plain;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `orkicad_${type}.scad`
-    link.click()
-    URL.revokeObjectURL(link.href)
+    if (scad) openSave('scad')
   }
+
   const ui = language === 'es' ? {
     project: 'Diseño sin título', workspace: 'Espacio de trabajo', assistant: 'Asistente IA',
     settings: 'Configuración de IA', examples: 'Ejemplos de diseño',
@@ -289,7 +325,7 @@ function App() {
     waiting: 'No model generated', status: 'Ready to design', intro: 'Intelligent CAD · local workspace',
     formats: 'Export', inspector: 'Inspector', scene: 'CAD model',
   }
-  const exportBlocked = working || (!!aiNote && !reviewApproved)
+  const exportBlocked = working || saveBusy || (!!aiNote && !reviewApproved)
   return <div className="studio-shell">
     <header className="studio-topbar">
       <div className="studio-brand">
@@ -484,9 +520,41 @@ function App() {
         </div>
       </aside>
     </main>
+    {savePending && <div className="save-overlay">
+      <section className="save-dialog" role="dialog" aria-modal="true" aria-labelledby="save-dialog-title">
+        <div className="section-overline">ORKICAD STUDIO / EXPORT</div>
+        <h2 id="save-dialog-title">{language === 'es' ? 'Guardar modelo CAD' : 'Save CAD model'}</h2>
+        <p>{language === 'es'
+          ? 'Revisa el nombre del archivo y elige la carpeta de destino antes de guardar.'
+          : 'Review the filename and choose the destination folder before saving.'}</p>
+        <label htmlFor="save-filename">{language === 'es' ? 'Nombre del archivo' : 'Filename'}</label>
+        <div className="save-filename-row">
+          <input id="save-filename" autoFocus maxLength={110} value={saveStem}
+            onChange={event => setSaveStem(event.target.value)}
+            onKeyDown={event => { if (event.key === 'Enter') confirmSave() }} />
+          <span>.{savePending}</span>
+        </div>
+        <p className="muted-note">{isDesktop()
+          ? (language === 'es'
+            ? 'Se abrirá el diálogo nativo para elegir nombre y ubicación.'
+            : 'A native Save As dialog will let you choose the name and location.')
+          : (language === 'es'
+            ? 'En navegadores compatibles podrás elegir la carpeta. En otros, se usará la configuración de descargas del navegador.'
+            : 'Supported browsers let you choose a folder. Others use your browser download settings.')}</p>
+        {error && <p className="error" role="alert">{error}</p>}
+        <div className="save-dialog-actions">
+          <button type="button" className="secondary" disabled={saveBusy}
+            onClick={() => setSavePending(null)}>{language === 'es' ? 'Cancelar' : 'Cancel'}</button>
+          <button type="button" className="action-primary" disabled={saveBusy || !saveStem.trim()}
+            onClick={confirmSave}>{saveBusy
+              ? t.working
+              : language === 'es' ? 'Elegir ubicación y guardar' : 'Choose location and save'}</button>
+        </div>
+      </section>
+    </div>}
     <footer className="studio-statusbar">
       <span><span className="status-indicator"></span> {ui.status}</span>
-      <span>OrkiCAD Core · STL / 3MF / STEP</span>
+      <span role="status">{saveStatus || 'OrkiCAD Core · STL / 3MF / STEP'}</span>
       <span>{units === 'metric' ? 'Metric · mm' : 'Imperial · in'}</span>
     </footer>
   </div>
