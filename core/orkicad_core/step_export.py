@@ -15,7 +15,7 @@ from typing import Any, Mapping
 
 from .parts_catalog import validated_spec
 
-STEP_SUPPORTED_TYPES = frozenset({"washer", "mounting_plate", "open_box", "box_lid", "machined_block"})
+STEP_SUPPORTED_TYPES = frozenset({"washer", "mounting_plate", "open_box", "box_lid", "machined_block", "corner_plate"})
 MAX_STEP_BYTES = 50 * 1024 * 1024
 FREECAD_TIMEOUT = 180
 
