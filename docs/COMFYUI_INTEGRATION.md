@@ -219,3 +219,41 @@ The two exports consume the **same validated, manually approved parametric speci
 After `git pull --ff-only origin main`, run the unit tests, restart ComfyUI Desktop and import the combined workflow. Confirm the installed model name in `OrkiCADInterpretLocal`. The review node defaults to `approve_for_export=false`: review or modify numerical values in the visual form, then switch approval to true and run. Both outputs only execute once approved. Verify the STL in Preview3D and inspect the resulting 3MF in a compatible slicer, checking actual dimensions.
 
 **Status:** workflow committed and covered by an offline graph topology test. The new combined workflow has not yet been tested end-to-end in the maintainer's ComfyUI Desktop instance.
+
+## Native analytic STEP export through FreeCADCmd — first implementation (not yet acceptance tested)
+
+OrkiCAD now includes a **separate native B-rep engine** for STEP export, rather than wrapping an STL mesh. Implementation files:
+
+- `core/orkicad_core/step_export.py` — validates the original parametric spec, invokes the separately installed `FreeCADCmd` in an isolated subprocess, checks exit status, marker, output presence and a 50 MiB limit.
+- `core/orkicad_core/freecad_worker.py` — constructs Part solids using FreeCAD/OpenCascade geometry primitives and exports native STEP; no AI-supplied Python or source code is executed.
+- `OrkiCADExportSTEP` ComfyUI node — reads the **same approved spec** as the STL and 3MF branches, writes `.step` under ComfyUI's `output/orkicad` directory.
+- `comfyui/workflows/orkicad_ollama_review_preview_stl_3mf_step.json` — an integrated Ollama → visual editor/approval → **STL + Preview3D, 3MF, STEP** workflow.
+
+**Current STEP-capable part types**: `washer`, `mounting_plate`, `open_box`, `box_lid`. Screw, nut, spur gear, and bottle cap are intentionally **not supported yet** by the analytic STEP backend; their existing STL/3MF exports remain available. The STEP prototype produces geometric solids, **not yet editable FreeCAD feature-history trees or FCStd documents**.
+
+### Windows prerequisites
+
+The FreeCAD application is an **optional external dependency**, separate from both OpenSCAD and the ComfyUI Python environment. Do not `pip install FreeCAD` into ComfyUI. Check for the headless executable (depending on your install directory):
+
+```powershell
+Get-Command FreeCADCmd.exe -ErrorAction SilentlyContinue
+Get-ChildItem "C:\Program Files\FreeCAD*" -Filter FreeCADCmd.exe -File -Recurse -ErrorAction SilentlyContinue |
+    Select-Object -First 10 FullName
+```
+
+After installing a compatible FreeCAD version, configure the **actual verified path**, for example by storing it in a user-scoped environment variable:
+
+```powershell
+$freecad = Get-ChildItem "C:\Program Files\FreeCAD*" -Filter FreeCADCmd.exe -File -Recurse -ErrorAction SilentlyContinue |
+    Select-Object -First 1 -ExpandProperty FullName
+if ($freecad) {
+    [Environment]::SetEnvironmentVariable("ORKICAD_FREECAD_CMD", $freecad, "User")
+    Write-Host "Configured:" $freecad
+} else {
+    Write-Warning "FreeCADCmd.exe not found; native STEP export will remain unavailable."
+}
+```
+
+Then **fully restart** ComfyUI Desktop to inherit the new variable. The sample model is a supported `box_lid` by default. Update repository, run unit tests and restart ComfyUI before importing the new graph. Start with `approve_for_export=false`, review and adjust dimensions, approve and queue to produce the three artifacts. Open the STEP in FreeCAD and confirm that its shape is a valid solid and its dimensions match the STL/3MF.
+
+**Known prototype limitations:** FreeCAD is not bundled; availability and CLI compatibility vary with Windows distributions. The exact scripted `FreeCADCmd` invocation and full integrated workflow are **not yet validated on the maintainer's PC**. OpenSCAD and FreeCAD construct the same simple catalog geometries independently, and tolerance parity needs a quantitative cross-backend comparison. The FreeCAD worker accepts only validated catalog parameters, and it checks solid validity at the end; this is not a claim of certified engineering fit. If FreeCAD is absent, the STEP branch will fail, so temporarily disable it to continue using STL/3MF.
