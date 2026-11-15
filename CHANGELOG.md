@@ -40,3 +40,8 @@ All notable changes will be recorded here, grouped by released version. The proj
 - Added a second ComfyUI JSON example combining local Ollama interpretation with validated parametric SCAD/STL generation.
 - Documented required local model selection and the prototype limitation of rendering from AI-proposed values without a dedicated review step.
 - Added workflow wiring and validation regression tests. No new release has been tagged.
+
+### Fixed in source (pending Windows retest)
+
+- Local Ollama request timeout is now configurable (180-second default, maximum 600 seconds) with explicit error messages for timeouts and provider connection issues, addressing the first observed ComfyUI AI-node timeout.
+- Added offline adapter regression tests. A successful Ollama-to-STL workflow execution remains unverified.
