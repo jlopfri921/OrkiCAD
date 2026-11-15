@@ -10,6 +10,7 @@ on:
       - "core/orkicad_core/studio_server.py"
       - "core/orkicad_core/ai_interpreter.py"
       - "core/orkicad_core/parts_catalog.py"
+      - "core/orkicad_core/circular_prompt.py"
       - "core/orkicad_core/geometry.py"
       - "core/orkicad_core/occt_worker.py"
       - "tests/test_circular_plate.py"
