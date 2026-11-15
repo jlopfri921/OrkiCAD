@@ -11,7 +11,7 @@ PARTS = {
                                       {"op": "cut", "shape": "box", "position": [26, 15, 7], "size": [48, 30, 6]},
                                       {"op": "cut", "shape": "cylinder", "position": [12, 30, -0.1], "radius": 3, "height": 12.2},
                                       {"op": "cut", "shape": "cylinder", "position": [88, 30, -0.1], "radius": 3, "height": 12.2},
-                                      {"op": "add", "shape": "cylinder", "position": [50, 30, 11.8], "radius": 7, "height": 8}
+                                      {"op": "add", "shape": "cylinder", "position": [50, 50, 11.8], "radius": 7, "height": 8}
                                   ]}},
     "corner_plate": {"fields": {"width": 90, "depth": 55, "thickness": 6,
                                   "corner_style": "round", "corner_size": 5,
