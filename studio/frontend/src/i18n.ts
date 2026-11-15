@@ -1,7 +1,7 @@
 /** UI translations. CAD parameter keys and API types are deliberately invariant. */
 export const messages = {
   es: {
-    language: 'Idioma', subtitle: 'Studio · Prototipo CAD',
+    language: 'Idioma', units: 'Unidades', metric: 'Métrico (mm)', imperial: 'Imperial (in)', unitNote: 'Las medidas se guardan internamente en mm. Cambiar las unidades no modifica la geometría.', subtitle: 'Studio · Prototipo CAD',
     title: 'Estudio CAD paramétrico',
     intro: 'Configura piezas y genera modelos OpenSCAD y STL con el núcleo Python de OrkiCAD.',
     component: 'Componente', partType: 'Tipo de pieza',
@@ -12,7 +12,7 @@ export const messages = {
     code: 'Código OpenSCAD', downloadSCAD: 'Descargar SCAD',
     help: 'Arrastra para girar y usa la rueda para ampliar. Las piezas mecánicas requieren OpenSCAD y BOSL2.',
     empty: 'Selecciona una pieza y pulsa Generar SCAD. El servidor Python debe estar funcionando.',
-    footer: 'Prototipo · Unidades: milímetros · Comprueba las dimensiones y tolerancias antes de fabricar.',
+    footer: 'Prototipo · Dimensiones internas: mm · Comprueba las medidas y tolerancias antes de fabricar.',
     emptyResponse: 'El servidor CAD no devolvió datos',
     checkServer: 'Comprueba el servidor Python en http://127.0.0.1:8765/api/health',
     wrongResponse: 'Respuesta inesperada del servidor',
@@ -37,7 +37,7 @@ export const messages = {
     }
   },
   en: {
-    language: 'Language', subtitle: 'Studio · CAD prototype',
+    language: 'Language', units: 'Units', metric: 'Metric (mm)', imperial: 'Imperial (in)', unitNote: 'Dimensions are stored internally in mm. Switching units does not change the geometry.', subtitle: 'Studio · CAD prototype',
     title: 'Parametric CAD Studio',
     intro: 'Configure parts and generate OpenSCAD and STL models using the OrkiCAD Python core.',
     component: 'Component', partType: 'Part type',
@@ -48,7 +48,7 @@ export const messages = {
     code: 'OpenSCAD code', downloadSCAD: 'Download SCAD',
     help: 'Drag to orbit and scroll to zoom. Mechanical parts require OpenSCAD and BOSL2.',
     empty: 'Select a part and click Generate SCAD. The local Python server must be running.',
-    footer: 'Prototype · Units: millimetres · Check dimensions and tolerances before manufacturing.',
+    footer: 'Prototype · Internal dimensions: mm · Check dimensions and tolerances before manufacturing.',
     emptyResponse: 'CAD server returned no data',
     checkServer: 'Check the Python server at http://127.0.0.1:8765/api/health',
     wrongResponse: 'Unexpected server response',
