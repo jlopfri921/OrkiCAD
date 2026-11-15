@@ -49,3 +49,17 @@ Studio Web currently binds to localhost only. Desktop requires a session-specifi
 6. Package the native engines, perform clean-install smoke tests, and validate STEP imports with independent CAD readers on each supported OS.
 
 These are acceptance requirements; committing source does not prove they have passed.
+
+## World origin and three CAD reference planes (Studio Web / Desktop)
+
+After generating an STL, enable **Planos 0,0,0** in the central viewer. The three translucent planes intersect at the **global CAD origin**:
+
+- **XY, Z=0:** horizontal construction/reference plane.
+- **XZ, Y=0:** vertical construction/reference plane.
+- **YZ, X=0:** the other vertical construction/reference plane.
+
+The white marker identifies **(0,0,0)**, not the centre of the displayed part. The frame is correctly offset when the STL mesh is centered purely for camera navigation. Orbiting/zooming does not change part coordinates. Hiding planes only affects the viewer, not the model or exported geometry.
+
+The Feature model inspector includes placement presets: **Origen absoluto (0,0,0)**, **Centro de la base (X/Y)**, and **Centro de la cara superior**. A box uses its minimum XYZ corner, whereas a cylinder uses its axis centre X/Y and base Z. These shortcuts compute canonical millimetre values and can still be refined manually. Changing a feature invalidates the preview: regenerate STL to see final CSG output.
+
+A click on an STL exterior face highlights it and, when safely mapped, focuses the corresponding width, depth or height/upper thickness field. The click is approximate *mesh* selection. It does not yet supply native OCCT/STEP face identities, editable fillets, holes, sketches, persistent references or parametric dependencies. Precise B-rep selection is the next phase and must be implemented in shared Core rather than separately in the Web/Desktop clients.
