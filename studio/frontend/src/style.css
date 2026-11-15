@@ -8,3 +8,9 @@
 .actions button{flex:1;min-width:130px}
 .output h2:not(:first-child){margin-top:25px}
 .output pre{min-height:170px;max-height:320px}
+
+/* Language selector */
+.header-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.header-controls label{margin:0;color:#c5d7e8}
+.header-controls select{width:auto;min-width:126px;padding:8px 11px}
+@media(max-width:620px){header{align-items:flex-start;gap:14px;flex-direction:column}}
