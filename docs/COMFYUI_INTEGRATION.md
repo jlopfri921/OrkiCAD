@@ -337,3 +337,30 @@ Default part dimensions: 90 × 55 × 6 mm, `corner_style=round`, `corner_size=5`
 **Windows trial:** pull `main`, restart ComfyUI Desktop, load the JSON workflow above, select the existing local Ollama model, set the OCCT export node's `occt_python_path` to the local dedicated environment, review the proposed `corner_plate`, and manually approve the export. Run again with the visual editor `corner_style` changed to `chamfer`; compare the STL/3MF preview and native STEP files. Both geometries share canonical millimetre parameters.
 
 **Status:** source, safe catalog schema, OpenSCAD/OCCT backends, optional FreeCAD parity, workflow and tests are committed. The OCP Python APIs for filleting and chamfering a simple box and cutting holes were checked in an isolated development environment; **the maintainer has not yet run this new corner-plate end-to-end workflow** on ComfyUI. Independent CAD reader validation, tolerance parity, Linux/macOS acceptance and installer bundling are still pending.
+
+## Ordered CAD feature programs: first template-independent solid construction
+
+**Example workflow:** `comfyui/workflows/orkicad_ai_feature_program_stl_3mf_occt_step.json` (source committed; maintainer's Windows run pending).
+
+OrkiCAD now includes a limited declarative `feature_model` spec in the shared catalog. It starts with a rectangular positive-volume solid (`width`, `depth`, `height`) and applies **one to eight ordered features**, where each feature has `op: add|cut`, `shape: box|cylinder`, a three-number `position` (mm), and either `size: [x,y,z]` for a box or `radius` and `height` for a vertical cylinder. The program is a **typed data structure**, not AI-generated Python, OpenSCAD, shell commands, or untrusted executable code. No scripts, arbitrary expression strings, paths, references or unknown feature keys are accepted. Scalar dimensions are bounded to 500 mm; coordinates are finite; detached operations beyond the base bounding box are rejected; OCCT independently checks topology validity and requires exactly one B-rep solid. Geometric validity is ultimately decided by the engine, so bounding-box overlap alone never proves an operation is attached to existing material.
+
+**Example program:**
+```json
+{
+  "type": "feature_model",
+  "width": 100, "depth": 60, "height": 12,
+  "operations": [
+    {"op": "cut", "shape": "box", "position": [26,15,7], "size": [48,30,6]},
+    {"op": "cut", "shape": "cylinder", "position": [12,30,-0.1], "radius": 3, "height": 12.2},
+    {"op": "cut", "shape": "cylinder", "position": [88,30,-0.1], "radius": 3, "height": 12.2},
+    {"op": "add", "shape": "cylinder", "position": [50,50,11.8], "radius": 7, "height": 8}
+  ]
+}
+```
+The result is a block with one top recess, two through-holes and one raised cylindrical boss attached to material outside the recess. The **feature order is meaningful** and determines the sequence of Boolean operations.
+
+The existing visual Review editor now exposes an **operations JSON textarea** for this special field; ordinary width/depth/height remain standard numeric widgets. Nested operation coordinates stay in **millimetres** even when the outer form's unit display is switched to inches; they are not silently converted. After editing, the user must explicitly reapprove before exporting. Manual non-AI edits can also use the Saved parametric design node. The old catalog templates and all prior workflows remain supported.
+
+**Run on the maintainer's ComfyUI:** pull `main`, restart ComfyUI Desktop, load the workflow above, confirm the local Ollama model, review the feature operations, set the STEP node `occt_python_path` to the existing dedicated OCCT Python environment, and approve. Three branches produce native STL/3MF via OpenSCAD and analytic STEP via OCCT. The optional legacy FreeCADCmd backend does **not** implement `feature_model`; it is intentionally excluded from that adapter's allowlist.
+
+**Limits:** no rotations or transforms beyond translation, sketches, revolutions, arbitrary solids, local history-tree references, fillet selectors or assemblies. The OCCT worker ran this example's four operations as valid single-solid booleans in an isolated smoke check, but full ComfyUI acceptance and cross-format parity are not yet verified. Linux and macOS remain CI targets rather than maintainer-verified hosts.
