@@ -6,13 +6,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .geometry import generate_scad
 from .stl_render import RenderError, render_stl
+from .parts_catalog import catalog_public
+from .ai_interpreter import AIError, interpret
+import os
 
 MAX_BYTES = 8192
 
 
 class StudioHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        if self.path not in ("/api/scad", "/api/stl"):
+        if self.path not in ("/api/scad", "/api/stl", "/api/interpret"):
             self.send_error(404)
             return
         if self.headers.get("X-OrkiCAD-Client") != "studio":
@@ -30,15 +33,23 @@ class StudioHandler(BaseHTTPRequestHandler):
             spec = json.loads(self.rfile.read(size))
             if self.path == "/api/scad":
                 scad = generate_scad(spec)
-            else:
+            elif self.path == "/api/stl":
                 binary = render_stl(spec)
+            else:
+                if not isinstance(spec, dict):
+                    raise ValueError("Expected an object containing a prompt")
+                proposal = interpret(spec.get("prompt", ""), model=spec.get("model"))
+
         except (ValueError, UnicodeDecodeError) as exc:
             self._json(400, {"error": str(exc)})
             return
-        except RenderError as exc:
+        except (RenderError, AIError) as exc:
             self._json(422, {"error": str(exc)})
             return
-        if self.path == "/api/scad":
+        if self.path == "/api/interpret":
+            self._json(200, {"spec": proposal, "review_required": True,
+                             "message": "Review ALL dimensions and assumptions before generating."})
+        elif self.path == "/api/scad":
             self._json(200, {"scad": scad})
         else:
             self.send_response(200)
@@ -52,6 +63,19 @@ class StudioHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/health":
             self._json(200, {"status": "ok", "service": "orkicad-studio-api"})
+        elif self.path == "/api/catalog":
+            self._json(200, catalog_public())
+        elif self.path == "/api/providers":
+            self._json(200, {
+                "providers": [{
+                    "id": "ollama", "kind": "local", "configured": True,
+                    "model": os.environ.get("ORKICAD_OLLAMA_MODEL", "qwen2.5:7b"),
+                    "endpoint": os.environ.get("ORKICAD_OLLAMA_URL", "http://127.0.0.1:11434"),
+                    "note": "Local provider; actual availability tested when prompted"
+                }],
+                "cloud_providers_enabled": False,
+                "message": "Cloud credentials and adapters are not yet implemented."
+            })
         else:
             self.send_error(404)
 
