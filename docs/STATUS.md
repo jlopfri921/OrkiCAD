@@ -84,3 +84,24 @@ Previous maintainer test run: 10/10 Python unit tests passed. These outputs are 
 Maintainer ran Trimesh 5.2.1 / NumPy 2.2.6 on Windows. The generated `gear_24T.stl` loaded with 2,752 triangles, `is_watertight=True`, volume 13,836.84 mm³, bounding-box extents [51.98, 51.98, 8.00] mm. For an unshifted standard module-2, 24-tooth spur gear, theoretical outside diameter is 52 mm; this matches the observed bounding-box diameter within mesh tessellation.
 
 The inspection script then failed at `mesh.split(only_watertight=False)` with `ImportError: no graph engines available!` because no Trimesh connectivity graph backend was installed. Remaining STL files were **not inspected** by that run; next step: install `networkx` into the OrkiCAD virtual environment and rerun. The current watertight result does not establish full topology, tooth-profile accuracy, printing quality or mating fit.
+
+## Mesh topology verification — Windows 2026-11-15
+
+Maintainer-provided Trimesh results:
+
+| File | Faces | Watertight | Volume mm³ | Extents XYZ (mm) | Components | is_volume |
+| --- | ---: | --- | ---: | --- | ---: | --- |
+| gear_24T.stl | 2752 | True | 13836.84 | 51.98 × 51.98 × 8 | 1 | True |
+| nut_M6.stl | 672 | True | 308.35 | 10 × 11.55 × 5.2 | 1 | True |
+| screw_M6x30.stl | 2948 | True | 1009.37 | 10 × 10 × 36 | 1 | True |
+| washer.stl | 1024 | True | 442.39 | 18 × 18 × 2 | 1 | True |
+
+All four samples passed these preliminary topological checks. Mechanical tolerances, thread fit, tooth-profile accuracy and physical print tests remain unverified.
+
+## New features committed (awaiting independent execution)
+
+- Added reusable Python mesh inspector and JSON report, using optional Trimesh + NetworkX (see [Mesh validation](MESH_VALIDATION.md)).
+- Added first React/TypeScript Studio frontend with six parametric part forms, SCAD source generation and file download.
+- Added localhost-only Python JSON-to-SCAD endpoint. The backend does not execute arbitrary scripts or read user paths.
+- Added server smoke tests and mesh inspector unit/integration tests.
+- Studio is **not** yet a Tauri/Rust desktop application, and the frontend/backend integration is **not yet verified** on Windows. See [Studio prototype](STUDIO_PROTOTYPE.md).
