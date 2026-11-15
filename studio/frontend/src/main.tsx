@@ -9,24 +9,25 @@ import FeatureOperationsEditor, { type Feature } from './FeatureOperationsEditor
 import { initialLanguage, messages, type Language } from './i18n'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
 
-type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model'
+type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model' | 'circular_plate'
 type ParamValue = number | string | Feature[]
 type AIProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini'
 type Definition = { label: string; params: Record<string, ParamValue> }
 const PROMPT_EXAMPLES = {
   es: [
-    'Diseña una placa de 90 × 55 × 6 mm con esquinas redondeadas de radio 5 mm y dos agujeros de 6 mm separados de los extremos 17 mm. Usa corner_plate.',
+    'Diseña una placa circular maciza de radio exterior 50 mm y espesor 4 mm. Realiza 5 agujeros pasantes de diámetro 3 mm, igualmente espaciados en un círculo de radio 20 mm desde el centro de la placa. La base debe ser un disco, nunca un cuadrado. Usa circular_plate.',    'Diseña una placa de 90 × 55 × 6 mm con esquinas redondeadas de radio 5 mm y dos agujeros de 6 mm separados de los extremos 17 mm. Usa corner_plate.',
     'Diseña un bloque mecanizado de 100 × 60 × 15 mm, dos agujeros pasantes de diámetro 6 mm a 12 mm de ambos extremos y un vaciado central de 48 × 30 mm y 6 mm de profundidad. Usa machined_block.',
     'Crea un feature_model con un bloque base de 100 × 60 × 12 mm: resta un vaciado de 48 × 30 × 6.2 mm en [26,15,6], resta dos cilindros de radio 3 y altura 12.2 en [12,30,-0.1] y [88,30,-0.1], y añade un cilindro de radio 7 y altura 8 en [50,50,11.8]. Incluye todos los campos.'
   ],
   en: [
-    'Design a 90 x 55 x 6 mm corner_plate with rounded corners of radius 5 mm and two 6 mm holes 17 mm from the ends.',
+    'Make a solid circular plate of outer radius 50 mm and thickness 4 mm, with 5 equally spaced through holes of diameter 3 mm on a pitch circle of radius 20 mm. The outer solid is a disk, never a box. Use circular_plate.',    'Design a 90 x 55 x 6 mm corner_plate with rounded corners of radius 5 mm and two 6 mm holes 17 mm from the ends.',
     'Design a machined_block 100 x 60 x 15 mm, two 6 mm through holes 12 mm from both ends and a centered 48 x 30 mm pocket 6 mm deep.',
     'Make a feature_model from a 100 x 60 x 12 mm block: cut a 48 x 30 x 6.2 mm box at [26,15,6], cut two radius 3 height 12.2 cylinders at [12,30,-0.1] and [88,30,-0.1], then add a radius 7 height 8 cylinder at [50,50,11.8]. Include all required fields.'
   ]
 } as const
 
 const catalog: Record<PartType, Definition> = {
+  circular_plate: { label: 'Circular plate', params: { outer_radius: 50, thickness: 4, hole_count: 5, hole_diameter: 3, bolt_circle_radius: 20 } },
   washer: { label: 'Washer', params: { outer_diameter: 18, inner_diameter: 6.5, thickness: 2 } },
   mounting_plate: { label: 'Mounting plate', params: { width: 80, depth: 50, thickness: 5, hole_diameter: 5, hole_inset: 10 } },
   open_box: { label: 'Open box', params: { width: 60, depth: 40, height: 25, wall: 2 } },
@@ -83,7 +84,7 @@ function App() {
   }
   const primaryFields = new Set([
     'width', 'depth', 'height', 'thickness', 'length',
-    'outer_diameter', 'inner_diameter', 'diameter', 'box_width', 'box_depth',
+    'outer_diameter', 'inner_diameter', 'outer_radius', 'diameter', 'box_width', 'box_depth',
     'neck_outer_diameter', 'wall',
   ])
 
