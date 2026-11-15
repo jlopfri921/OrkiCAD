@@ -6,12 +6,16 @@
 
 **Open-source multimodal CAD, 2D/3D reconstruction, AI-assisted design and manufacturing ecosystem.**
 
-> **Project status: planning / foundation.** This repository currently documents the project; CAD generators, custom ComfyUI nodes and production workflows are **not yet implemented**.
+> **Project status: early source prototype.** A small deterministic CAD generator (washer, mounting plate and open box) is committed. Full parametric catalogs, AI integrations, custom ComfyUI nodes, Studio and production workflows are **not yet implemented or released**.
 
 OrkiCAD AI is designed around **one reusable Python CAD core and two user experiences**:
 
 - **OrkiCAD Studio** — independent desktop app built with **Tauri 2, Rust, React and TypeScript**, with a possible web edition.
 - **OrkiCAD ComfyUI** — custom ComfyUI nodes and visual workflows sharing the same backend.
+
+## First runnable source prototype
+
+The initial Python package generates validated OpenSCAD source for **washers, mounting plates with four holes and open-top boxes**. An installed OpenSCAD CLI can convert these templates to STL. It includes JSON examples, basic unit tests and a GitHub Actions test workflow (execution not yet independently verified). See [Getting started](docs/GETTING_STARTED.md).
 
 ## Planned capabilities
 
