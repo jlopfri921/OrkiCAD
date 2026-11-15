@@ -75,7 +75,7 @@ class ComfyNodeTests(unittest.TestCase):
             "OrkiCADPartSpec", "OrkiCADGenerateSCAD",
             "OrkiCADRenderSTL", "OrkiCADInterpretLocal",
             "OrkiCADReviewSpec", "OrkiCADSavedDesign", "OrkiCADExportMesh",
-            "OrkiCADExportSTEP",
+            "OrkiCADExportSTEP", "OrkiCADExportOCCTSTEP",
         })
 
     def test_part_to_scad(self):
@@ -277,6 +277,39 @@ class ComfyNodeTests(unittest.TestCase):
         self.assertIn([5, 2, 0, 6, 0, "STRING"], flow["links"])
         self.assertEqual(flow["last_node_id"], 6)
         self.assertEqual(flow["last_link_id"], 5)
+
+    def test_occt_step_is_optional_and_platform_neutral(self):
+        import sys
+        from orkicad_core.occt_step import resolve_occt_python
+        with patch.dict("os.environ", {"ORKICAD_OCCT_PYTHON": ""}):
+            self.assertEqual(resolve_occt_python("Auto"), sys.executable)
+        self.assertIn("occt_python_path",
+                      self.nodes.OrkiCADExportOCCTSTEP.INPUT_TYPES()["optional"])
+
+    def test_occt_step_rejects_unsupported_parts(self):
+        from orkicad_core.occt_step import OCCTExportError, render_occt_step
+        cap = {"type": "bottle_cap", **PARTS["bottle_cap"]["fields"]}
+        with self.assertRaisesRegex(OCCTExportError, "not yet implemented"):
+            render_occt_step(cap)
+
+    def test_occt_step_rejects_invalid_path(self):
+        from orkicad_core.occt_step import OCCTExportError, resolve_occt_python
+        with self.assertRaisesRegex(OCCTExportError, "Invalid OCCT Python"):
+            resolve_occt_python("/missing/occt/python")
+
+    def test_occt_step_node_rejects_traversal(self):
+        spec = {"type": "washer", **PARTS["washer"]["fields"]}
+        with self.assertRaisesRegex(ValueError, "file_stem"):
+            self.nodes.OrkiCADExportOCCTSTEP().export(json.dumps(spec), "../escape")
+
+    def test_ai_occt_workflow_exports_all_three(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl_3mf_occt_step.json"
+        flow = json.loads(path.read_text(encoding="utf-8"))
+        types = {n["id"]: n["type"] for n in flow["nodes"]}
+        self.assertEqual(types[6], "OrkiCADExportOCCTSTEP")
+        self.assertIn([5, 2, 0, 6, 0, "STRING"], flow["links"])
+        self.assertIn("OrkiCADExportMesh", types.values())
+        self.assertIn("OrkiCADRenderSTL", types.values())
 
     def test_preview_workflow_wiring(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl.json"
