@@ -1,6 +1,6 @@
 # Project status
 
-**As of 2026-11-15 — Foundation / planning; no released application yet.**
+**As of 2026-11-15 — Initial source prototype committed; no packaged application or tagged release yet.**
 
 ## Confirmed decisions
 
@@ -15,10 +15,13 @@
 ## Implemented
 
 - Initial repository documentation and development plan.
+- Python CAD source generator for washer, 4-hole mounting plate and open-top box (millimetres, validated parameters).
+- JSON examples, CLI, unit test suite and GitHub Actions workflow (CI results not yet independently verified).
+- Optional external OpenSCAD CLI export to STL; requires compatible local OpenSCAD installation.
 
 ## Not yet implemented
 
-- Parametric geometry engine, component catalogs and export pipeline.
+- Full engineering-grade parametric geometry engine, standards-based fasteners/gears and complete export pipeline.
 - ComfyUI custom node package and importable JSON workflows.
 - Studio desktop application.
 - Provider integrations, automated tests and CI release artifacts.
