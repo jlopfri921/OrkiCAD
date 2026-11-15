@@ -188,3 +188,15 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .save-dialog-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:26px}
 .save-dialog-actions button{padding:12px 16px}
 @media(max-width:500px){.save-dialog{padding:20px}.save-dialog-actions button{flex:1}}
+
+/* Direct 3D surface selection -> CAD inspector, shared Web and Desktop. */
+.face-selection-info{min-width:150px;display:grid;gap:4px;flex:1;
+  padding:8px 12px;border:1px solid #7b653e;border-radius:8px;
+  background:#2b302f;color:#f5d8a3;font-size:11px;line-height:1.45}
+.face-selection-info strong{font-size:12px}
+.face-selection-info span{color:#d6ba8b}
+.fields>.param-focused{padding:7px;border:1px solid #e8c375;border-radius:9px;
+  background:#40392a;box-shadow:0 0 0 1px #e8c37550}
+.fields>.param-focused label{color:#f8d9a2}
+.fields>.param-focused input:focus{border-color:#f6ce83;box-shadow:0 0 0 2px #dba64b40}
+.viewer canvas{cursor:crosshair}
