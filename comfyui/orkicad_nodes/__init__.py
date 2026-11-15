@@ -190,12 +190,54 @@ class OrkiCADReviewSpec:
         return (json.dumps(accepted, ensure_ascii=False, sort_keys=True), readable)
 
 
+class OrkiCADSavedDesign:
+    """Editable, self-contained CAD design; no Ollama or upstream AI connection.
+
+    Store the validated base specification in the workflow's own widget.
+    Visual edits are emitted through the overrides JSON widget.
+    """
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        from orkicad_core.parts_catalog import PARTS
+        default_spec = {"type": "box_lid", **PARTS["box_lid"]["fields"]}
+        return {"required": {
+            "base_spec_json": ("STRING", {
+                "multiline": True,
+                "default": json.dumps(default_spec, ensure_ascii=False, sort_keys=True),
+            }),
+            "overrides_json": ("STRING", {"multiline": True, "default": "{}"}),
+        }}
+
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("spec_json", "design_summary")
+    FUNCTION = "build"
+    CATEGORY = "OrkiCAD/Parametric"
+
+    def build(self, base_spec_json: str, overrides_json: str):
+        _, parts, validate, _ = _core()
+        original = _spec(base_spec_json)
+        try:
+            overrides = json.loads(overrides_json)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Saved design overrides must be valid JSON") from exc
+        if not isinstance(overrides, dict):
+            raise ValueError("Saved design overrides must be a JSON object")
+        unknown = set(overrides) - set(parts[original["type"]]["fields"])
+        if unknown:
+            raise ValueError("Unknown saved design fields: " + ", ".join(sorted(unknown)))
+        updated = validate({**original, **overrides})
+        return (json.dumps(updated, ensure_ascii=False, sort_keys=True),
+                json.dumps(updated, ensure_ascii=False, indent=2, sort_keys=True))
+
+
 NODE_CLASS_MAPPINGS = {
     "OrkiCADPartSpec": OrkiCADPartSpec,
     "OrkiCADGenerateSCAD": OrkiCADGenerateSCAD,
     "OrkiCADRenderSTL": OrkiCADRenderSTL,
     "OrkiCADInterpretLocal": OrkiCADInterpretLocal,
     "OrkiCADReviewSpec": OrkiCADReviewSpec,
+    "OrkiCADSavedDesign": OrkiCADSavedDesign,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -204,6 +246,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "OrkiCADRenderSTL": "OrkiCAD · Render STL",
     "OrkiCADInterpretLocal": "OrkiCAD · Local AI → CAD parameters",
     "OrkiCADReviewSpec": "OrkiCAD · Review & approve CAD",
+    "OrkiCADSavedDesign": "OrkiCAD · Saved parametric design",
 }
 
 
