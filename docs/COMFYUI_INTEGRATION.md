@@ -94,3 +94,24 @@ Steps:
 - `model not found` or HTTP 404: set the exact model tag shown by `ollama list`; there is no implicit remote model download.
 - `unsupported CAD parameters`: the model output could not be validated against an existing registered part template. Ask for a supported part family and explicit measurements.
 - No file visible in UI: this first node saves STL on disk and has no embedded visual preview.
+
+## Troubleshooting: Ollama request timeout
+
+The initial 75-second hardcoded request limit caused the maintainer's first AI workflow to fail with `Local Ollama unavailable: timed out`. The adapter now defaults to **180 seconds**, configurable with `ORKICAD_OLLAMA_TIMEOUT` (valid range 5–600 seconds). This change is committed but awaits rerunning the real ComfyUI workflow.
+
+Before starting ComfyUI Desktop, verify that Ollama responds:
+
+```powershell
+ollama list
+ollama ps
+Invoke-RestMethod -Uri "http://127.0.0.1:11434/api/tags" -Method Get |
+    Select-Object -ExpandProperty models | Select-Object name
+```
+
+Use the exact model name shown in the installed model list. Cold loading, CPU offloading and high memory demand can make large models slow. To pre-load a model, run `ollama run <installed-model>` in a different terminal, wait for a response, then exit the interactive chat. Set a longer timeout in the **ComfyUI launch process environment** if necessary:
+
+```powershell
+[Environment]::SetEnvironmentVariable("ORKICAD_OLLAMA_TIMEOUT", "240", "User")
+```
+
+Exit and restart **the entire ComfyUI Desktop launcher** for user environment changes to take effect. A connection timeout does not show whether the model is correctly installed, and the longer timeout is not a substitute for model and hardware diagnosis.
