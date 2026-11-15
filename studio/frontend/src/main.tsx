@@ -156,7 +156,7 @@ function App() {
       {error && <p className="error" role="alert">{error}</p>}
       </section><section className="panel output">
         <h2>{t.viewer}</h2>
-        <STLViewer data={stl} />
+        <STLViewer data={stl} emptyMessage={t.emptyViewer} />
         <p className="hint">{t.help}</p>
         <button className="secondary" disabled={!stl} onClick={downloadSTL}>{t.downloadSTL}</button>
         <h2>{t.code}</h2>
