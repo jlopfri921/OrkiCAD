@@ -4,7 +4,7 @@ All length dimensions are canonical millimetres. The UI may display inches.
 """
 from __future__ import annotations
 
-CATALOG_VERSION = "0.5-prototype"
+CATALOG_VERSION = "0.6-circular-plate"
 PARTS = {
     "circular_plate": {"fields": {"outer_radius": 50, "thickness": 4,
                                     "hole_count": 5, "hole_diameter": 3,
