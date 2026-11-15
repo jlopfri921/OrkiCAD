@@ -33,3 +33,11 @@
 3. Invalid dimension combinations rejected with actionable errors.
 4. A documented Windows setup and repeatable sample command.
 5. Automated tests for dimensions, export files and regression examples.
+
+## Multilingual product requirement (confirmed 2026-11-15)
+
+- OrkiCAD Studio and future ComfyUI interface must support multiple UI languages from the architecture level.
+- First implemented Studio languages: Spanish and English; browser-language detection and manual language switch.
+- Keep CAD schema keys and units separate from translated UI strings; allow languages to be added without altering CAD core contracts.
+- Future: translate server-side validation messages, technical enum choices, help/tutorials and documentation where feasible.
+- See [Internationalization](I18N.md).
