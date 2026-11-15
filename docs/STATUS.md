@@ -114,3 +114,11 @@ The maintainer confirms that OrkiCAD Studio starts successfully using the local 
 **Not independently confirmed:** downloaded STL via Studio, automated view updating, all six part types in the viewer, release build, native Tauri packaging, and manufacturing fit/accuracy.
 
 Next suggested step: improve the 3D viewport with camera controls, dimensional overlays and parameter-change handling, then pursue native desktop packaging.
+
+## Multilingual Studio foundation (2026-11-15)
+
+- Added an internationalization catalog and a visible selector for Spanish/English to the React Studio prototype.
+- Translated primary UI labels, component names, parameter labels, 3D viewer empty state and frontend error messages.
+- Automatic Spanish detection based on browser locale, otherwise English. CAD data contracts remain unchanged.
+- **Pending local verification:** TypeScript production build and actual language switching in the browser after git pull. Backend errors and enum values have not yet been fully localized.
+- See [I18N.md](I18N.md).
