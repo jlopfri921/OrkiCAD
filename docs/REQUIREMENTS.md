@@ -41,3 +41,12 @@
 - Keep CAD schema keys and units separate from translated UI strings; allow languages to be added without altering CAD core contracts.
 - Future: translate server-side validation messages, technical enum choices, help/tutorials and documentation where feasible.
 - See [Internationalization](I18N.md).
+
+## Measurement-system requirement (confirmed 2026-11-15)
+
+- The UI must offer explicit **Metric (mm)** and **Imperial (inches)** systems, independent of the selected interface language.
+- Switching units must only change display/editing units: the CAD component, stored numbers and downloaded SCAD/STL must preserve real dimensions.
+- All geometry-generation API contracts remain canonical **millimetres**, and no unit-dependent identifiers are sent to the backend.
+- Angle `pressure_angle` remains in degrees; `teeth` is a count. Metric thread designations (M3–M12) and involute gear `module` remain metric standards, even in imperial display mode.
+- STL is conventionally interpreted as millimetres for OrkiCAD designs; STL itself has no intrinsic unit metadata.
+- Precision and UI number formatting are provisional; in future add unit-aware dimensional drawings, fractional-inch input and imperial hardware families without conflating UNC/UNF with metric threads.
