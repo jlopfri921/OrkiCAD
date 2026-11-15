@@ -1,0 +1,140 @@
+{
+  "last_node_id": 3,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "OrkiCADInterpretLocal",
+      "pos": [
+        75,
+        175
+      ],
+      "size": [
+        435,
+        245
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "proposed_spec_json",
+          "type": "STRING",
+          "links": [
+            1,
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADInterpretLocal"
+      },
+      "widgets_values": [
+        "Create a fitted lid for a rectangular box with external dimensions 80 mm by 50 mm, wall thickness 2 mm, lid thickness 3 mm, overhang 2 mm, plug depth 5 mm and clearance 0.3 mm.",
+        "qwen3-coder:30b"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "OrkiCADGenerateSCAD",
+      "pos": [
+        585,
+        98
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "scad_source",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADGenerateSCAD"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 3,
+      "type": "OrkiCADRenderSTL",
+      "pos": [
+        585,
+        285
+      ],
+      "size": [
+        320,
+        125
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "stl_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADRenderSTL"
+      },
+      "widgets_values": [
+        "ai_box_lid"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      1,
+      0,
+      3,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [
+        0,
+        0
+      ]
+    }
+  },
+  "version": 0.4
+}
