@@ -19,7 +19,32 @@ def _solid(spec):
     vector = App.Vector
     box = Part.makeBox
     cylinder = Part.makeCylinder
-    if k == "machined_block":
+    if k == "corner_plate":
+        width, depth, thickness = (
+            spec[key] for key in ("width", "depth", "thickness")
+        )
+        shape = box(width, depth, thickness)
+        vertical = []
+        for edge in shape.Edges:
+            vertices = edge.Vertexes
+            if (len(vertices) == 2 and
+                    abs(vertices[0].Point.x - vertices[1].Point.x) < 1e-7 and
+                    abs(vertices[0].Point.y - vertices[1].Point.y) < 1e-7 and
+                    abs(vertices[0].Point.z - vertices[1].Point.z) > thickness - 1e-7):
+                vertical.append(edge)
+        if len(vertical) != 4:
+            raise RuntimeError("Could not find four corner edges")
+        if spec["corner_style"] == "round":
+            shape = shape.makeFillet(spec["corner_size"], vertical)
+        elif spec["corner_style"] == "chamfer":
+            shape = shape.makeChamfer(spec["corner_size"], vertical)
+        else:
+            raise ValueError("Unsupported corner style")
+        for x in (spec["hole_inset"], width - spec["hole_inset"]):
+            tool = cylinder(spec["hole_diameter"] / 2, thickness + .2,
+                            vector(x, depth / 2, -.1))
+            shape = shape.cut(tool)
+    elif k == "machined_block":
         width, depth, height = (spec[key] for key in ("width", "depth", "height"))
         shape = box(width, depth, height)
         for x in (spec["hole_inset"], width - spec["hole_inset"]):
