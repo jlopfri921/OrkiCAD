@@ -8,7 +8,7 @@ from .geometry import generate_scad
 from .stl_render import RenderError, render_stl, render_mesh
 from .occt_step import OCCTExportError, render_occt_step
 from .parts_catalog import validated_spec
-from .parts_catalog import catalog_public
+from .parts_catalog import catalog_public, CATALOG_VERSION
 from .ai_interpreter import AIError, interpret
 from .cloud_interpreter import interpret_cloud
 from .circular_prompt import parse_explicit_circular_plate
@@ -107,7 +107,8 @@ class StudioHandler(BaseHTTPRequestHandler):
         if not self._check_private_token():
             return
         if self.path == "/api/health":
-            self._json(200, {"status": "ok", "service": "orkicad-studio-api"})
+            self._json(200, {"status": "ok", "service": "orkicad-studio-api",
+                             "catalog_version": CATALOG_VERSION})
         elif self.path == "/api/catalog":
             self._json(200, catalog_public())
         elif self.path == "/api/ollama/models":
