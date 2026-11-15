@@ -325,3 +325,15 @@ The OpenSCAD backend generates matching STL and 3MF meshes, and the native OCCT 
 The AI workflow prompts a local Ollama model to propose a `machined_block`, then uses the usual visual editor and manual approval to branch to STL/Preview3D, 3MF and OCCT STEP. Set the `occt_python_path` field in the STEP node to the **user's own interpreter**, not any developer-specific hardcoded path, and verify the model name against `ollama list`. After pulling the changes and restarting ComfyUI, run the workflow twice as appropriate for proposal review/approval.
 
 **Status:** core, exporters, example workflow and regression tests committed. The maintainer has validated the previous simple-parts OCCT workflow, **not yet this new feature-composition family or its three-format execution**. This is a constrained template, not arbitrary topology/feature-tree editing, fillets, or chamfers.
+
+## CAD edge treatments: rounded and chamfered corners (experimental)
+
+**Workflow:** `comfyui/workflows/orkicad_ai_corner_plate_stl_3mf_occt_step.json`
+
+The new `corner_plate` catalog family creates a rectangular plate with **two through-holes and a selected corner treatment**. `corner_style` is an allowlisted enum with `round` (filleted vertical corners) and `chamfer` (beveled vertical corners). `corner_size` is the corner radius for `round` or the setback distance on both adjacent edges for `chamfer`. These are **plan-view corner operations**, not top/bottom edge breaks. OpenSCAD creates the corresponding 2D profile and extrudes it; OCCT constructs analytic vertical-edge fillets/chamfers on a B-rep box and then drills the mounting holes. No STL-to-STEP faceting takes place.
+
+Default part dimensions: 90 × 55 × 6 mm, `corner_style=round`, `corner_size=5` mm, two 6 mm diameter holes centered along the depth and set 17 mm from the left/right ends. Form metadata presents the two legal corner styles. The shared geometry validation rejects unsupported styles, corner sizes at least half the shortest side, holes outside the safely allowed region, and intersecting corner/holes. The `corner_style` enum is now checked during strict catalog validation, not merely during rendering.
+
+**Windows trial:** pull `main`, restart ComfyUI Desktop, load the JSON workflow above, select the existing local Ollama model, set the OCCT export node's `occt_python_path` to the local dedicated environment, review the proposed `corner_plate`, and manually approve the export. Run again with the visual editor `corner_style` changed to `chamfer`; compare the STL/3MF preview and native STEP files. Both geometries share canonical millimetre parameters.
+
+**Status:** source, safe catalog schema, OpenSCAD/OCCT backends, optional FreeCAD parity, workflow and tests are committed. The OCP Python APIs for filleting and chamfering a simple box and cutting holes were checked in an isolated development environment; **the maintainer has not yet run this new corner-plate end-to-end workflow** on ComfyUI. Independent CAD reader validation, tolerance parity, Linux/macOS acceptance and installer bundling are still pending.
