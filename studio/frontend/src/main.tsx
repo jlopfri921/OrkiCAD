@@ -254,147 +254,221 @@ function App() {
     link.click()
     URL.revokeObjectURL(link.href)
   }
-  return <main className="layout">
-    <header>
-      <div className="brand">◈ <strong>OrkiCAD</strong> <span>AI</span></div>
-      <div className="header-controls">
-        <small>{t.subtitle}</small>
-        <label htmlFor="language">{t.language}</label>
-        <select id="language" aria-label={t.language} value={language}
+  const ui = language === 'es' ? {
+    project: 'Diseño sin título', workspace: 'Espacio de trabajo', assistant: 'Asistente IA',
+    settings: 'Configuración de IA', examples: 'Ejemplos de diseño',
+    viewport: 'Vista 3D', render: 'Actualizar modelo', empty: 'Tu diseño empieza aquí',
+    emptyHelp: 'Describe una pieza o modifica sus dimensiones y genera el modelo 3D.',
+    properties: 'Propiedades', library: 'Biblioteca paramétrica', dimensions: 'Geometría y parámetros',
+    output: 'Fabricación y exportación', source: 'Código OpenSCAD',
+    waiting: 'Sin modelo generado', status: 'Listo para diseñar', intro: 'CAD inteligente · entorno local',
+    formats: 'Exportar', inspector: 'Inspector', scene: 'Modelo CAD',
+  } : {
+    project: 'Untitled design', workspace: 'Workspace', assistant: 'AI assistant',
+    settings: 'AI configuration', examples: 'Design examples',
+    viewport: '3D viewport', render: 'Update model', empty: 'Your design starts here',
+    emptyHelp: 'Describe a part or change its dimensions and render the 3D model.',
+    properties: 'Properties', library: 'Parametric library', dimensions: 'Geometry & parameters',
+    output: 'Manufacturing & export', source: 'OpenSCAD source',
+    waiting: 'No model generated', status: 'Ready to design', intro: 'Intelligent CAD · local workspace',
+    formats: 'Export', inspector: 'Inspector', scene: 'CAD model',
+  }
+  const exportBlocked = working || (!!aiNote && !reviewApproved)
+  return <div className="studio-shell">
+    <header className="studio-topbar">
+      <div className="studio-brand">
+        <span className="brand-icon" aria-hidden="true">◈</span>
+        <strong>Orki<span>CAD</span></strong><span className="brand-ai">AI</span>
+        <span className="brand-studio">STUDIO</span>
+      </div>
+      <div className="studio-document">
+        <span>{ui.workspace}</span><span aria-hidden="true">/</span><strong>{ui.project}</strong>
+        <span className="document-dot" aria-hidden="true"></span>
+      </div>
+      <div className="studio-top-actions">
+        <span className="connection-status"><i></i>{working ? t.working : ui.status}</span>
+        <select aria-label={t.language} value={language}
           onChange={e => setLanguage(e.target.value as Language)}>
-          <option value="es">Español</option>
-          <option value="en">English</option>
+          <option value="es">ES</option><option value="en">EN</option>
         </select>
-        <label htmlFor="units">{t.units}</label>
-        <select id="units" aria-label={t.units} value={units}
+        <select aria-label={t.units} value={units}
           onChange={e => setUnits(e.target.value as UnitSystem)}>
-          <option value="metric">{t.metric}</option>
-          <option value="imperial">{t.imperial}</option>
+          <option value="metric">mm</option><option value="imperial">in</option>
         </select>
       </div>
     </header>
-    <section className="intro"><h1>{t.title}</h1><p>{t.intro}</p></section>
-    <div className="workbench"><section className="panel">
-      <h2>{t.aiTitle}</h2>
-      <p className="hint">{t.aiDescription}</p>
-      <label htmlFor="cad-ai-prompt">{t.aiPromptLabel}</label>
-      <textarea id="cad-ai-prompt" className="ai-prompt" aria-label={t.aiPromptLabel}
-        rows={7} placeholder={t.aiPlaceholder} value={prompt} maxLength={2000}
-        onChange={e => setPrompt(e.target.value)} />
-      <p className="hint">{t.promptTip} · {prompt.length}/2000</p>
-      <div className="prompt-examples">
-        <h3>{t.examplesTitle}</h3>
-        {PROMPT_EXAMPLES[language].map((example, index) =>
-          <div key={index} className="prompt-example">
-            <p>{example}</p>
-            <div className="prompt-example-actions">
-              <button type="button" className="secondary" onClick={() => useExample(index)}>
-                {t.useExample}
-              </button>
-              <button type="button" className="secondary" onClick={() => copyExample(index)}>
-                {copiedExample === index ? t.copiedExample : t.copyExample}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-      <label htmlFor="ai-provider">{t.aiProvider}</label>
-      <select id="ai-provider" value={aiProvider}
-        onChange={e => {
-          const selected = e.target.value as AIProvider
-          setAiProvider(selected)
-          setAiModel(selected === 'ollama' ? (ollamaModels[0] || '') : '')
-          setApiKey('')
-          setAiNote('')
-          setReviewApproved(false)
-        }}>
-        <option value="ollama">Ollama ({t.localProvider})</option>
-        <option value="openai">OpenAI (API)</option>
-        <option value="anthropic">Claude / Anthropic (API)</option>
-        <option value="gemini">Google Gemini (API)</option>
-      </select>
-      {aiProvider === 'ollama' ? <>
-        <label htmlFor="ai-model">{t.aiModel}</label>
-        <div className="model-picker">
-          <select id="ollama-model-picker" aria-label={t.chooseModel} value={ollamaModels.includes(aiModel) ? aiModel : ''}
-            onChange={e => setAiModel(e.target.value)}>
-            <option value="">{t.chooseModel}</option>
-            {ollamaModels.map(model => <option key={model} value={model}>{model}</option>)}
-          </select>
-          <input id="ai-model" type="text" value={aiModel}
-            placeholder={t.modelIdPlaceholder} aria-label={t.manualModel}
-            onChange={e => setAiModel(e.target.value)} />
+
+    <main className="studio-main">
+      <aside className="studio-sidebar assistant-sidebar" aria-label={ui.assistant}>
+        <div className="sidebar-header">
+          <div className="section-overline">01 / INTELLIGENCE</div>
+          <h1><span className="section-icon">✧</span> {ui.assistant}</h1>
+          <p>{t.aiDescription}</p>
         </div>
-        {modelsError && <p className="hint">{t.modelListUnavailable}: {modelsError}</p>}
-      </> : <>
-        <label htmlFor="ai-model">{t.cloudModel}</label>
-        <input id="ai-model" type="text" value={aiModel}
-          placeholder={t.cloudModelPlaceholder} onChange={e => setAiModel(e.target.value)} />
-        <label htmlFor="ai-api-key">{t.apiKey}</label>
-        <input id="ai-api-key" type="password" value={apiKey}
-          autoComplete="off" spellCheck={false}
-          placeholder={t.apiKeyPlaceholder} onChange={e => setApiKey(e.target.value)} />
-        <p className="hint">{t.cloudSecurityNotice}</p>
-      </>}
-      {aiProvider === 'ollama' && <p className="hint">{t.aiLocalOnly}: {providerInfo || 'http://127.0.0.1:11434'}</p>}
-      <button disabled={working || prompt.trim().length < 3 || !aiModel.trim() || (aiProvider !== 'ollama' && apiKey.trim().length < 8)} onClick={interpretPrompt}>
-        {working ? t.working : t.aiInterpret}
-      </button>
-      {aiNote && <p className="ai-review" role="status">{aiNote}</p>}
-      <h2>{t.component}</h2>
-      <label htmlFor="type">{t.partType}</label>
-      <select id="type" value={type} onChange={e => changeType(e.target.value as PartType)}>
-        {partIds.map(id =>
-          <option key={id} value={id}>{t.parts[id]}</option>)}
-      </select>
-      <h2>{t.dimensions}</h2>
-      {aiNote && <label className="review-checkbox"><input type="checkbox" checked={reviewApproved}
-        onChange={e => setReviewApproved(e.target.checked)} />{t.approveForExport}</label>}
-      <div className="fields">{Object.entries(params).map(([name, value]) =>
-        <div key={name}><label htmlFor={name}>
-          {t.fields[name as keyof typeof t.fields] ?? name.replace(/_/g, ' ')}
-          {fieldUnit(type, name, units) ? ` (${fieldUnit(type, name, units)})` : ''}
-        </label>{name === 'operations' && Array.isArray(value)
-          ? <FeatureOperationsEditor operations={value as Feature[]} language={language}
-              width={Number(params.width) || 100} depth={Number(params.depth) || 60}
-              height={Number(params.height) || 12}
-              onChange={next => updateParameter(name, next)} />
-          : catalogData?.[type]?.fields.find(field => field.key === name)?.options
-          ? <select id={name} value={String(value)}
-              onChange={e => updateParameter(name, e.target.value)}>
-              {catalogData[type].fields.find(field => field.key === name)!.options!.map(option =>
-                <option key={option} value={option}>{option}</option>)}
-            </select>
-          : <input id={name}
-          type={typeof value === 'number' ? 'number' : 'text'}
-          step={name === 'teeth' || name === 'diameter' ? '1' : 'any'}
-          value={typeof value === 'number'
-            ? displayNumber(value, units, usesLinearUnits(type, name))
-            : String(value)}
-          onChange={e => updateParameter(name,
-            typeof value === 'number'
-              ? canonicalNumber(e.target.value === '' ? 0 : Number(e.target.value),
-                  units, usesLinearUnits(type, name))
-              : e.target.value
-          )} />}</div>)}</div>
-      <p className="hint unit-note">{t.unitNote}</p>
-      <div className="actions">
-        <button disabled={working || (!!aiNote && !reviewApproved)} onClick={generate}>{working ? t.working : t.generateSCAD}</button>
-        <button disabled={working || (!!aiNote && !reviewApproved)} onClick={renderSTL}>{working ? t.working : t.generateSTL}</button>
-        <button disabled={working || (!!aiNote && !reviewApproved)} onClick={() => exportFormat("3mf")}>{t.export3MF}</button>
-        <button disabled={working || (!!aiNote && !reviewApproved)} onClick={() => exportFormat("step")}>{t.exportSTEP}</button>
-      </div>
-      {error && <p className="error" role="alert">{error}</p>}
-      </section><section className="panel output">
-        <h2>{t.viewer}</h2>
-        <STLViewer data={stl} emptyMessage={t.emptyViewer} />
-        <p className="hint">{t.help}</p>
-        <button className="secondary" disabled={!stl} onClick={downloadSTL}>{t.downloadSTL}</button>
-        <h2>{t.code}</h2>
-        <pre>{scad || t.empty}</pre>
-        <button className="secondary" disabled={!scad} onClick={download}>{t.downloadSCAD}</button>
-      </section></div>
-    <footer>{t.footer}</footer>
-  </main>
+        <div className="sidebar-content">
+          <label htmlFor="cad-ai-prompt">{t.aiPromptLabel}</label>
+          <textarea id="cad-ai-prompt" className="ai-prompt" rows={8}
+            aria-label={t.aiPromptLabel} placeholder={t.aiPlaceholder} value={prompt}
+            maxLength={2000} onChange={e => setPrompt(e.target.value)} />
+          <div className="text-counter">{prompt.length} / 2000</div>
+          <details className="studio-disclosure">
+            <summary><span>▧</span> {ui.examples}<span className="disclosure-arrow">⌄</span></summary>
+            <div className="prompt-examples">
+              {PROMPT_EXAMPLES[language].map((example, index) =>
+                <article className="prompt-example" key={index}>
+                  <p>{example}</p>
+                  <div className="prompt-example-actions">
+                    <button type="button" className="secondary" onClick={() => useExample(index)}>{t.useExample}</button>
+                    <button type="button" className="secondary" onClick={() => copyExample(index)}>
+                      {copiedExample === index ? t.copiedExample : t.copyExample}
+                    </button>
+                  </div>
+                </article>
+              )}
+            </div>
+          </details>
+          <div className="sidebar-section-title"><span>◉</span> {ui.settings}</div>
+          <label htmlFor="ai-provider">{t.aiProvider}</label>
+          <select id="ai-provider" value={aiProvider} onChange={e => {
+            const selected = e.target.value as AIProvider
+            setAiProvider(selected)
+            setAiModel(selected === 'ollama' ? (ollamaModels[0] || '') : '')
+            setApiKey('')
+            setAiNote('')
+            setReviewApproved(false)
+          }}>
+            <option value="ollama">Ollama · Local</option>
+            <option value="openai">OpenAI · API</option>
+            <option value="anthropic">Claude · API</option>
+            <option value="gemini">Gemini · API</option>
+          </select>
+          {aiProvider === 'ollama' ? <>
+            <label htmlFor="ai-model">{t.aiModel}</label>
+            <div className="model-picker">
+              <select id="ollama-model-picker" aria-label={t.chooseModel}
+                value={ollamaModels.includes(aiModel) ? aiModel : ''}
+                onChange={e => setAiModel(e.target.value)}>
+                <option value="">{t.chooseModel}</option>
+                {ollamaModels.map(model => <option key={model} value={model}>{model}</option>)}
+              </select>
+              <input id="ai-model" type="text" value={aiModel}
+                placeholder={t.modelIdPlaceholder} aria-label={t.manualModel}
+                onChange={e => setAiModel(e.target.value)} />
+            </div>
+            {modelsError && <p className="muted-note">{t.modelListUnavailable}: {modelsError}</p>}
+            <p className="muted-note">{t.aiLocalOnly}: {providerInfo || 'http://127.0.0.1:11434'}</p>
+          </> : <>
+            <label htmlFor="ai-model">{t.cloudModel}</label>
+            <input id="ai-model" type="text" value={aiModel}
+              placeholder={t.cloudModelPlaceholder} onChange={e => setAiModel(e.target.value)} />
+            <label htmlFor="ai-api-key">{t.apiKey}</label>
+            <input id="ai-api-key" type="password" value={apiKey}
+              autoComplete="off" spellCheck={false}
+              placeholder={t.apiKeyPlaceholder} onChange={e => setApiKey(e.target.value)} />
+            <p className="muted-note">{t.cloudSecurityNotice}</p>
+          </>}
+          <button className="action-primary propose-button"
+            disabled={working || prompt.trim().length < 3 || !aiModel.trim() || (aiProvider !== 'ollama' && apiKey.trim().length < 8)}
+            onClick={interpretPrompt}><span aria-hidden="true">✧</span> {working ? t.working : t.aiInterpret}</button>
+          {aiNote && <p className="ai-review" role="status">{aiNote}</p>}
+          {error && <p className="error" role="alert">{error}</p>}
+        </div>
+        <div className="sidebar-footer">{ui.intro}</div>
+      </aside>
+
+      <section className="studio-center" aria-label={ui.viewport}>
+        <div className="viewport-heading">
+          <div><div className="section-overline">02 / MODEL</div><h2>{ui.viewport}</h2></div>
+          <div className="viewport-badges"><span>◈ 3D</span><span>{units === 'metric' ? 'mm' : 'in'}</span></div>
+        </div>
+        <div className="viewport-frame">
+          <div className="viewport-grid" aria-hidden="true"></div>
+          <STLViewer data={stl} emptyMessage={ui.emptyHelp} />
+          {!stl && <div className="viewport-empty" aria-hidden="true">
+            <div className="viewport-empty-icon">⬡</div>
+            <strong>{ui.empty}</strong><p>{ui.emptyHelp}</p>
+          </div>}
+          <div className="viewport-axis" aria-hidden="true"><span>Z</span><span>Y</span><span>X</span></div>
+          <span className="viewport-caption">{stl ? t.help : ui.waiting}</span>
+        </div>
+        <div className="viewport-foot">
+          <div className="current-part">
+            <span className="part-icon">⬡</span><div><strong>{t.parts[type]}</strong><small>{ui.scene}</small></div>
+          </div>
+          <div className="viewport-action-row">
+            <button className="action-primary" disabled={exportBlocked} onClick={renderSTL}>◈ {ui.render}</button>
+            <button className="secondary" disabled={!stl} onClick={downloadSTL}>↓ STL</button>
+          </div>
+        </div>
+        <div className="output-bar">
+          <div><div className="section-overline">03 / OUTPUT</div><h3>{ui.output}</h3></div>
+          <div className="output-actions">
+            <button disabled={exportBlocked} onClick={generate}>SCAD</button>
+            <button disabled={exportBlocked} onClick={() => exportFormat('3mf')}>3MF</button>
+            <button disabled={exportBlocked} onClick={() => exportFormat('step')}>STEP</button>
+          </div>
+        </div>
+        <details className="source-panel">
+          <summary>⌘ {ui.source}<span className="disclosure-arrow">⌄</span></summary>
+          <pre>{scad || t.empty}</pre>
+          <button className="secondary" disabled={!scad} onClick={download}>{t.downloadSCAD}</button>
+        </details>
+      </section>
+
+      <aside className="studio-sidebar properties-sidebar" aria-label={ui.properties}>
+        <div className="sidebar-header">
+          <div className="section-overline">04 / INSPECTOR</div>
+          <h2><span className="section-icon">☷</span> {ui.properties}</h2>
+          <p>{ui.library}</p>
+        </div>
+        <div className="sidebar-content">
+          <div className="sidebar-section-title">{ui.library}</div>
+          <label htmlFor="type">{t.partType}</label>
+          <select id="type" value={type} onChange={e => changeType(e.target.value as PartType)}>
+            {partIds.map(id => <option key={id} value={id}>{t.parts[id]}</option>)}
+          </select>
+          <div className="sidebar-section-title">{ui.dimensions}</div>
+          {aiNote && <label className="review-checkbox">
+            <input type="checkbox" checked={reviewApproved}
+              onChange={e => setReviewApproved(e.target.checked)} />{t.approveForExport}
+          </label>}
+          <div className="fields">
+            {Object.entries(params).map(([name, value]) =>
+              <div key={name}>
+                <label htmlFor={name}>{t.fields[name as keyof typeof t.fields] ?? name.replace(/_/g, ' ')}
+                  {fieldUnit(type, name, units) ? ' (' + fieldUnit(type, name, units) + ')' : ''}
+                </label>
+                {name === 'operations' && Array.isArray(value)
+                  ? <FeatureOperationsEditor operations={value as Feature[]} language={language}
+                      width={Number(params.width) || 100} depth={Number(params.depth) || 60}
+                      height={Number(params.height) || 12} onChange={next => updateParameter(name, next)} />
+                  : catalogData?.[type]?.fields.find(field => field.key === name)?.options
+                    ? <select id={name} value={String(value)} onChange={e => updateParameter(name, e.target.value)}>
+                        {catalogData[type].fields.find(field => field.key === name)!.options!.map(option =>
+                          <option key={option} value={option}>{option}</option>)}
+                      </select>
+                    : <input id={name} type={typeof value === 'number' ? 'number' : 'text'}
+                        step={name === 'teeth' || name === 'diameter' ? '1' : 'any'}
+                        value={typeof value === 'number'
+                          ? displayNumber(value, units, usesLinearUnits(type, name))
+                          : String(value)}
+                        onChange={e => updateParameter(name,
+                          typeof value === 'number'
+                            ? canonicalNumber(e.target.value === '' ? 0 : Number(e.target.value),
+                              units, usesLinearUnits(type, name))
+                            : e.target.value)} />}
+              </div>
+            )}
+          </div>
+          <p className="muted-note">{t.unitNote}</p>
+        </div>
+      </aside>
+    </main>
+    <footer className="studio-statusbar">
+      <span><span className="status-indicator"></span> {ui.status}</span>
+      <span>OrkiCAD Core · STL / 3MF / STEP</span>
+      <span>{units === 'metric' ? 'Metric · mm' : 'Imperial · in'}</span>
+    </footer>
+  </div>
 }
 createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>)
