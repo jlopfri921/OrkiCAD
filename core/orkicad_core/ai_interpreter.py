@@ -23,6 +23,24 @@ class AIError(RuntimeError):
     """AI provider not reachable or response could not produce a CAD spec."""
 
 
+def build_cad_instruction() -> str:
+    """Shared provider-neutral prompt schema; never allow model output as code."""
+    examples = {
+        name: {"type": name, **desc["fields"]}
+        for name, desc in PARTS.items()
+    }
+    instruction = (
+        "You translate CAD requests into STRICT JSON, with ONLY properties "
+        "defined in one of the following schemas/examples. Units are millimetres. "
+        "Return ONE JSON object of the chosen part type. Do not return explanations, "
+        "markdown, code, keys outside the schema, or executable source. "
+        "If some dimensions are not given, use the example defaults (these are "
+        "assumptions that must be checked by the user). Never claim measured fit. "
+        "Available templates: " + json.dumps(examples, ensure_ascii=False)
+    )
+    return instruction
+
+
 def interpret(prompt: str, *, model: str | None = None) -> dict:
     if not isinstance(prompt, str) or not 3 <= len(prompt.strip()) <= MAX_REQUEST:
         raise ValueError("Prompt must contain between 3 and 2000 characters")
@@ -39,19 +57,7 @@ def interpret(prompt: str, *, model: str | None = None) -> dict:
     ):
         raise ValueError("Invalid Ollama model name")
 
-    examples = {
-        name: {"type": name, **desc["fields"]}
-        for name, desc in PARTS.items()
-    }
-    instruction = (
-        "You translate CAD requests into STRICT JSON, with ONLY properties "
-        "defined in one of the following schemas/examples. Units are millimetres. "
-        "Return ONE JSON object of the chosen part type. Do not return explanations, "
-        "markdown, code, keys outside the schema, or executable source. "
-        "If some dimensions are not given, use the example defaults (these are "
-        "assumptions that must be checked by the user). Never claim measured fit. "
-        "Available templates: " + json.dumps(examples, ensure_ascii=False)
-    )
+    instruction = build_cad_instruction()
     timeout_raw = os.environ.get("ORKICAD_OLLAMA_TIMEOUT", str(DEFAULT_TIMEOUT_SECONDS))
     try:
         timeout = float(timeout_raw)
