@@ -1,6 +1,6 @@
 # Getting started — prototype CAD core
 
-**Status:** first prototype. Only washer, mounting plate and open box are included. No AI, ComfyUI node or desktop application is implemented here yet.
+**Status:** first prototype. Washer, mounting plate and open box are self-contained; M3–M12 screw/nut and spur-gear source generators additionally require BOSL2 for rendering. No AI, ComfyUI node or desktop application is implemented here yet.
 
 ## Windows PowerShell
 
@@ -35,3 +35,13 @@ This prototype validates positive finite dimensions, basic consistency and an al
 ### Next milestones
 
 BOSL2-based screws/nuts/gears, FreeCAD/CadQuery STEP exports, dimensions and constraints, ComfyUI workflow adapters and Studio frontend.
+
+## Mechanical examples
+
+See [BOSL2 setup](BOSL2_SETUP.md) for installing the external library and rendering new examples:
+
+```powershell
+.\.venv\Scripts\python.exe -m orkicad_core.cli examples\screw_M6x30.json -o outputs\screw_M6x30.scad
+.\.venv\Scripts\python.exe -m orkicad_core.cli examples\nut_M6.json -o outputs\nut_M6.scad
+.\.venv\Scripts\python.exe -m orkicad_core.cli examples\gear_24T.json -o outputs\gear_24T.scad
+```
