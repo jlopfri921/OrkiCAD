@@ -91,6 +91,29 @@ class CircularPlateTests(unittest.TestCase):
         spec = {"type": "mounting_plate"}
         self.assertEqual(validate_prompt_shape(request, spec), spec)
 
+    def test_studio_never_displays_old_square_for_new_circular_family(self):
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+        main = (root / "studio/frontend/src/main.tsx").read_text(encoding="utf-8")
+        # Both AI acceptance and part picker clear the previously displayed
+        # mesh. Old shapes can still be retained for edits within one family.
+        for marker in (
+            "setStl(null)",
+            "setShowCircularPlan(nextType === 'circular_plate')",
+            "setShowCircularPlan(next === 'circular_plate')",
+            "body.parts.circular_plate",
+            "El servidor CAD es una versión anterior",
+            "<CircularPlatePlan",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, main)
+        viewer = (root / "studio/frontend/src/STLViewer.tsx").read_text(encoding="utf-8")
+        self.assertIn("opacity: 0,", viewer)
+        diagram = (root / "studio/frontend/src/CircularPlatePlan.tsx").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("2 * Math.PI * i / holeCount", diagram)
+
     def test_native_occt_shape_when_ocp_installed(self):
         try:
             import OCP
