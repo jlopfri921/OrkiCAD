@@ -173,3 +173,7 @@ The maintainer's ComfyUI `OrkiCADInterpretLocal` run failed with `AIError: Local
 ## Local Ollama → ComfyUI workflow maintainer retest (2026-11-15)
 
 After the Ollama timeout handling update, the maintainer reports **"ya funciona"** (now works) for the previously failing ComfyUI local-AI workflow. This is a user-reported end-to-end runtime success following the timeout fix. Exact model, output STL path, dimensions, mesh quality, and whether each stage was individually inspected were not supplied; these remain open verification tasks. The native ComfyUI preview, parameter-review gate, and first official alpha release remain pending.
+
+## Experimental ComfyUI interactive STL preview and manual AI review (2026-11-15)
+
+The maintainer requested an in-ComfyUI 3D viewer. Added a `preview_path` output (relative to ComfyUI output) alongside the existing absolute `stl_path` on `OrkiCADRenderSTL`; introduced the `OrkiCADReviewSpec` approval node with strict validated overrides and opt-in default; added `comfyui/workflows/orkicad_ollama_review_preview_stl.json` connecting AI → review → STL → built-in `Preview3D`. Added offline workflow/review tests and documentation. The upstream `Preview3D` String input is available on supported ComfyUI builds but deprecated in newer upstream builds; **viewer behavior, exact file resolution, and the updated tests remain unverified on the maintainer's ComfyUI Desktop installation**. This is experimental and not a release tag.
