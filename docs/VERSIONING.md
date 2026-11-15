@@ -8,3 +8,11 @@
 - Use feature branches and pull requests; document architecture choices as ADRs.
 - Track implementation using GitHub Issues; close only after test evidence.
 - Update `CHANGELOG.md`, `ROADMAP.md` and `docs/STATUS.md` together before any release.
+
+## Development numbering decision — 2026-11-15
+
+- Current Python package version: `0.0.1` (internal development prototype; **not** a Git-tagged release).
+- The first proposed integrated prerelease is `0.1.0-alpha.1`, only after sufficient tests of Studio, data-driven CAD templates, optional Ollama interpretation and the ComfyUI bridge. This number is a **target**, not an already published release.
+- Several commits, even across one or multiple days, can belong to the same `[Unreleased]` development cycle. **Do not increment version by calendar day or for each commit.**
+- Increment the prerelease suffix (`alpha.2`, `alpha.3`) only when a new testable snapshot is intentionally tagged and released; use beta after integrations stabilize.
+- Project release identifiers and package metadata should be synchronized at release time. For now, `CHANGELOG.md` entries remain under `[Unreleased]`.
