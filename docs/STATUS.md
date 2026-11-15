@@ -286,3 +286,11 @@ Added `comfyui/workflows/orkicad_visual_feature_editor_stl_3mf_occt_step.json`, 
 - Added Studio React build and Python web API smoke-test steps to GitHub Actions and updated architecture/roadmap.
 
 **Outstanding acceptance:** Studio frontend TypeScript build and browser test, full STL/3MF/STEP export on the local web prototype, selection interaction inside ComfyUI, native desktop app packaging with bundled OCCT/OpenSCAD runtime, secured hosted web backend, production artifact downloads, and three-client cross-platform parity. The remote repository commits are not evidence of passing CI. No installer or hosted web deployment is claimed.
+
+## Shared visual CAD schematic now wired to Studio Web and ComfyUI (2026-11-15)
+
+The operation-selection schematic was extracted into canonical `shared/ui/feature_viewport.js`; identical generated copies live inside `comfyui/orkicad_nodes/web/` and `studio/frontend/src/`. They are kept in sync with `python scripts/sync_shared_ui.py` and enforced using `--check`, `tests/test_shared_ui.py`, and a CI job. The standalone module requires only browser DOM/SVG APIs and can be consumed by Studio Web, the future Tauri-based Studio Desktop and ComfyUI.
+
+New `studio/frontend/src/FeatureSchematic.tsx` wraps the shared viewer; `FeatureOperationsEditor.tsx` synchronizes the selected operation with the numbered editor cards and base dimensions. ComfyUI still has its own node-specific editor chrome, but shares the **exact schematic source**. The preview shows *primitive wireframes*, not a Boolean-evaluated final solid, which remains visible in the STL mesh viewer.
+
+**Evidence boundary:** parity tests have been added to CI source, but the updated Studio build, live browser selection, ComfyUI schematic selection and installer runtime are **not yet user accepted**. Canonical React UI sharing with Tauri is specified but no desktop distributable has been created.
