@@ -62,3 +62,13 @@ This is a **CAD-first 2D/3D ecosystem**, not just a parametric part generator. T
 Two planned interfaces share a core: **OrkiCAD Studio** (Tauri 2 + Rust + React/TypeScript) and **OrkiCAD ComfyUI** (custom nodes/workflows). AI providers: local **Ollama** and optional **OpenAI, Anthropic Claude, Google Gemini** APIs.
 
 Read the [complete vision](docs/VISION_AND_WORKFLOWS.md), [workflow catalog](docs/WORKFLOW_CATALOG.md), [reconstruction requirements](docs/RECONSTRUCTION.md), [3D printing and assets](docs/3D_PRINTING_AND_ASSETS.md) and [mesh splitting](docs/MESH_SPLITTING.md).
+
+## External resources and local development
+
+The maintainer's Windows working directory is **`F:\orkicad-ai`**. All application paths must remain configurable rather than hardcoded. See [local development instructions](docs/LOCAL_DEVELOPMENT.md).
+
+See the [CAD, AI and 3D resources catalog](docs/DEPENDENCIES_AND_RESOURCES.md) for official source links, purposes, proposed integration roles and licensing/compatibility checks. Also see [third-party notices](THIRD_PARTY_NOTICES.md). External model weights and CAD applications are **not** included in this repository.
+
+## Brand asset
+
+The intended main project logo filename is **`logo_OrkiCAD-AI.png`** in the repository root. The maintainer has the image locally at `F:\orkicad-ai\logo_OrkiCAD-AI.png`. It should be committed separately before embedding it in this README; it is **not yet confirmed uploaded to GitHub**.
