@@ -105,3 +105,12 @@ All four samples passed these preliminary topological checks. Mechanical toleran
 - Added localhost-only Python JSON-to-SCAD endpoint. The backend does not execute arbitrary scripts or read user paths.
 - Added server smoke tests and mesh inspector unit/integration tests.
 - Studio is **not** yet a Tauri/Rust desktop application, and the frontend/backend integration is **not yet verified** on Windows. See [Studio prototype](STUDIO_PROTOTYPE.md).
+
+## Studio 3D viewport verified by maintainer — Windows (2026-11-15)
+
+The maintainer confirms that OrkiCAD Studio starts successfully using the local Python backend, React/Vite frontend, BOSL2 and an OpenSCAD 2026 release candidate installed under `F:\OpenSCAD-2026`. The prior GUI crashes in OpenSCAD 2021.01 no longer occur with the newer release candidate. The maintainer explicitly confirmed that the M6 screw renders and is visible in the built-in Studio 3D viewport following the STL generation workflow.
+
+**Verified by maintainer:** local backend/frontend connectivity and viewing the generated screw geometry inside Studio.
+**Not independently confirmed:** downloaded STL via Studio, automated view updating, all six part types in the viewer, release build, native Tauri packaging, and manufacturing fit/accuracy.
+
+Next suggested step: improve the 3D viewport with camera controls, dimensional overlays and parameter-change handling, then pursue native desktop packaging.
