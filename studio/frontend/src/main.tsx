@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer from './STLViewer'
+import FeatureOperationsEditor, { type Feature } from './FeatureOperationsEditor'
 import { initialLanguage, messages, type Language } from './i18n'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
 
-type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap'
-type Definition = { label: string; params: Record<string, number | string> }
+type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model'
+type ParamValue = number | string | Feature[]
+type Definition = { label: string; params: Record<string, ParamValue> }
 const catalog: Record<PartType, Definition> = {
   washer: { label: 'Washer', params: { outer_diameter: 18, inner_diameter: 6.5, thickness: 2 } },
   mounting_plate: { label: 'Mounting plate', params: { width: 80, depth: 50, thickness: 5, hole_diameter: 5, hole_inset: 10 } },
@@ -15,7 +17,10 @@ const catalog: Record<PartType, Definition> = {
   metric_nut: { label: 'Metric nut', params: { diameter: 6, pitch: 1, shape: 'hex', thickness: 'normal' } },
   spur_gear: { label: 'Spur gear', params: { module: 2, teeth: 24, thickness: 8, shaft_diameter: 8, pressure_angle: 20 } },
   box_lid: { label: 'Box lid', params: { box_width: 60, box_depth: 40, box_wall: 2, thickness: 3, overhang: 2, plug_depth: 5, clearance: 0.3 } },
-  bottle_cap: { label: 'Bottle cap', params: { neck_outer_diameter: 28, height: 16, wall: 3, top_thickness: 3, pitch: 3, clearance: 0.4, thread_depth: 1 } }
+  bottle_cap: { label: 'Bottle cap', params: { neck_outer_diameter: 28, height: 16, wall: 3, top_thickness: 3, pitch: 3, clearance: 0.4, thread_depth: 1 } },
+  corner_plate: { label: 'Corner plate', params: { width: 90, depth: 55, thickness: 6, corner_style: 'round', corner_size: 5, hole_diameter: 6, hole_inset: 17 } },
+  machined_block: { label: 'Machined block', params: { width: 100, depth: 60, height: 15, hole_diameter: 6, hole_inset: 12, pocket_width: 48, pocket_depth: 30, pocket_cut_depth: 6 } },
+  feature_model: { label: 'Feature model', params: { width: 100, depth: 60, height: 12, operations: [{ op: 'cut', shape: 'box', position: [26,15,6], size: [48,30,6.2] },{ op: 'cut', shape: 'cylinder', position: [12,30,-.1], radius: 3, height: 12.2 },{ op: 'cut', shape: 'cylinder', position: [88,30,-.1], radius: 3, height: 12.2 },{ op: 'add', shape: 'cylinder', position: [50,50,11.8], radius: 7, height: 8 }] } }
 }
 
 function App() {
@@ -23,12 +28,12 @@ function App() {
   const [units, setUnits] = useState<UnitSystem>('metric')
   const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
-  const [catalogData, setCatalogData] = useState<Record<string, { fields: { key: string; default: number | string; options?: string[] }[] }> | null>(null)
+  const [catalogData, setCatalogData] = useState<Record<string, { fields: { key: string; default: ParamValue; options?: string[] }[] }> | null>(null)
   const [prompt, setPrompt] = useState('')
   const [aiModel, setAiModel] = useState('')
   const [aiNote, setAiNote] = useState('')
   const [providerInfo, setProviderInfo] = useState('')
-  const [params, setParams] = useState<Record<string, number | string>>(catalog.washer.params)
+  const [params, setParams] = useState<Record<string, ParamValue>>(catalog.washer.params)
   const [scad, setScad] = useState('')
   const [stl, setStl] = useState<ArrayBuffer | null>(null)
   const [error, setError] = useState('')
@@ -61,7 +66,7 @@ function App() {
         body: JSON.stringify({ prompt, model: aiModel || undefined })
       })
       const raw = await response.text()
-      let result: { error?: string; spec?: Record<string, number | string>; review_required?: boolean }
+      let result: { error?: string; spec?: Record<string, ParamValue>; review_required?: boolean }
       try { result = JSON.parse(raw) } catch {
         throw new Error(`${t.badJSON} (HTTP ${response.status})`)
       }
@@ -81,7 +86,7 @@ function App() {
       setWorking(false)
     }
   }
-  function updateParameter(name: string, value: number | string) {
+  function updateParameter(name: string, value: ParamValue) {
     setParams(previous => ({ ...previous, [name]: value }))
     setScad('')
     setStl(null)
@@ -157,6 +162,31 @@ function App() {
       setWorking(false)
     }
   }
+  async function exportFormat(format: "3mf" | "step") {
+    setWorking(true); setError("")
+    try {
+      const response = await fetch("/api/" + format, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-OrkiCAD-Client": "studio" },
+        body: JSON.stringify({ type, ...params }),
+      })
+      if (!response.ok) {
+        const raw = await response.text()
+        try { throw new Error((JSON.parse(raw) as { error?: string }).error || raw.slice(0, 500)) }
+        catch (error) { if (error instanceof SyntaxError) throw new Error(raw.slice(0, 500)); throw error }
+      }
+      const blob = await response.blob()
+      if (!blob.size) throw new Error("Empty CAD export")
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = "orkicad_" + type + "." + format
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error))
+    } finally { setWorking(false) }
+  }
   function downloadSTL() {
     if (!stl) return
     const blob = new Blob([stl], { type: 'model/stl' })
@@ -221,7 +251,10 @@ function App() {
         <div key={name}><label htmlFor={name}>
           {t.fields[name as keyof typeof t.fields] ?? name.replace(/_/g, ' ')}
           {fieldUnit(type, name, units) ? ` (${fieldUnit(type, name, units)})` : ''}
-        </label>{catalogData?.[type]?.fields.find(field => field.key === name)?.options
+        </label>{name === 'operations' && Array.isArray(value)
+          ? <FeatureOperationsEditor operations={value as Feature[]} language={language}
+              onChange={next => updateParameter(name, next)} />
+          : catalogData?.[type]?.fields.find(field => field.key === name)?.options
           ? <select id={name} value={String(value)}
               onChange={e => updateParameter(name, e.target.value)}>
               {catalogData[type].fields.find(field => field.key === name)!.options!.map(option =>
@@ -232,7 +265,7 @@ function App() {
           step={name === 'teeth' || name === 'diameter' ? '1' : 'any'}
           value={typeof value === 'number'
             ? displayNumber(value, units, usesLinearUnits(type, name))
-            : value}
+            : String(value)}
           onChange={e => updateParameter(name,
             typeof value === 'number'
               ? canonicalNumber(e.target.value === '' ? 0 : Number(e.target.value),
@@ -243,6 +276,8 @@ function App() {
       <div className="actions">
         <button disabled={working} onClick={generate}>{working ? t.working : t.generateSCAD}</button>
         <button disabled={working} onClick={renderSTL}>{working ? t.working : t.generateSTL}</button>
+        <button disabled={working} onClick={() => exportFormat("3mf")}>{t.export3MF}</button>
+        <button disabled={working} onClick={() => exportFormat("step")}>{t.exportSTEP}</button>
       </div>
       {error && <p className="error" role="alert">{error}</p>}
       </section><section className="panel output">
