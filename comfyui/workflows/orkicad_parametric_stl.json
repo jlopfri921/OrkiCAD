@@ -1,0 +1,140 @@
+{
+  "last_node_id": 3,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "OrkiCADPartSpec",
+      "pos": [
+        75,
+        180
+      ],
+      "size": [
+        375,
+        170
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "links": [
+            1,
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADPartSpec"
+      },
+      "widgets_values": [
+        "box_lid",
+        "{\"box_width\":80,\"box_depth\":50,\"box_wall\":2,\"thickness\":3,\"overhang\":2,\"plug_depth\":5,\"clearance\":0.3}"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "OrkiCADGenerateSCAD",
+      "pos": [
+        510,
+        80
+      ],
+      "size": [
+        300,
+        95
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "scad_source",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADGenerateSCAD"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 3,
+      "type": "OrkiCADRenderSTL",
+      "pos": [
+        510,
+        265
+      ],
+      "size": [
+        330,
+        125
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "stl_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADRenderSTL"
+      },
+      "widgets_values": [
+        "box_lid"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      1,
+      0,
+      3,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [
+        0,
+        0
+      ]
+    }
+  },
+  "version": 0.4
+}
