@@ -63,3 +63,13 @@ The white marker identifies **(0,0,0)**, not the centre of the displayed part. T
 The Feature model inspector includes placement presets: **Origen absoluto (0,0,0)**, **Centro de la base (X/Y)**, and **Centro de la cara superior**. A box uses its minimum XYZ corner, whereas a cylinder uses its axis centre X/Y and base Z. These shortcuts compute canonical millimetre values and can still be refined manually. Changing a feature invalidates the preview: regenerate STL to see final CSG output.
 
 A click on an STL exterior face highlights it and, when safely mapped, focuses the corresponding width, depth or height/upper thickness field. The click is approximate *mesh* selection. It does not yet supply native OCCT/STEP face identities, editable fillets, holes, sketches, persistent references or parametric dependencies. Precise B-rep selection is the next phase and must be implemented in shared Core rather than separately in the Web/Desktop clients.
+
+## Compact CAD editing and live viewport
+
+Studio Web and the Tauri Desktop developer version use a single React workbench. On a desktop window, sidebars and viewport have independent scrolling. The right inspector provides three collapsible groups: **Main dimensions**, **Details and machining** and **Operation history**. A selected operation opens its own editing controls; the remaining operations stay compact. Clicking a supported exterior face on the mesh focuses its parameter and exposes a quick-adjust slider directly beside the viewport.
+
+The 3D navigation toolbar sits inside the drawing area: **fit**, **center**, **ISO**, **XY top**, **XZ front**, **YZ right**, **rotate left/right (15 degrees)** and **zoom +/-**. Orbit by dragging, zoom with the wheel, and select faces by clicking. The camera retains its orientation and zoom during model regeneration.
+
+Enable **Vista dinámica** to refresh the geometry automatically when a dimension changes. The local Core validates and rebuilds the mesh after a short 650 ms pause between edits, leaving the previous model visible during recalculation. A progress indicator distinguishes waiting, computing and finished states. Responses for superseded parameters are ignored. Turn off Vista dinámica to update only with the manual **Actualizar modelo** action. STL saving is disabled for obsolete mesh previews to avoid exporting a previous version by mistake.
+
+Live updating currently means **STL mesh regeneration**, not direct B-rep/STEP-style face editing. The real OCCT geometry editor and its stable topological identifiers are a separate future milestone. Large models may require more computation time. The exact same live editing code is shared across Studio Web and Desktop; ComfyUI has a separate adapter.
