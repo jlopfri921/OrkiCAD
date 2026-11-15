@@ -9,6 +9,10 @@ on:
       - "core/orkicad_core/step_export.py"
       - "core/orkicad_core/studio_server.py"
       - "studio/frontend/**"
+      - "shared/ui/**"
+      - "comfyui/orkicad_nodes/web/feature_viewport.js"
+      - "scripts/sync_shared_ui.py"
+      - "tests/test_shared_ui.py"
       - "tests/test_studio_server.py"
       - "core/orkicad_core/parts_catalog.py"
       - "tests/test_occt_integration.py"
@@ -59,6 +63,10 @@ jobs:
         run: python -m pip install -e .
       - name: Test web Studio shared CAD API contracts
         run: python -m unittest discover -s tests -p test_studio_server.py -v
+      - name: Check identical shared viewport sources
+        run: python scripts/sync_shared_ui.py --check
+      - name: Test shared UI parity
+        run: python -m unittest discover -s tests -p test_shared_ui.py -v
       - name: Install Studio frontend dependencies
         working-directory: studio/frontend
         run: npm install --no-audit --no-fund
