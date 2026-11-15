@@ -79,6 +79,23 @@ Format availability is declared per backend. Mesh-to-CAD conversion may lose par
 
 Version numbers represent **verified milestones**, not daily revisions. Several days of commits belong to the same `[Unreleased]` development cycle. See [versioning](docs/VERSIONING.md).
 
+## Native STEP without mandatory FreeCAD — strategic roadmap
+
+**Product requirement (confirmed 2026-11-15):** OrkiCAD Studio and the ComfyUI integration must **not require end users to install FreeCAD** merely to export native STEP. The present FreeCADCmd adapter is an **optional transitional backend**, not the intended distribution architecture. The final product must use an OrkiCAD-controlled, redistributable native B-rep backend built on OpenCascade Technology (OCCT), with FreeCAD retained only as an optional compatible alternative.
+
+**Delivery stages, with no committed dates:**
+
+1. **Portable transitional adapter (current prototype):** expose an optional FreeCADCmd path in each workflow and in Studio settings; default to Auto discovery; never hardcode a developer machine path. Allow all non-STEP workflows to run with neither FreeCAD nor OCCT installed. Clearly distinguish available exporters from optional dependencies.
+2. **OCCT engine feasibility spike:** choose a maintained binding or native Rust/C++ interop strategy suitable for Windows desktop packaging and a separate ComfyUI worker process; review licensing, dynamic-library redistribution, ABI/toolchain compatibility, install size, cross-platform plans, and secure subprocess isolation.
+3. **First native B-rep solids:** reconstruct catalog **washer, mounting plate, open box and fitted box lid** directly as analytic solids (boxes/cylinders, cuts/fusions) from the same validated parameter specifications. No STL triangulation is used as source geometry.
+4. **Stand-alone native STEP writer:** serialize STEP from OCCT, add dimensional and topological validation, numerical tolerance checks, volume and bounding-box parity against the existing OpenSCAD/FreeCAD sample outputs. Record interoperability results by importing in at least two independent CAD tools.
+5. **Integrate into Studio and ComfyUI:** choose an export backend (`Auto / OrkiCAD OCCT / FreeCAD optional`) and show availability diagnostics. Package the native OCCT runtime with OrkiCAD rather than requiring FreeCAD; include deterministic exports and clear failure handling.
+6. **Extend the CAD kernel:** advanced analytic surfaces, fillets/chamfers, standard fasteners, modeled screw threads, gears and compound solids, then IGES/BREP as supported. Treat editable feature-history projects separately from simple STEP B-rep exports.
+
+**Acceptance criteria for FreeCAD-independent STEP:** on a clean supported Windows system without FreeCAD installed, OrkiCAD Studio and a supported ComfyUI workflow can export a valid analytic STEP for the four initial part families, while STL/3MF continue to function; exported STEP round-trips in independent CAD readers with expected units, dimensions, shape validity and solid count; the OCCT runtime is distributed in compliance with its applicable licenses.
+
+**Current status:** this is an **approved target, not implemented**. The existing FreeCADCmd-based native STEP prototype is dependency-optional and its Windows execution has not yet been verified. Continue tracking evidence in `docs/STATUS.md`. The roadmap's `0.5.0` B-rep milestone should treat this independent native backend as a stretch goal requiring the clean-install acceptance above; do not imply the requirement is already fulfilled.
+
 ## Next execution plan (priority ordered)
 
 1. **Stabilize code now:** Windows `git pull`, Python unit tests, `npm run build`, local Studio UI smoke test; verify language and unit switches do not change actual geometry.
