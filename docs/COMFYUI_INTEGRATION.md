@@ -206,3 +206,16 @@ This links a self-contained saved design to both the original STL→Preview3D pa
 OpenSCAD emits tessellated meshes, not native boundary-representation (B-rep) CAD solids. Merely importing STL triangles and writing a STEP extension would store faceted surfaces, **not regain cylinders, analytic curves or editable design history**. For STEP/STP, IGES and native BREP, the planned OrkiCAD implementation is a **second, geometry-native FreeCAD/OpenCascade backend** that builds the part's analytic B-rep directly from the validated parameter specification and then exports STEP. FreeCAD provides `Part.TopoShape.exportStep`, `exportIges` and `exportBrep`; fully editable FreeCAD `.FCStd` documents additionally need a document/feature-tree design. The first implementation should support simple catalog families (washer, plate, box, lid), then tackle precise BOSL2-style threaded parts and gear construction separately. **STEP/IGES/BREP/FCStd export is not implemented in the current prototype and must not be presented in the UI as available.**
 
 Exporting DXF, SVG or PDF from OpenSCAD is generally suitable for 2D projections/sketches rather than treating them as drop-in equivalents to a 3D solid.
+
+## Combined Ollama → reviewed CAD → STL preview + 3MF workflow
+
+**Workflow:** `comfyui/workflows/orkicad_ollama_review_preview_stl_3mf.json`
+
+The entire AI-to-3MF path is available inside a **single ComfyUI workflow**:
+`OrkiCADInterpretLocal` → `OrkiCADReviewSpec` → branches to `OrkiCADRenderSTL → Preview3D` **and** `OrkiCADExportMesh (3mf)`.
+
+The two exports consume the **same validated, manually approved parametric specification**. The 3MF is generated directly by OpenSCAD from the approved geometry, **not by reinterpreting the AI instruction or converting a preexisting STL**. The ComfyUI output folder under `orkicad` contains separate `.stl` and `.3mf` files. Their geometry should be consistent, although format readers may handle mesh metadata differently.
+
+After `git pull --ff-only origin main`, run the unit tests, restart ComfyUI Desktop and import the combined workflow. Confirm the installed model name in `OrkiCADInterpretLocal`. The review node defaults to `approve_for_export=false`: review or modify numerical values in the visual form, then switch approval to true and run. Both outputs only execute once approved. Verify the STL in Preview3D and inspect the resulting 3MF in a compatible slicer, checking actual dimensions.
+
+**Status:** workflow committed and covered by an offline graph topology test. The new combined workflow has not yet been tested end-to-end in the maintainer's ComfyUI Desktop instance.
