@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import FeatureSchematic from './FeatureSchematic'
 
 export type Feature = {
   op: 'add' | 'cut'
@@ -13,6 +14,9 @@ type Props = {
   operations: Feature[]
   onChange: (next: Feature[]) => void
   language: 'en' | 'es'
+  width: number
+  depth: number
+  height: number
 }
 
 const defaultFeature = (shape: 'box' | 'cylinder' = 'box', op: 'add' | 'cut' = 'cut'): Feature =>
@@ -23,7 +27,7 @@ const defaultFeature = (shape: 'box' | 'cylinder' = 'box', op: 'add' | 'cut' = '
 /** Reusable React editor for Studio Web and the future Tauri desktop shell.
  * Canonical dimensions are always millimetres. The core validates the result.
  */
-export default function FeatureOperationsEditor({ operations, onChange, language }: Props) {
+export default function FeatureOperationsEditor({ operations, onChange, language, width, depth, height }: Props) {
   const [selected, setSelected] = useState(0)
   const isEs = language === 'es'
   const text = {
@@ -54,6 +58,8 @@ export default function FeatureOperationsEditor({ operations, onChange, language
 
   return <section className="feature-history" aria-label={text.note}>
     <p className="hint">{text.note}</p>
+    <FeatureSchematic width={width} depth={depth} height={height}
+      operations={operations} selected={selected} onSelect={setSelected} language={language} />
     {operations.map((item, index) => <article key={index}
       className={index === selected ? 'feature-card selected' : 'feature-card'}>
       <div className="feature-toolbar">
