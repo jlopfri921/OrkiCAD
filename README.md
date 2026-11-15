@@ -6,12 +6,18 @@
 
 **Open-source multimodal CAD, 2D/3D reconstruction, AI-assisted design and manufacturing ecosystem.**
 
-> **Project status: early source prototype.** A small deterministic CAD generator (washer, mounting plate, open box, M3–M12 metric screws and nuts, and involute spur gears) is committed. Full parametric catalogs, AI integrations, custom ComfyUI nodes, Studio and production workflows are **not yet implemented or released**.
+> **Project status: active source prototype, no stable installers or hosted release.** Windows ComfyUI Desktop workflows for local Ollama, validated parametric features and STL/3MF/native OCCT STEP exports have been reported working by the maintainer. Studio Web source now has part/feature editing and STL/3MF/STEP routes, but its current update needs a new browser test. Independently installable Tauri apps and a secure hosted web service are **not yet shipped**.
 
 OrkiCAD AI is designed around **one reusable Python CAD core and two user experiences**:
 
-- **OrkiCAD Studio** — independent desktop app built with **Tauri 2, Rust, React and TypeScript**, with a possible web edition.
-- **OrkiCAD ComfyUI** — custom ComfyUI nodes and visual workflows sharing the same backend.
+- **OrkiCAD Studio Web + Desktop** — required browser edition and independently installable Tauri 2 / Rust desktop edition sharing the same React/TypeScript UI and Core contracts.
+- **OrkiCAD ComfyUI** — optional custom nodes and visual workflows sharing the same backend.
+
+## Three clients, one CAD product
+
+The same validated part designs and ordered `feature_model` operations must work in **OrkiCAD Studio Web**, **OrkiCAD Studio Desktop** (Windows/Linux/macOS) and the optional **ComfyUI** extension. A feature is not considered fully delivered until relevant client support and tests are in place.
+
+**User experience target:** one-click native STEP, STL and 3MF export using a product-managed CAD engine, without installing FreeCAD or entering Python/interpreter paths. In the development source tree, OCCT can be discovered automatically when installed into a project-local virtual environment; production installer bundling is still pending. Web exports run on a secured CAD backend, not natively inside the browser. See [ADR 0007](docs/adr/0007-three-clients-one-core.md), [architecture](docs/ARCHITECTURE.md) and [status](docs/STATUS.md).
 
 ## First runnable source prototype
 
@@ -20,7 +26,7 @@ The initial Python package generates validated OpenSCAD source for **washers, mo
 ## Planned capabilities
 
 - Parametric screws, nuts, washers, gears, pulleys, brackets and enclosures.
-- Precise CAD via **OpenSCAD/BOSL2**, **CadQuery** and **FreeCAD** adapters.
+- Precise CAD through **native OpenCascade (OCCT)** B-rep exports and **OpenSCAD/BOSL2** meshes; FreeCAD support is optional and never required for STEP.
 - Text-to-parameters with **Ollama (local)** and optional **OpenAI**, **Anthropic Claude**, and **Google Gemini** adapters.
 - OCR, technical drawing vectorization and image-to-3D through ComfyUI integrations.
 - Engine-dependent exports: **SCAD, STL, 3MF, STEP, DXF, SVG, GLB**.
