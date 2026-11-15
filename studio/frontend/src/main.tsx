@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
-import STLViewer from './STLViewer'
+import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
 import { apiFetch } from './api'
 import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
 import { fieldForSelectedFace, faceAxisLabel, type FaceSelection } from './selection'
@@ -68,6 +68,17 @@ function App() {
   const [selectedFace, setSelectedFace] = useState<FaceSelection | null>(null)
   const [selectedDimension, setSelectedDimension] = useState<string | null>(null)
   const [showReferencePlanes, setShowReferencePlanes] = useState(true)
+  const [cameraCommand, setCameraCommand] = useState<CameraCommand | undefined>()
+  const [expandedInspector, setExpandedInspector] = useState<'size' | 'details' | 'operations'>('size')
+  function moveCamera(action: CameraAction) {
+    setCameraCommand(previous => ({ action, sequence: (previous?.sequence ?? 0) + 1 }))
+  }
+  const primaryFields = new Set([
+    'width', 'depth', 'height', 'thickness', 'length',
+    'outer_diameter', 'inner_diameter', 'diameter', 'box_width', 'box_depth',
+    'neck_outer_diameter', 'wall',
+  ])
+
   useEffect(() => {
     apiFetch('/api/catalog').then(r => { if (!r.ok) throw Error('Catalog unavailable'); return r.json() })
       .then(body => setCatalogData(body.parts))
@@ -146,6 +157,7 @@ function App() {
     const field = face ? fieldForSelectedFace(type, face, Object.keys(params)) : null
     setSelectedDimension(field)
     if (field) {
+      setExpandedInspector(primaryFields.has(field) ? 'size' : 'details')
       // Inspector may be in a collapsed layout on narrower screens.
       requestAnimationFrame(() => {
         const input = document.getElementById(field)
@@ -164,6 +176,7 @@ function App() {
     setSelectedFace(null)
   }
   function changeType(next: PartType) {
+    setExpandedInspector('size')
     setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setStl(null); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
   }
   function useExample(index: number) {
@@ -466,7 +479,25 @@ function App() {
         </div>
         <div className="viewport-frame">
           <div className="viewport-grid" aria-hidden="true"></div>
-          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} showReferencePlanes={showReferencePlanes} />
+          <div className="cad-camera-toolbar" role="toolbar" aria-label={language === 'es' ? 'Navegación de la cámara CAD' : 'CAD camera navigation'}>
+            <div className="camera-toolbar-group">
+              <button title={language === 'es' ? 'Ajustar toda la pieza' : 'Fit model'} aria-label={language === 'es' ? 'Ajustar pieza' : 'Fit model'} disabled={!stl} onClick={() => moveCamera('fit')}>⛶</button>
+              <button title={language === 'es' ? 'Centrar sin cambiar orientación' : 'Center without changing view'} aria-label={language === 'es' ? 'Centrar' : 'Center'} disabled={!stl} onClick={() => moveCamera('center')}>⌖</button>
+              <button title={language === 'es' ? 'Vista isométrica' : 'Isometric view'} disabled={!stl} onClick={() => moveCamera('iso')}>ISO</button>
+            </div>
+            <div className="camera-toolbar-group">
+              <button title={language === 'es' ? 'Vista superior (XY)' : 'Top view (XY)'} disabled={!stl} onClick={() => moveCamera('top')}>XY</button>
+              <button title={language === 'es' ? 'Vista frontal (XZ)' : 'Front view (XZ)'} disabled={!stl} onClick={() => moveCamera('front')}>XZ</button>
+              <button title={language === 'es' ? 'Vista lateral derecha (YZ)' : 'Right view (YZ)'} disabled={!stl} onClick={() => moveCamera('right')}>YZ</button>
+            </div>
+            <div className="camera-toolbar-group">
+              <button title={language === 'es' ? 'Girar 15° a la izquierda' : 'Rotate 15° left'} disabled={!stl} onClick={() => moveCamera('rotate-left')}>↶</button>
+              <button title={language === 'es' ? 'Girar 15° a la derecha' : 'Rotate 15° right'} disabled={!stl} onClick={() => moveCamera('rotate-right')}>↷</button>
+              <button title={language === 'es' ? 'Acercar' : 'Zoom in'} disabled={!stl} onClick={() => moveCamera('zoom-in')}>＋</button>
+              <button title={language === 'es' ? 'Alejar' : 'Zoom out'} disabled={!stl} onClick={() => moveCamera('zoom-out')}>−</button>
+            </div>
+          </div>
+          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} showReferencePlanes={showReferencePlanes} cameraCommand={cameraCommand} />
           {!stl && <div className="viewport-empty" aria-hidden="true">
             <div className="viewport-empty-icon">⬡</div>
             <strong>{ui.empty}</strong><p>{ui.emptyHelp}</p>
@@ -523,50 +554,75 @@ function App() {
           <p>{ui.library}</p>
         </div>
         <div className="sidebar-content">
-          <div className="sidebar-section-title">{ui.library}</div>
-          <label htmlFor="type">{t.partType}</label>
-          <select id="type" value={type} onChange={e => changeType(e.target.value as PartType)}>
-            {partIds.map(id => <option key={id} value={id}>{t.parts[id]}</option>)}
-          </select>
-          <div className="sidebar-section-title">{ui.dimensions}</div>
-          <div className="absolute-origin-note">
-            <strong>⊙ {language === 'es' ? 'Origen absoluto' : 'Absolute origin'}: (0,0,0)</strong>
-            <span>{language === 'es'
-              ? 'Las medidas y posiciones toman como referencia el origen fijo de los planos XY, XZ e YZ. La vista puede girarse sin cambiar las coordenadas.'
-              : 'Dimensions and positions use the fixed origin of the XY, XZ and YZ datum planes. Orbiting does not change coordinates.'}</span>
+          <div className="inspector-compact-header">
+            <span>{language === 'es' ? 'Selección de pieza' : 'Part selection'}</span>
+            <select id="type" aria-label={t.partType} value={type}
+              onChange={e => changeType(e.target.value as PartType)}>
+              {partIds.map(id => <option key={id} value={id}>{t.parts[id]}</option>)}
+            </select>
           </div>
-          {aiNote && <label className="review-checkbox">
-            <input type="checkbox" checked={reviewApproved}
-              onChange={e => setReviewApproved(e.target.checked)} />{t.approveForExport}
+          {aiNote && <label className="review-checkbox"><input type="checkbox"
+            checked={reviewApproved} onChange={e => setReviewApproved(e.target.checked)} />
+            {t.approveForExport}
           </label>}
-          <div className="fields">
-            {Object.entries(params).map(([name, value]) =>
-              <div key={name} className={selectedDimension === name ? 'param-focused' : undefined}>
-                <label htmlFor={name}>{t.fields[name as keyof typeof t.fields] ?? name.replace(/_/g, ' ')}
-                  {fieldUnit(type, name, units) ? ' (' + fieldUnit(type, name, units) + ')' : ''}
-                </label>
-                {name === 'operations' && Array.isArray(value)
-                  ? <FeatureOperationsEditor operations={value as Feature[]} language={language}
-                      width={Number(params.width) || 100} depth={Number(params.depth) || 60}
-                      height={Number(params.height) || 12} onChange={next => updateParameter(name, next)} />
-                  : catalogData?.[type]?.fields.find(field => field.key === name)?.options
-                    ? <select id={name} value={String(value)} onChange={e => updateParameter(name, e.target.value)}>
-                        {catalogData[type].fields.find(field => field.key === name)!.options!.map(option =>
-                          <option key={option} value={option}>{option}</option>)}
-                      </select>
-                    : <input id={name} type={typeof value === 'number' ? 'number' : 'text'}
-                        step={name === 'teeth' || name === 'diameter' ? '1' : 'any'}
-                        value={typeof value === 'number'
-                          ? displayNumber(value, units, usesLinearUnits(type, name))
-                          : String(value)}
-                        onChange={e => updateParameter(name,
-                          typeof value === 'number'
-                            ? canonicalNumber(e.target.value === '' ? 0 : Number(e.target.value),
-                              units, usesLinearUnits(type, name))
-                            : e.target.value)} />}
-              </div>
-            )}
-          </div>
+          {(['size', 'details', 'operations'] as const).map(group => {
+            const fields = Object.entries(params).filter(([key]) =>
+              group === 'operations' ? key === 'operations'
+                : group === 'size' ? key !== 'operations' && primaryFields.has(key)
+                : key !== 'operations' && !primaryFields.has(key))
+            if (!fields.length) return null
+            const heading = group === 'size'
+              ? (language === 'es' ? 'Medidas principales' : 'Main dimensions')
+              : group === 'details'
+                ? (language === 'es' ? 'Detalles y mecanizados' : 'Details and machining')
+                : (language === 'es' ? 'Historial de operaciones' : 'Operation history')
+            return <section key={group} className="inspector-section">
+              <button type="button" className="inspector-section-toggle"
+                aria-expanded={expandedInspector === group}
+                onClick={() => setExpandedInspector(current => current === group ? 'size' : group)}>
+                <span>{group === 'size' ? '▣' : group === 'details' ? '⚙' : '◈'} {heading}</span>
+                <span className="inspector-section-count">{group === 'operations'
+                  ? (Array.isArray(params.operations) ? params.operations.length : 0)
+                  : fields.length}</span>
+                <span aria-hidden="true">{expandedInspector === group ? '⌃' : '⌄'}</span>
+              </button>
+              {expandedInspector === group && <div className="inspector-section-body">
+                <div className="fields">{fields.map(([name, value]) =>
+                  <div key={name} className={selectedDimension === name ? 'param-focused' : undefined}>
+                    <label htmlFor={name}>{t.fields[name as keyof typeof t.fields] ?? name.replace(/_/g, ' ')}
+                      {fieldUnit(type, name, units) ? ' (' + fieldUnit(type, name, units) + ')' : ''}
+                    </label>
+                    {name === 'operations' && Array.isArray(value)
+                      ? <FeatureOperationsEditor operations={value as Feature[]} language={language}
+                          width={Number(params.width) || 100} depth={Number(params.depth) || 60}
+                          height={Number(params.height) || 12}
+                          onChange={next => updateParameter(name, next)} />
+                      : catalogData?.[type]?.fields.find(field => field.key === name)?.options
+                        ? <select id={name} value={String(value)} onChange={e => updateParameter(name, e.target.value)}>
+                            {catalogData[type].fields.find(field => field.key === name)!.options!.map(option =>
+                              <option key={option} value={option}>{option}</option>)}
+                          </select>
+                        : <input id={name} type={typeof value === 'number' ? 'number' : 'text'}
+                            step={name === 'teeth' || name === 'diameter' ? '1' : 'any'}
+                            value={typeof value === 'number'
+                              ? displayNumber(value, units, usesLinearUnits(type, name))
+                              : String(value)}
+                            onChange={e => updateParameter(name,
+                              typeof value === 'number'
+                                ? canonicalNumber(e.target.value === '' ? 0 : Number(e.target.value),
+                                  units, usesLinearUnits(type, name))
+                                : e.target.value)} />}
+                  </div>
+                )}</div>
+              </div>}
+            </section>
+          })}
+          <details className="inspector-reference-help">
+            <summary>⊙ {language === 'es' ? 'Origen y sistema de coordenadas' : 'Origin and coordinates'}</summary>
+            <p>{language === 'es'
+              ? 'El origen absoluto es (0,0,0). Los planos XY, XZ e YZ son referencias fijas; girar el visor no cambia las coordenadas.'
+              : 'The absolute origin is (0,0,0). XY, XZ and YZ datum planes remain fixed while orbiting.'}</p>
+          </details>
           <p className="muted-note">{t.unitNote}</p>
         </div>
       </aside>
