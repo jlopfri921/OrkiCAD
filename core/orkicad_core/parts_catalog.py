@@ -4,8 +4,12 @@ All length dimensions are canonical millimetres. The UI may display inches.
 """
 from __future__ import annotations
 
-CATALOG_VERSION = "0.2-prototype"
+CATALOG_VERSION = "0.3-prototype"
 PARTS = {
+    "machined_block": {"fields": {"width": 100, "depth": 60, "height": 15,
+                                    "hole_diameter": 6, "hole_inset": 12,
+                                    "pocket_width": 48, "pocket_depth": 30,
+                                    "pocket_cut_depth": 6}},
     "washer": {"fields": {"outer_diameter": 18, "inner_diameter": 6.5, "thickness": 2}},
     "mounting_plate": {"fields": {"width": 80, "depth": 50, "thickness": 5,
                                    "hole_diameter": 5, "hole_inset": 10}},
@@ -46,6 +50,8 @@ FIELDS = {
     "plug_depth": {"min": 0.1}, "clearance": {"min": 0.01},
     "neck_outer_diameter": {"min": 0.1}, "top_thickness": {"min": 0.1},
     "thread_depth": {"min": 0.1},
+    "pocket_width": {"min": 0.1}, "pocket_depth": {"min": 0.1},
+    "pocket_cut_depth": {"min": 0.1},
 }
 
 
