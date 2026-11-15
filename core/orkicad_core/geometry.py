@@ -32,7 +32,7 @@ def _fmt(value: float) -> str:
 def generate_scad(spec: Mapping[str, Any]) -> str:
     """Return deterministic OpenSCAD code from explicitly allowed parameters.
 
-    Supported types: washer, mounting_plate and open_box.
+    Supported types: washer, mounting_plate, open_box, metric_screw,\n    metric_nut and spur_gear.
     Does not accept arbitrary Python, shell commands or SCAD source from AI.
     """
     if not isinstance(spec, Mapping):
@@ -86,8 +86,12 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
             f"cube([{_fmt(width-2*wall)},{_fmt(depth-2*wall)},{_fmt(height)}]);\n"
             "}\n"
         )
+    elif kind in ("metric_screw", "metric_nut", "spur_gear"):
+        from .mechanical import generate_mechanical_scad
+        return generate_mechanical_scad(spec)
     else:
         raise ParameterError(
-            "type must be one of: washer, mounting_plate, open_box"
+            "type must be one of: washer, mounting_plate, open_box, "
+            "metric_screw, metric_nut, spur_gear"
         )
     return "// OrkiCAD AI prototype. Units: mm.\n" + result
