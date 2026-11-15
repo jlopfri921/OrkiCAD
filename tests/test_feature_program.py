@@ -94,6 +94,22 @@ class FeatureProgramTests(unittest.TestCase):
         with self.assertRaises(ParameterError):
             validated_spec(spec)
 
+    def test_visual_no_ai_workflow_wiring(self):
+        path = ROOT / "comfyui/workflows/orkicad_visual_feature_editor_stl_3mf_occt_step.json"
+        flow = json.loads(path.read_text(encoding="utf-8"))
+        types = {node["id"]: node["type"] for node in flow["nodes"]}
+        self.assertNotIn("OrkiCADInterpretLocal", types.values())
+        self.assertEqual(types[1], "OrkiCADSavedDesign")
+        self.assertEqual(types[6], "OrkiCADExportOCCTSTEP")
+        self.assertEqual(flow["links"], [
+            [2, 1, 0, 3, 0, "STRING"],
+            [3, 3, 1, 4, 0, "STRING"],
+            [4, 1, 0, 5, 0, "STRING"],
+            [5, 1, 0, 6, 0, "STRING"],
+        ])
+        design = json.loads(flow["nodes"][0]["widgets_values"][0])
+        self.assertEqual(validated_spec(design)["type"], "feature_model")
+
     def test_comfyui_graph_and_manual_approval(self):
         path = ROOT / "comfyui/workflows/orkicad_ai_feature_program_stl_3mf_occt_step.json"
         wf = json.loads(path.read_text(encoding="utf-8"))
