@@ -37,6 +37,19 @@ class DatumPlaneContractTests(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertIn(marker, app)
 
+    def test_comfyui_and_studio_use_identical_absolute_plane_schematic(self):
+        root = ROOT.parents[3]
+        canonical = (root / "shared/ui/feature_viewport.js").read_text(encoding="utf-8")
+        for path in (
+            root / "comfyui/orkicad_nodes/web/feature_viewport.js",
+            root / "studio/frontend/src/feature_viewport.js",
+        ):
+            with self.subTest(path=path.name):
+                self.assertEqual(path.read_text(encoding="utf-8"), canonical)
+        for marker in ('name:"XY"', 'name:"XZ"', 'name:"YZ"',
+                       'map([0,0,0])', 'originLabel.textContent="0,0,0"'):
+            self.assertIn(marker, canonical)
+
     def test_operation_placement_preserves_global_origin(self):
         anchors = (ROOT / "featureAnchors.ts").read_text(encoding="utf-8")
         editor = (ROOT / "FeatureOperationsEditor.tsx").read_text(encoding="utf-8")
