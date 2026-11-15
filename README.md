@@ -1,6 +1,10 @@
+<p align="center">
+  <img src="logo_OrkiCAD-AI.png" alt="OrkiCAD AI logo" width="420" />
+</p>
+
 # OrkiCAD AI
 
-**Open-source AI-assisted parametric CAD ecosystem.**
+**Open-source multimodal CAD, 2D/3D reconstruction, AI-assisted design and manufacturing ecosystem.**
 
 > **Project status: planning / foundation.** This repository currently documents the project; CAD generators, custom ComfyUI nodes and production workflows are **not yet implemented**.
 
@@ -71,4 +75,4 @@ See the [CAD, AI and 3D resources catalog](docs/DEPENDENCIES_AND_RESOURCES.md) f
 
 ## Brand asset
 
-The intended main project logo filename is **`logo_OrkiCAD-AI.png`** in the repository root. The maintainer has the image locally at `F:\orkicad-ai\logo_OrkiCAD-AI.png`. It should be committed separately before embedding it in this README; it is **not yet confirmed uploaded to GitHub**.
+The official [OrkiCAD AI logo](logo_OrkiCAD-AI.png) is stored in the repository root and displayed above. See [branding documentation](docs/BRANDING.md).
