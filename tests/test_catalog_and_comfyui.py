@@ -74,6 +74,7 @@ class ComfyNodeTests(unittest.TestCase):
         self.assertEqual(set(self.nodes.NODE_CLASS_MAPPINGS), {
             "OrkiCADPartSpec", "OrkiCADGenerateSCAD",
             "OrkiCADRenderSTL", "OrkiCADInterpretLocal",
+            "OrkiCADReviewSpec",
         })
 
     def test_part_to_scad(self):
@@ -110,6 +111,34 @@ class ComfyNodeTests(unittest.TestCase):
     def test_ai_node_rejects_invalid_prompt_without_network(self):
         with self.assertRaises(ValueError):
             self.nodes.OrkiCADInterpretLocal().interpret("", "qwen3-coder:30b")
+
+    def test_review_gate_rejects_unapproved(self):
+        original, = self.nodes.OrkiCADPartSpec().create("box_lid", "{}")
+        with self.assertRaisesRegex(ValueError, "manual approval"):
+            self.nodes.OrkiCADReviewSpec().review(original, "{}", False)
+
+    def test_review_gate_accepts_valid_overrides(self):
+        original, = self.nodes.OrkiCADPartSpec().create("box_lid", "{}")
+        result, summary = self.nodes.OrkiCADReviewSpec().review(
+            original, '{"box_width": 80, "box_depth": 50}', True
+        )
+        self.assertEqual(json.loads(result)["box_width"], 80)
+        self.assertIn('"box_depth": 50', summary)
+
+    def test_review_gate_rejects_unknown_field(self):
+        original, = self.nodes.OrkiCADPartSpec().create("washer", "{}")
+        with self.assertRaisesRegex(ValueError, "Unknown override fields"):
+            self.nodes.OrkiCADReviewSpec().review(original, '{"malicious": 1}', True)
+
+    def test_preview_workflow_wiring(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl.json"
+        flow = json.loads(path.read_text(encoding="utf-8"))
+        node_types = {node["id"]: node["type"] for node in flow["nodes"]}
+        self.assertEqual(node_types[2], "OrkiCADReviewSpec")
+        self.assertEqual(node_types[3], "OrkiCADRenderSTL")
+        self.assertEqual(node_types[4], "Preview3D")
+        self.assertIn([2, 2, 0, 3, 0, "STRING"], flow["links"])
+        self.assertIn([3, 3, 1, 4, 0, "STRING"], flow["links"])
 
     def test_workflow_file_has_registered_nodes(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_parametric_stl.json"
