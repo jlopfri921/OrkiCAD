@@ -38,7 +38,7 @@ class DatumPlaneContractTests(unittest.TestCase):
                 self.assertIn(marker, app)
 
     def test_comfyui_and_studio_use_identical_absolute_plane_schematic(self):
-        root = ROOT.parents[3]
+        root = ROOT.parents[2]
         canonical = (root / "shared/ui/feature_viewport.js").read_text(encoding="utf-8")
         for path in (
             root / "comfyui/orkicad_nodes/web/feature_viewport.js",
