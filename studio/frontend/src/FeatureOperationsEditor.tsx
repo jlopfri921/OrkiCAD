@@ -58,7 +58,7 @@ export default function FeatureOperationsEditor({ operations, onChange, language
       }} />
 
   return <section className="feature-history" aria-label={text.note}>
-    <p className="hint">{text.note}</p>
+    <p className="hint">{isEs ? 'Selecciona una operación para desplegar sus controles.' : 'Select an operation to expand its controls.'}</p>
     <FeatureSchematic width={width} depth={depth} height={height}
       operations={operations} selected={selected} onSelect={setSelected} language={language} />
     {operations.map((item, index) => <article key={index}
@@ -78,6 +78,7 @@ export default function FeatureOperationsEditor({ operations, onChange, language
           <option value="box">{text.box}</option><option value="cylinder">{text.cylinder}</option>
         </select>
       </div>
+      {index === selected && <>
       <div className="feature-toolbar">
         <button className="secondary" disabled={index === 0} onClick={() => swap(index, index - 1)}>{text.up} ↑</button>
         <button className="secondary" disabled={index === operations.length - 1}
@@ -133,6 +134,7 @@ export default function FeatureOperationsEditor({ operations, onChange, language
           </label>
         </div>}
       </div>
+      </>}
     </article>)}
     <button className="secondary" disabled={operations.length >= 8}
       onClick={() => { onChange([...operations, defaultFeature()]); setSelected(operations.length) }}>
