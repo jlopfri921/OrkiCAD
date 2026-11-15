@@ -10,6 +10,7 @@ from .occt_step import OCCTExportError, render_occt_step
 from .parts_catalog import validated_spec
 from .parts_catalog import catalog_public
 from .ai_interpreter import AIError, interpret
+from .cloud_interpreter import interpret_cloud
 import os
 
 MAX_BYTES = 16384
@@ -44,7 +45,18 @@ class StudioHandler(BaseHTTPRequestHandler):
             else:
                 if not isinstance(spec, dict):
                     raise ValueError("Expected an object containing a prompt")
-                proposal = interpret(spec.get("prompt", ""), model=spec.get("model"))
+                provider = spec.get("provider", "ollama")
+                if provider == "ollama":
+                    proposal = interpret(spec.get("prompt", ""), model=spec.get("model"))
+                elif provider in ("openai", "anthropic", "gemini"):
+                    proposal = interpret_cloud(
+                        spec.get("prompt", ""),
+                        provider=provider,
+                        model=spec.get("model", ""),
+                        api_key=spec.get("api_key", ""),
+                    )
+                else:
+                    raise ValueError("Unsupported AI provider")
 
         except (ValueError, UnicodeDecodeError) as exc:
             self._json(400, {"error": str(exc)})
@@ -78,6 +90,29 @@ class StudioHandler(BaseHTTPRequestHandler):
             self._json(200, {"status": "ok", "service": "orkicad-studio-api"})
         elif self.path == "/api/catalog":
             self._json(200, catalog_public())
+        elif self.path == "/api/ollama/models":
+            from urllib.parse import urlsplit
+            import urllib.request
+            import urllib.error
+            base = os.environ.get("ORKICAD_OLLAMA_URL", "http://127.0.0.1:11434")
+            parsed = urlsplit(base)
+            if (parsed.scheme != "http" or parsed.hostname not in
+                    {"127.0.0.1", "localhost", "::1"} or
+                    parsed.username or parsed.password or parsed.query or
+                    parsed.fragment or parsed.path not in ("", "/")):
+                self._json(400, {"error": "Ollama must use a loopback endpoint"})
+                return
+            try:
+                with urllib.request.urlopen(base.rstrip("/") + "/api/tags", timeout=5) as response:
+                    data = json.loads(response.read(131072))
+                    models = sorted(
+                        [entry["name"] for entry in data.get("models", [])
+                         if isinstance(entry, dict) and
+                         isinstance(entry.get("name"), str)]
+                    )
+                self._json(200, {"models": models})
+            except (OSError, ValueError, KeyError, urllib.error.URLError):
+                self._json(503, {"error": "Ollama is not responding on localhost"})
         elif self.path == "/api/providers":
             self._json(200, {
                 "providers": [{
@@ -86,8 +121,8 @@ class StudioHandler(BaseHTTPRequestHandler):
                     "endpoint": os.environ.get("ORKICAD_OLLAMA_URL", "http://127.0.0.1:11434"),
                     "note": "Local provider; actual availability tested when prompted"
                 }],
-                "cloud_providers_enabled": False,
-                "message": "Cloud credentials and adapters are not yet implemented."
+                "cloud_providers_enabled": True,
+                "message": "Cloud providers require opt-in API keys on each request. Development localhost only."
             })
         else:
             self.send_error(404)
