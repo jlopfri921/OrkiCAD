@@ -50,10 +50,10 @@ def render_occt_step(
 ) -> bytes:
     """Export validated parameters as analytic STEP, via a worker subprocess."""
     safe = validated_spec(spec)
-    if safe["type"] not in STEP_SUPPORTED_TYPES:
+    if safe["type"] not in (STEP_SUPPORTED_TYPES | {"feature_model"}):
         raise OCCTExportError(
             f"OCCT STEP not yet implemented for '{safe['type']}'. "
-            "Supported: " + ", ".join(sorted(STEP_SUPPORTED_TYPES))
+            "Supported: " + ", ".join(sorted(STEP_SUPPORTED_TYPES | {"feature_model"}))
         )
     if not isinstance(timeout, int) or not 5 <= timeout <= 600:
         raise ValueError("OCCT export timeout must be 5..600 seconds")
