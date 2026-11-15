@@ -60,7 +60,17 @@ export function createFeatureViewport({container,onSelect,language="es"}) {
     (model.operations||[]).forEach((feature,index)=>{
       parts.push({wire:primitive(feature),index,op:feature.op});
     });
-    const all=parts.flatMap(p=>p.wire?.vertices||[]).map(project);
+    // All three reference planes intersect at global 0,0,0, not at
+    // the centre of the rendered feature bounding box.
+    const extent=Math.max(4,Math.min(model.width||30,model.depth||30,30)*.26);
+    const e=extent;
+    const datums=[
+      {name:"XY",color:"#5199ca",points:[[-e,-e,0],[e,-e,0],[e,e,0],[-e,e,0]]},
+      {name:"XZ",color:"#67c49f",points:[[-e,0,-e],[e,0,-e],[e,0,e],[-e,0,e]]},
+      {name:"YZ",color:"#d8a16b",points:[[0,-e,-e],[0,e,-e],[0,e,e],[0,-e,e]]},
+    ];
+    const all=[...parts.flatMap(p=>p.wire?.vertices||[]),
+      ...datums.flatMap(plane=>plane.points)].map(project);
     if(!all.length)return;
     const minX=Math.min(...all.map(p=>p[0])), maxX=Math.max(...all.map(p=>p[0]));
     const minY=Math.min(...all.map(p=>p[1])), maxY=Math.max(...all.map(p=>p[1]));
@@ -70,6 +80,25 @@ export function createFeatureViewport({container,onSelect,language="es"}) {
       return [225+(p[0]-(maxX+minX)/2)*scale,
         135+(p[1]-(maxY+minY)/2)*scale];
     };
+    // SVG reference planes are schematic; actual orthogonal planes in the
+    // Web/Desktop mesh viewer are rendered as independent Three.js meshes.
+    const datumsGroup=svgElement("g",{"pointer-events":"none","aria-hidden":"true"});
+    for(const plane of datums){
+      const coords=plane.points.map(map);
+      datumsGroup.append(svgElement("polygon",{
+        points:coords.map(p=>p.join(",")).join(" "),fill:plane.color,
+        "fill-opacity":".11",stroke:plane.color,"stroke-width":"1.1",
+        "stroke-opacity":".55",
+      }));
+    }
+    const absoluteOrigin=map([0,0,0]);
+    datumsGroup.append(svgElement("circle",{cx:absoluteOrigin[0],cy:absoluteOrigin[1],
+      r:3.8,fill:"#ffffff",stroke:"#102333","stroke-width":1.3}));
+    const originLabel=svgElement("text",{x:absoluteOrigin[0]+7,y:absoluteOrigin[1]-7,
+      fill:"#ffffff","font-size":11,"font-weight":700});
+    originLabel.textContent="0,0,0";
+    datumsGroup.append(originLabel);
+    canvas.append(datumsGroup);
     for(const item of parts){
       if(!item.wire)continue;
       const active=item.index===selected;
@@ -99,8 +128,8 @@ export function createFeatureViewport({container,onSelect,language="es"}) {
       canvas.append(group);
     }
     legend.textContent=language==="es"
-      ?"Azul: base · Verde: añadir · Naranja: restar · Grueso: seleccionado"
-      :"Blue: base · Green: add · Orange: cut · Thick: selected";
+      ?"Planos XY / XZ / YZ · Blanco: origen 0,0,0 · Verde: añadir · Naranja: restar"
+      :"Planes XY / XZ / YZ · White: origin 0,0,0 · Green: add · Orange: cut";
   }
   function update(next,selectedIndex=selected){
     if(next&&typeof next==="object")model=next;
