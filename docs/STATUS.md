@@ -65,3 +65,16 @@ Maintainer-reported results from Windows PowerShell in `F:\orkicad-ai-github`:
 - **`screw_M6x30.stl` successfully reported generated** by OpenSCAD CLI via `--bosl2-dir`.
 
 **Still pending:** render/export nut and spur gear STL, independent mesh inspection (manifoldness, nonempty mesh, bounding dimensions), thread assembly clearance and print test. These are maintainer-provided logs, not independent geometric validation or a tagged release.
+
+## Four STL export milestone — maintainer Windows validation (2026-11-15)
+
+Maintainer-provided PowerShell output confirms all four prototype STL files were generated using OrkiCAD Core + OpenSCAD/BOSL2:
+
+| File | Size (bytes) | Status |
+| --- | ---: | --- |
+| `gear_24T.stl` | 469961 | OpenSCAD CLI reports created |
+| `nut_M6.stl` | 132183 | OpenSCAD CLI reports created |
+| `screw_M6x30.stl` | 563850 | OpenSCAD CLI reports created |
+| `washer.stl` | 172947 | Present in output directory |
+
+Previous maintainer test run: 10/10 Python unit tests passed. These outputs are **not yet validated** for watertightness, dimensions, normals, manifoldness, printed fit or standards compliance. Next milestone: inspect and report actual mesh topology and bounding boxes with a local geometry validator, then make any needed corrections and document test environment versions.
