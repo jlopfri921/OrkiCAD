@@ -6,7 +6,7 @@
 
 **Open-source multimodal CAD, 2D/3D reconstruction, AI-assisted design and manufacturing ecosystem.**
 
-> **Project status: early source prototype.** A small deterministic CAD generator (washer, mounting plate and open box) is committed. Full parametric catalogs, AI integrations, custom ComfyUI nodes, Studio and production workflows are **not yet implemented or released**.
+> **Project status: early source prototype.** A small deterministic CAD generator (washer, mounting plate, open box, M3–M12 metric screws and nuts, and involute spur gears) is committed. Full parametric catalogs, AI integrations, custom ComfyUI nodes, Studio and production workflows are **not yet implemented or released**.
 
 OrkiCAD AI is designed around **one reusable Python CAD core and two user experiences**:
 
@@ -15,7 +15,7 @@ OrkiCAD AI is designed around **one reusable Python CAD core and two user experi
 
 ## First runnable source prototype
 
-The initial Python package generates validated OpenSCAD source for **washers, mounting plates with four holes and open-top boxes**. An installed OpenSCAD CLI can convert these templates to STL. It includes JSON examples, basic unit tests and a GitHub Actions test workflow (execution not yet independently verified). See [Getting started](docs/GETTING_STARTED.md).
+The initial Python package generates validated OpenSCAD source for **washers, mounting plates with four holes, open-top boxes, metric screws/nuts and spur gears**. An installed OpenSCAD CLI can convert these templates to STL; screws, nuts and gears additionally require **BOSL2**. It includes JSON examples, basic unit tests and a GitHub Actions test workflow (execution not yet independently verified). See [Getting started](docs/GETTING_STARTED.md) and [BOSL2 setup](docs/BOSL2_SETUP.md).
 
 ## Planned capabilities
 
