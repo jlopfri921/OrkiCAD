@@ -313,3 +313,15 @@ When executed from the OCCT virtual environment, `tests/test_occt_integration.py
 ### Current status and caveats
 
 The code is committed, and the Python-level `OCP` STEP writer API and round-trip serialization were smoke-tested in an available development environment, but **the full OrkiCAD OCCT worker and ComfyUI graph have not yet been exercised on the maintainer's Windows installation**. The automated Windows/Linux/macOS matrix is present in the repository; green jobs must be checked separately. The first engine has no screws, gears, bottle threads, analytic fillets or parametric feature-history tree, and no packaged installer yet. OCCT STEP is a true B-rep exchange file, but it is not an editable feature-history FreeCAD project.
+
+## AI-assisted machined block: extrude, drill and pocket (prototype)
+
+**Workflow:** `comfyui/workflows/orkicad_ai_machined_block_stl_3mf_occt_step.json`
+
+The catalog now contains an additional validated parametric family, `machined_block`. This is the first step beyond predefined single-operation primitives: the part is formed by a **rectangular base extrusion**, **two vertical through-drilled mounting holes**, and **one centered rectangular blind pocket**. All operations are applied deterministically from allowlisted numeric fields rather than arbitrary AI-provided CAD commands. Users edit `width`, `depth`, `height`, `hole_diameter`, `hole_inset`, `pocket_width`, `pocket_depth` and `pocket_cut_depth` using the catalog-driven form. The default dimensions are 100 × 60 × 15 mm, two 6 mm holes 12 mm from the ends, and a 48 × 30 × 6 mm top pocket.
+
+The OpenSCAD backend generates matching STL and 3MF meshes, and the native OCCT worker uses B-rep primitive boxes/cylinders and boolean cuts to export a true STEP model. The optional FreeCAD STEP adapter has been extended as well. Geometry rules reject cut-through pockets, holes that extend beyond the block, and holes that intersect the pocket.
+
+The AI workflow prompts a local Ollama model to propose a `machined_block`, then uses the usual visual editor and manual approval to branch to STL/Preview3D, 3MF and OCCT STEP. Set the `occt_python_path` field in the STEP node to the **user's own interpreter**, not any developer-specific hardcoded path, and verify the model name against `ollama list`. After pulling the changes and restarting ComfyUI, run the workflow twice as appropriate for proposal review/approval.
+
+**Status:** core, exporters, example workflow and regression tests committed. The maintainer has validated the previous simple-parts OCCT workflow, **not yet this new feature-composition family or its three-format execution**. This is a constrained template, not arbitrary topology/feature-tree editing, fillets, or chamfers.
