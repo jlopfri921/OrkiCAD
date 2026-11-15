@@ -1,0 +1,238 @@
+{
+  "last_node_id": 6,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "OrkiCADSavedDesign",
+      "pos": [
+        80,
+        175
+      ],
+      "size": [
+        470,
+        530
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "links": [
+            2,
+            4,
+            5
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "design_summary",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADSavedDesign"
+      },
+      "widgets_values": [
+        "{\"type\":\"feature_model\",\"width\":100,\"depth\":60,\"height\":12,\"operations\":[{\"op\":\"cut\",\"shape\":\"box\",\"position\":[26,15,6],\"size\":[48,30,6.2]},{\"op\":\"cut\",\"shape\":\"cylinder\",\"position\":[12,30,-0.1],\"radius\":3,\"height\":12.2},{\"op\":\"cut\",\"shape\":\"cylinder\",\"position\":[88,30,-0.1],\"radius\":3,\"height\":12.2},{\"op\":\"add\",\"shape\":\"cylinder\",\"position\":[50,50,11.8],\"radius\":7,\"height\":8}]}",
+        "{}"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "OrkiCADRenderSTL",
+      "pos": [
+        625,
+        140
+      ],
+      "size": [
+        335,
+        130
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "stl_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "preview_path",
+          "type": "STRING",
+          "links": [
+            3
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADRenderSTL"
+      },
+      "widgets_values": [
+        "ai_feature_model"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "Preview3D",
+      "pos": [
+        1410,
+        160
+      ],
+      "size": [
+        380,
+        420
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model_file",
+          "type": "STRING",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Preview3D"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "OrkiCADExportMesh",
+      "pos": [
+        625,
+        500
+      ],
+      "size": [
+        355,
+        145
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "export_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADExportMesh"
+      },
+      "widgets_values": [
+        "3mf",
+        "ai_feature_model"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "OrkiCADExportOCCTSTEP",
+      "pos": [
+        625,
+        715
+      ],
+      "size": [
+        360,
+        160
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "step_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADExportOCCTSTEP"
+      },
+      "widgets_values": [
+        "ai_feature_model",
+        "Auto"
+      ]
+    }
+  ],
+  "links": [
+    [
+      2,
+      1,
+      0,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      3,
+      1,
+      4,
+      0,
+      "STRING"
+    ],
+    [
+      4,
+      1,
+      0,
+      5,
+      0,
+      "STRING"
+    ],
+    [
+      5,
+      1,
+      0,
+      6,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        20,
+        50
+      ]
+    }
+  },
+  "version": 0.4
+}
