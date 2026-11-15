@@ -100,6 +100,37 @@ class StudioServerTests(unittest.TestCase):
             self.assertIn("error", result)
             renderer.assert_not_called()
 
+    def test_spanish_cloud_prompt_routes_to_provider_without_storing_key(self):
+        prompt = "Diseña una placa de 90 por 55 mm con agujeros"
+        request = json.dumps({
+            "prompt": prompt, "provider": "anthropic",
+            "model": "example-model", "api_key": "test-secret-123456"
+        })
+        example = {"type": "corner_plate", **PARTS["corner_plate"]["fields"]}
+        with patch("orkicad_core.studio_server.interpret_cloud", return_value=example) as cloud:
+            status, data = self.request("POST", "/api/interpret", request, {
+                "X-OrkiCAD-Client": "studio",
+            })
+            self.assertEqual(status, 200)
+            self.assertEqual(data["spec"], example)
+            self.assertNotIn("test-secret", json.dumps(data))
+            cloud.assert_called_once_with(
+                prompt, provider="anthropic", model="example-model",
+                api_key="test-secret-123456"
+            )
+
+    def test_ollama_route_keeps_existing_local_interpreter(self):
+        request = json.dumps({"prompt": "Diseña una arandela", "provider": "ollama",
+                              "model": "local-coder"})
+        example = {"type": "washer", **PARTS["washer"]["fields"]}
+        with patch("orkicad_core.studio_server.interpret", return_value=example) as local:
+            status, result = self.request("POST", "/api/interpret", request, {
+                "X-OrkiCAD-Client": "studio",
+            })
+            self.assertEqual(status, 200)
+            self.assertEqual(result["spec"], example)
+            local.assert_called_once_with("Diseña una arandela", model="local-coder")
+
     def test_reject_missing_client_header(self):
         status, _ = self.request("POST", "/api/scad", "{}")
         self.assertEqual(status, 403)
