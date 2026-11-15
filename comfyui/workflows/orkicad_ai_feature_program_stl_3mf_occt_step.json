@@ -1,0 +1,285 @@
+{
+  "last_node_id": 6,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "OrkiCADInterpretLocal",
+      "pos": [
+        60,
+        150
+      ],
+      "size": [
+        410,
+        210
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "proposed_spec_json",
+          "type": "STRING",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADInterpretLocal"
+      },
+      "widgets_values": [
+        "Create a feature_model from a 100 x 60 x 12 mm box. Apply exactly four ordered operations: cut a 48 x 30 x 6 mm box at position [26,15,7]; cut vertical cylinder radius 3 height 12.2 at [12,30,-0.1]; cut the same cylinder at [88,30,-0.1]; add a cylinder boss radius 7 height 8 at [50,50,11.8]. Output strict JSON with type, width, depth, height, operations; each operation has only op, shape, position, and size (box) or radius and height (cylinder). No scripts.",
+        "qwen3-coder:30b"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "OrkiCADReviewSpec",
+      "pos": [
+        540,
+        150
+      ],
+      "size": [
+        375,
+        220
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "approved_spec_json",
+          "type": "STRING",
+          "links": [
+            2,
+            4,
+            5
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "review_summary",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADReviewSpec"
+      },
+      "widgets_values": [
+        "{}",
+        false
+      ]
+    },
+    {
+      "id": 3,
+      "type": "OrkiCADRenderSTL",
+      "pos": [
+        980,
+        140
+      ],
+      "size": [
+        335,
+        130
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "stl_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "preview_path",
+          "type": "STRING",
+          "links": [
+            3
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADRenderSTL"
+      },
+      "widgets_values": [
+        "ai_feature_model"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "Preview3D",
+      "pos": [
+        1410,
+        160
+      ],
+      "size": [
+        380,
+        420
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model_file",
+          "type": "STRING",
+          "link": 3
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Preview3D"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "OrkiCADExportMesh",
+      "pos": [
+        990,
+        500
+      ],
+      "size": [
+        355,
+        145
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "export_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADExportMesh"
+      },
+      "widgets_values": [
+        "3mf",
+        "ai_feature_model"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "OrkiCADExportOCCTSTEP",
+      "pos": [
+        990,
+        715
+      ],
+      "size": [
+        360,
+        160
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "spec_json",
+          "type": "STRING",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "step_path",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OrkiCADExportOCCTSTEP"
+      },
+      "widgets_values": [
+        "ai_feature_model",
+        "Auto"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      3,
+      1,
+      4,
+      0,
+      "STRING"
+    ],
+    [
+      4,
+      2,
+      0,
+      5,
+      0,
+      "STRING"
+    ],
+    [
+      5,
+      2,
+      0,
+      6,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        20,
+        50
+      ]
+    }
+  },
+  "version": 0.4
+}
