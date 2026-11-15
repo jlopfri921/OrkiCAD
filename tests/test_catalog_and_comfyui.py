@@ -232,9 +232,29 @@ class ComfyNodeTests(unittest.TestCase):
     def test_step_export_requires_freecad_binary(self):
         from orkicad_core.step_export import STEPExportError, render_step
         spec = {"type": "washer", **PARTS["washer"]["fields"]}
-        with patch("orkicad_core.step_export.shutil.which", return_value=None):
+        with patch("orkicad_core.step_export.resolve_freecad_cmd",
+                   side_effect=STEPExportError("FreeCADCmd was not found")):
             with self.assertRaisesRegex(STEPExportError, "FreeCADCmd was not found"):
                 render_step(spec)
+
+    def test_freecad_explicit_path_accepts_own_installation(self):
+        from orkicad_core.step_export import resolve_freecad_cmd
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            command = Path(temp) / "FreeCADCmd.exe"
+            command.write_bytes(b"test-not-executed")
+            self.assertEqual(resolve_freecad_cmd(str(command.parent)), str(command.resolve()))
+            self.assertEqual(resolve_freecad_cmd(str(command)), str(command.resolve()))
+
+    def test_freecad_rejects_arbitrary_executable(self):
+        from orkicad_core.step_export import STEPExportError, resolve_freecad_cmd
+        with self.assertRaisesRegex(STEPExportError, "must be FreeCADCmd"):
+            resolve_freecad_cmd("C:/somewhere/other.exe")
+
+    def test_step_node_has_optional_per_workflow_freecad_path(self):
+        definition = self.nodes.OrkiCADExportSTEP.INPUT_TYPES()
+        self.assertIn("freecad_path", definition["optional"])
+        self.assertEqual(definition["optional"]["freecad_path"][1]["default"], "Auto")
 
     def test_step_node_rejects_output_traversal(self):
         spec = {"type": "washer", **PARTS["washer"]["fields"]}
