@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
+import STLViewer from './STLViewer'
 
 type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear'
 type Definition = { label: string; params: Record<string, number | string> }
@@ -17,10 +18,11 @@ function App() {
   const [type, setType] = useState<PartType>('washer')
   const [params, setParams] = useState<Record<string, number | string>>(catalog.washer.params)
   const [scad, setScad] = useState('')
+  const [stl, setStl] = useState<ArrayBuffer | null>(null)
   const [error, setError] = useState('')
   const [working, setWorking] = useState(false)
   function changeType(next: PartType) {
-    setType(next); setParams({ ...catalog[next].params }); setScad(''); setError('')
+    setType(next); setParams({ ...catalog[next].params }); setScad(''); setStl(null); setError('')
   }
   async function generate() {
     setWorking(true); setError('')
@@ -63,6 +65,46 @@ function App() {
       setWorking(false)
     }
   }
+  async function renderSTL() {
+    setWorking(true); setError(''); setStl(null)
+    try {
+      const response = await fetch('/api/stl', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
+        body: JSON.stringify({ type, ...params })
+      })
+      if (!response.ok) {
+        const raw = await response.text()
+        let detail = raw.slice(0, 400)
+        try {
+          const json = JSON.parse(raw) as { error?: string }
+          detail = json.error || detail
+        } catch { /* Non-JSON proxy errors are still displayed */ }
+        throw new Error(detail || `No se pudo generar STL: HTTP ${response.status}`)
+      }
+      const typeHeader = response.headers.get('content-type') || ''
+      if (!typeHeader.includes('model/stl') && !typeHeader.includes('application/octet-stream')) {
+        throw new Error(`El servidor no devolvió STL (tipo: ${typeHeader || 'desconocido'}).`)
+      }
+      const buffer = await response.arrayBuffer()
+      if (buffer.byteLength < 84) throw new Error('El archivo STL recibido está vacío o incompleto.')
+      setStl(buffer)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setWorking(false)
+    }
+  }
+  function downloadSTL() {
+    if (!stl) return
+    const blob = new Blob([stl], { type: 'model/stl' })
+    const link = document.createElement('a')
+    const uri = URL.createObjectURL(blob)
+    link.href = uri
+    link.download = `orkicad_${type}.stl`
+    link.click()
+    setTimeout(() => URL.revokeObjectURL(uri), 1000)
+  }
   function download() {
     if (!scad) return
     const blob = new Blob([scad], { type: 'text/plain;charset=utf-8' })
@@ -81,9 +123,9 @@ function App() {
       <select id="type" value={type} onChange={e => changeType(e.target.value as PartType)}>{Object.entries(catalog).map(([id, def]) => <option key={id} value={id}>{def.label}</option>)}</select>
       <h2>Dimensions and parameters</h2>
       <div className="fields">{Object.entries(params).map(([name, value]) => <div key={name}><label htmlFor={name}>{name.replace(/_/g, ' ')}</label><input id={name} type={typeof value === 'number' ? 'number' : 'text'} step={name === 'teeth' || name === 'diameter' ? '1' : 'any'} value={value} onChange={e => setParams(p => ({ ...p, [name]: typeof value === 'number' ? e.target.value === '' ? 0 : Number(e.target.value) : e.target.value }))} /></div>)}</div>
-      <button disabled={working} onClick={generate}>{working ? 'Generating…' : 'Generate SCAD'}</button>
+      <div className="actions"><button disabled={working} onClick={generate}>{working ? 'Procesando…' : 'Generar SCAD'}</button><button disabled={working} onClick={renderSTL}>{working ? 'Procesando…' : 'Generar STL y ver en 3D'}</button></div>
       {error && <p className="error" role="alert">{error}</p>}
-      </section><section className="panel output"><h2>Generated CAD</h2><p className="hint">The preview below is OpenSCAD source, not a 3D viewer. A 3D viewport and Tauri desktop shell are future milestones.</p>
+      </section><section className="panel output"><h2>Visor 3D</h2><STLViewer data={stl} /><p className="hint">Gira la pieza arrastrando el ratón; usa la rueda para ampliar. Requiere OpenSCAD y BOSL2 para las piezas mecánicas.</p><button className="secondary" disabled={!stl} onClick={downloadSTL}>Descargar STL</button><h2>Código OpenSCAD</h2>
       <pre>{scad || 'Choose a part and click Generate SCAD. The local Python server must be running.'}</pre>
       <button className="secondary" disabled={!scad} onClick={download}>Download .scad</button>
       </section></div>
