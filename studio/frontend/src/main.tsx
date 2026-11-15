@@ -182,7 +182,8 @@ function App() {
     setScad('')
     previewSerial.current += 1
     setPreviewReady(false)
-    setReviewApproved(false)
+    // Once the user approved an AI proposal, subsequent direct edits are
+    // intentional user changes and keep live feedback enabled.
     setSelectedFace(null)
   }
   function changeType(next: PartType) {
@@ -569,6 +570,22 @@ function App() {
           <div className="current-part">
             <span className="part-icon">⬡</span><div><strong>{t.parts[type]}</strong><small>{ui.scene}</small></div>
           </div>
+          {selectedDimension && typeof params[selectedDimension] === 'number' &&
+            <div className="face-quick-adjust">
+              <label htmlFor="selected-dimension-range">
+                {language === 'es' ? 'Ajuste rápido' : 'Quick adjust'} ·
+                {' '}{t.fields[selectedDimension as keyof typeof t.fields] ?? selectedDimension}
+              </label>
+              <div className="face-quick-row">
+                <input id="selected-dimension-range" type="range"
+                  aria-label={language === 'es' ? 'Modificar medida en tiempo real' : 'Adjust dimension live'}
+                  min="0.1" max={Math.max(50, Math.ceil((params[selectedDimension] as number) * 2 / 10) * 10)}
+                  step="0.5" value={params[selectedDimension] as number}
+                  onChange={event => updateParameter(selectedDimension, Number(event.target.value))} />
+                <strong>{displayNumber(params[selectedDimension] as number, units, usesLinearUnits(type, selectedDimension))}
+                  <small>{fieldUnit(type, selectedDimension, units)}</small></strong>
+              </div>
+            </div>}
           {selectedFace && <div className="face-selection-info" role="status">
             <strong>◈ {faceAxisLabel(selectedFace, language)}</strong>
             <span>{selectedDimension
