@@ -34,7 +34,7 @@ class OCCTRuntimeResolutionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             nonexistent = str(Path(temp) / "nonexistent-python")
             with self.assertRaisesRegex(
-                occt_step.OCCTExportError, "Invalid OCCT runtime"
+                occt_step.OCCTExportError, "Invalid OCCT Python runtime"
             ):
                 occt_step.resolve_occt_python(nonexistent)
 
