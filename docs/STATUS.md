@@ -294,3 +294,13 @@ The operation-selection schematic was extracted into canonical `shared/ui/featur
 New `studio/frontend/src/FeatureSchematic.tsx` wraps the shared viewer; `FeatureOperationsEditor.tsx` synchronizes the selected operation with the numbered editor cards and base dimensions. ComfyUI still has its own node-specific editor chrome, but shares the **exact schematic source**. The preview shows *primitive wireframes*, not a Boolean-evaluated final solid, which remains visible in the STL mesh viewer.
 
 **Evidence boundary:** parity tests have been added to CI source, but the updated Studio build, live browser selection, ComfyUI schematic selection and installer runtime are **not yet user accepted**. Canonical React UI sharing with Tauri is specified but no desktop distributable has been created.
+
+## Studio text-to-CAD UX and provider parity (2026-11-15)
+
+In response to maintainer feedback, updated Studio Web / future Desktop React UI with an **actual readable text prompt area**, three Spanish/English editable sample prompts, one-click load/copy actions, an explicit AI proposal approval gate before export, **Ollama installed-model discovery** via loopback `/api/tags`, a model dropdown and optional manual model ID entry. Studio no longer assumes a single configured local model.
+
+Added opt-in OpenAI Responses, Anthropic Messages and Google Gemini generateContent adapters at fixed HTTPS endpoints. Cloud API keys are entered into the UI for a **single request** and cleared afterward; they are not saved to CAD projects, browser storage or database. The backend validates provider/model/key bounds, prevents redirects from forwarding credentials, normalizes model output through the same English technical JSON schema system instruction used by Ollama, and rejects any geometry outside the catalog Core schema. Spanish prompts are accepted verbatim and are not required to be manually translated. The development server routes `/api/interpret` by provider and exposes `/api/ollama/models` for local model selection.
+
+Added mocked cloud-response validity, credential handling, Spanish prompts and server route tests to source and CI. The credentials approach is **localhost development-only** and not suitable for a hosted/public version until authentication, encrypted per-user secrets and request hardening exist.
+
+**Verification boundary:** commits exist, but frontend TypeScript build status, browser use/copy and selection interactions, installed-model listing on the maintainer's Ollama runtime, and live cloud vendor API behavior remain unverified. No user-provided API keys have been requested or retained by OrkiCAD in this development iteration.
