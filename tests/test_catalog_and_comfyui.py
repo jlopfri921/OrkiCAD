@@ -333,6 +333,16 @@ class ComfyNodeTests(unittest.TestCase):
         self.assertIn("OrkiCADExportMesh", types.values())
         self.assertIn("OrkiCADRenderSTL", types.values())
 
+    def test_machined_block_ai_workflow_graph(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_ai_machined_block_stl_3mf_occt_step.json"
+        flow = json.loads(path.read_text(encoding="utf-8"))
+        types = {node["id"]: node["type"] for node in flow["nodes"]}
+        self.assertEqual(types[1], "OrkiCADInterpretLocal")
+        self.assertEqual(types[2], "OrkiCADReviewSpec")
+        self.assertEqual(types[6], "OrkiCADExportOCCTSTEP")
+        self.assertIn("machined_block", flow["nodes"][0]["widgets_values"][0])
+        self.assertIn([5, 2, 0, 6, 0, "STRING"], flow["links"])
+
     def test_preview_workflow_wiring(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl.json"
         flow = json.loads(path.read_text(encoding="utf-8"))
