@@ -8,7 +8,7 @@ CATALOG_VERSION = "0.5-prototype"
 PARTS = {
     "feature_model": {"fields": {"width": 100, "depth": 60, "height": 12,
                                   "operations": [
-                                      {"op": "cut", "shape": "box", "position": [26, 15, 7], "size": [48, 30, 6]},
+                                      {"op": "cut", "shape": "box", "position": [26, 15, 6], "size": [48, 30, 6.2]},
                                       {"op": "cut", "shape": "cylinder", "position": [12, 30, -0.1], "radius": 3, "height": 12.2},
                                       {"op": "cut", "shape": "cylinder", "position": [88, 30, -0.1], "radius": 3, "height": 12.2},
                                       {"op": "add", "shape": "cylinder", "position": [50, 50, 11.8], "radius": 7, "height": 8}
