@@ -12,12 +12,24 @@ from .parts_catalog import catalog_public
 from .ai_interpreter import AIError, interpret
 from .cloud_interpreter import interpret_cloud
 import os
+import secrets
 
 MAX_BYTES = 16384
 
 
 class StudioHandler(BaseHTTPRequestHandler):
+    def _check_private_token(self):
+        """Desktop worker requires a per-session secret; web dev stays local-only."""
+        expected = os.environ.get("ORKICAD_STUDIO_TOKEN", "")
+        if expected and not secrets.compare_digest(
+                self.headers.get("X-OrkiCAD-Token", ""), expected):
+            self._json(403, {"error": "Invalid desktop worker session"})
+            return False
+        return True
+
     def do_POST(self):
+        if not self._check_private_token():
+            return
         if self.path not in ("/api/scad", "/api/stl", "/api/3mf", "/api/step", "/api/interpret"):
             self.send_error(404)
             return
@@ -86,6 +98,8 @@ class StudioHandler(BaseHTTPRequestHandler):
             self.wfile.write(binary)
 
     def do_GET(self):
+        if not self._check_private_token():
+            return
         if self.path == "/api/health":
             self._json(200, {"status": "ok", "service": "orkicad-studio-api"})
         elif self.path == "/api/catalog":
@@ -138,8 +152,11 @@ class StudioHandler(BaseHTTPRequestHandler):
 
 
 def main():
-    server = ThreadingHTTPServer(("127.0.0.1", 8765), StudioHandler)
-    print("OrkiCAD Studio development API at http://127.0.0.1:8765/api/health")
+    port = int(os.environ.get("ORKICAD_STUDIO_PORT", "8765"))
+    if not 1 <= port <= 65535:
+        raise ValueError("OrkiCAD server port must be 1..65535")
+    server = ThreadingHTTPServer(("127.0.0.1", port), StudioHandler)
+    print(f"OrkiCAD Studio local API at http://127.0.0.1:{port}/api/health")
     print("Local development only. Do not expose this unauthenticated server.")
     try:
         server.serve_forever()
