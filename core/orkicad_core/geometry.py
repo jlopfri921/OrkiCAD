@@ -86,12 +86,15 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
             f"cube([{_fmt(width-2*wall)},{_fmt(depth-2*wall)},{_fmt(height)}]);\n"
             "}\n"
         )
+    elif kind in ("box_lid", "bottle_cap"):
+        from .consumer_parts import make_closure
+        return make_closure(spec)
     elif kind in ("metric_screw", "metric_nut", "spur_gear"):
         from .mechanical import generate_mechanical_scad
         return generate_mechanical_scad(spec)
     else:
         raise ParameterError(
             "type must be one of: washer, mounting_plate, open_box, "
-            "metric_screw, metric_nut, spur_gear"
+            "metric_screw, metric_nut, spur_gear, box_lid, bottle_cap"
         )
     return "// OrkiCAD AI prototype. Units: mm.\n" + result
