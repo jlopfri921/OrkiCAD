@@ -13,10 +13,11 @@ export default function STLViewer({ data, emptyMessage }: Props) {
     if (!element || !data) return
 
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color('#091425')
+    // Transparent canvas lets the shared Studio workspace grid show through.
+    scene.background = null
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100000)
     camera.up.set(0, 0, 1)
-    const renderer = new THREE.WebGLRenderer({ antialias: true })
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.outputColorSpace = THREE.SRGBColorSpace
     element.appendChild(renderer.domElement)
@@ -26,9 +27,9 @@ export default function STLViewer({ data, emptyMessage }: Props) {
     geometry.computeVertexNormals()
     geometry.center()
     const material = new THREE.MeshStandardMaterial({
-      color: 0x58d5e7,
-      metalness: 0.28,
-      roughness: 0.38,
+      color: 0x9ad4dc,
+      metalness: 0.5,
+      roughness: 0.28,
       side: THREE.DoubleSide
     })
     const mesh = new THREE.Mesh(geometry, material)
@@ -41,8 +42,8 @@ export default function STLViewer({ data, emptyMessage }: Props) {
     camera.far = Math.max(100, radius * 100)
     camera.updateProjectionMatrix()
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x546780, 2.4))
-    const light = new THREE.DirectionalLight(0xffffff, 2.2)
+    scene.add(new THREE.HemisphereLight(0xe8faff, 0x29384f, 2.6))
+    const light = new THREE.DirectionalLight(0xffffff, 2.8)
     light.position.set(radius, -radius, radius * 2)
     scene.add(light)
 
