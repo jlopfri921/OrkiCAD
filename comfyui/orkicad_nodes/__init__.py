@@ -141,11 +141,58 @@ class OrkiCADInterpretLocal:
         return (json.dumps(proposal, ensure_ascii=False, sort_keys=True),)
 
 
+class OrkiCADReviewSpec:
+    """A deliberate user approval gate between AI interpretation and STL export.
+
+    ComfyUI reevaluates this node when its widgets change. In the default
+    unapproved state it raises a readable error including the model proposal,
+    preventing any downstream STL export.
+    """
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "spec_json": ("STRING", {"forceInput": True}),
+            "overrides_json": ("STRING", {"multiline": True, "default": "{}"}),
+            "approve_for_export": ("BOOLEAN", {"default": False}),
+        }}
+
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("approved_spec_json", "review_summary")
+    FUNCTION = "review"
+    CATEGORY = "OrkiCAD/AI"
+
+    def review(self, spec_json: str, overrides_json: str, approve_for_export: bool):
+        _, parts, validate, _ = _core()
+        original = _spec(spec_json)
+        try:
+            overrides = json.loads(overrides_json)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Review overrides must be a JSON object") from exc
+        if not isinstance(overrides, dict):
+            raise ValueError("Review overrides must be a JSON object")
+        kind = original["type"]
+        unknown = set(overrides) - set(parts[kind]["fields"])
+        if unknown:
+            raise ValueError("Unknown override fields: " + ", ".join(sorted(unknown)))
+        accepted = validate({**original, **overrides})
+        readable = json.dumps(accepted, ensure_ascii=False, indent=2, sort_keys=True)
+        if not approve_for_export:
+            raise ValueError(
+                "OrkiCAD requires manual approval before STL export. "
+                "Review the proposed dimensions below, adjust overrides_json "
+                "if necessary, and set approve_for_export to true, then rerun. "
+                "No STL has been exported by this approval gate.\\n" + readable
+            )
+        return (json.dumps(accepted, ensure_ascii=False, sort_keys=True), readable)
+
+
 NODE_CLASS_MAPPINGS = {
     "OrkiCADPartSpec": OrkiCADPartSpec,
     "OrkiCADGenerateSCAD": OrkiCADGenerateSCAD,
     "OrkiCADRenderSTL": OrkiCADRenderSTL,
     "OrkiCADInterpretLocal": OrkiCADInterpretLocal,
+    "OrkiCADReviewSpec": OrkiCADReviewSpec,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -153,4 +200,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "OrkiCADGenerateSCAD": "OrkiCAD · Generate OpenSCAD",
     "OrkiCADRenderSTL": "OrkiCAD · Render STL",
     "OrkiCADInterpretLocal": "OrkiCAD · Local AI → CAD parameters",
+    "OrkiCADReviewSpec": "OrkiCAD · Review & approve CAD",
 }
