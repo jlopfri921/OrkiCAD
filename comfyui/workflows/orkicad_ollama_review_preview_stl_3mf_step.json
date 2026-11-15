@@ -209,6 +209,14 @@
           "name": "spec_json",
           "type": "STRING",
           "link": 5
+        },
+        {
+          "name": "freecad_path",
+          "type": "STRING",
+          "widget": {
+            "name": "freecad_path"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -223,7 +231,8 @@
         "Node name for S&R": "OrkiCADExportSTEP"
       },
       "widgets_values": [
-        "ai_reviewed_part"
+        "ai_reviewed_part",
+        "Auto"
       ]
     }
   ],
