@@ -69,7 +69,7 @@ function App() {
   const [selectedDimension, setSelectedDimension] = useState<string | null>(null)
   const [showReferencePlanes, setShowReferencePlanes] = useState(true)
   const [cameraCommand, setCameraCommand] = useState<CameraCommand | undefined>()
-  const [expandedInspector, setExpandedInspector] = useState<'size' | 'details' | 'operations'>('size')
+  const [expandedInspector, setExpandedInspector] = useState<'size' | 'details' | 'operations' | null>('size')
   const [livePreview, setLivePreview] = useState(true)
   const [previewPhase, setPreviewPhase] = useState<'idle' | 'pending' | 'rendering' | 'ready' | 'error'>('idle')
   const [previewReady, setPreviewReady] = useState(false)
@@ -665,7 +665,7 @@ function App() {
             return <section key={group} className="inspector-section">
               <button type="button" className="inspector-section-toggle"
                 aria-expanded={expandedInspector === group}
-                onClick={() => setExpandedInspector(current => current === group ? 'size' : group)}>
+                onClick={() => setExpandedInspector(current => current === group ? null : group)}>
                 <span>{group === 'size' ? '▣' : group === 'details' ? '⚙' : '◈'} {heading}</span>
                 <span className="inspector-section-count">{group === 'operations'
                   ? (Array.isArray(params.operations) ? params.operations.length : 0)
