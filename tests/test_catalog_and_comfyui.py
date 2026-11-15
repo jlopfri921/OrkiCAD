@@ -75,6 +75,7 @@ class ComfyNodeTests(unittest.TestCase):
             "OrkiCADPartSpec", "OrkiCADGenerateSCAD",
             "OrkiCADRenderSTL", "OrkiCADInterpretLocal",
             "OrkiCADReviewSpec", "OrkiCADSavedDesign", "OrkiCADExportMesh",
+            "OrkiCADExportSTEP",
         })
 
     def test_part_to_scad(self):
@@ -221,6 +222,41 @@ class ComfyNodeTests(unittest.TestCase):
         types = {node["id"]: node["type"] for node in workflow["nodes"]}
         self.assertEqual(types[4], "OrkiCADExportMesh")
         self.assertEqual(workflow["links"][2], [3, 1, 0, 4, 0, "STRING"])
+
+    def test_step_export_rejects_unsupported_part_before_freecad(self):
+        from orkicad_core.step_export import STEPExportError, render_step
+        spec = {"type": "bottle_cap", **PARTS["bottle_cap"]["fields"]}
+        with self.assertRaisesRegex(STEPExportError, "not yet implemented"):
+            render_step(spec)
+
+    def test_step_export_requires_freecad_binary(self):
+        from orkicad_core.step_export import STEPExportError, render_step
+        spec = {"type": "washer", **PARTS["washer"]["fields"]}
+        with patch("orkicad_core.step_export.shutil.which", return_value=None):
+            with self.assertRaisesRegex(STEPExportError, "FreeCADCmd was not found"):
+                render_step(spec)
+
+    def test_step_node_rejects_output_traversal(self):
+        spec = {"type": "washer", **PARTS["washer"]["fields"]}
+        with self.assertRaisesRegex(ValueError, "file_stem"):
+            self.nodes.OrkiCADExportSTEP().export(json.dumps(spec), "../outside")
+
+    def test_step_geometry_worker_uses_real_part_geometry(self):
+        worker = REPO / "core" / "orkicad_core" / "freecad_worker.py"
+        source = worker.read_text(encoding="utf-8")
+        self.assertIn("Part.makeBox", source)
+        self.assertIn("Part.makeCylinder", source)
+        self.assertIn("shape.exportStep", source)
+        self.assertNotIn("import Mesh", source)
+
+    def test_ai_step_workflow_shares_approved_spec(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl_3mf_step.json"
+        flow = json.loads(path.read_text(encoding="utf-8"))
+        types = {node["id"]: node["type"] for node in flow["nodes"]}
+        self.assertEqual(types[6], "OrkiCADExportSTEP")
+        self.assertIn([5, 2, 0, 6, 0, "STRING"], flow["links"])
+        self.assertEqual(flow["last_node_id"], 6)
+        self.assertEqual(flow["last_link_id"], 5)
 
     def test_preview_workflow_wiring(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl.json"
