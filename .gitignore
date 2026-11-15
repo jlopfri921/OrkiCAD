@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+# JavaScript / Tauri
+node_modules/
+**/target/
+**/.vite/
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+# Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# CAD, weights and outputs
+*.stl
+*.step
+*.stp
+*.3mf
+*.glb
+*.safetensors
+models/
+outputs/
+output/
