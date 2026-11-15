@@ -77,3 +77,21 @@ After installing the development dependencies, start the localhost Python API an
 5. Build the React frontend with `cd studio/frontend && npm install && npm run build`, and run `python -m unittest discover -s tests -v` from the installed Python Core environment.
 
 **No Tauri installer is available yet.** The web prototype is local-only, not Internet-ready. The long-term desktop app must use the same React frontend and bundle native OCCT for one-click STEP without any Python/FreeCAD installation.
+
+## Text-to-CAD in Spanish and optional cloud models (development prototype)
+
+The Studio prompt editor accepts **Spanish or English** instructions. All AI provider adapters use the same English-language technical system instructions and require a **strict validated JSON CAD design**. The UI never requires users to translate prompts; stable schema names and millimetres are backend details.
+
+The Studio UI provides three editable Spanish/English example prompts with **Use this example** and **Copy text** actions. Examples are selectable/copyable text, and the prompt textarea supports pasting and normal text editing. A **manual review checkbox** is displayed after AI proposes parameters: the user must approve the resulting form before SCAD/STL/3MF/STEP exports. Manual (non-AI) designs remain usable without this AI-only approval gate.
+
+### Local model discovery
+
+Select **Ollama**. Studio calls `GET /api/ollama/models`, which reads the local Ollama `/api/tags` endpoint through the backend and displays the installed model names. Users can also manually enter an existing model identifier. Ollama must be running on localhost; no internet or cloud API key is needed.
+
+### Cloud providers — opt-in and not yet deployment-ready
+
+Select **OpenAI API**, **Claude / Anthropic API**, or **Gemini API**, enter the exact model ID and the API key for that provider, and submit the prompt. The API key is sent to the local Python development server for the single provider request. The backend calls the fixed provider HTTPS endpoint, never logs or echoes keys intentionally, forbids redirects that could forward a key, validates the returned JSON with Core, and passes only validated part parameters back to the UI. The frontend clears the key after each attempt and does not use localStorage.
+
+**Privacy/security:** Cloud requests send the CAD prompt to the selected external provider and may incur provider charges. The UI uses `password` inputs and shows a consent notice. These credentials must only be used on the loopback Studio developer server. The unauthenticated development API and temporary key mechanism are **not** safe for an Internet-facing deployment, multi-user hosting or production secure storage. Encrypted per-user secrets, authentication, authorization, network protections, request quotas and secure key storage are outstanding product tasks.
+
+**Verification:** adapters, bilingual UI and mocked regression tests have been committed. Live API calls to commercial providers and the updated browser behavior have not yet been user accepted. Provider API model identifiers and access rights are determined by each user's provider account, not bundled with OrkiCAD.
