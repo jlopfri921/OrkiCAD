@@ -67,6 +67,7 @@ function App() {
   const [saveStatus, setSaveStatus] = useState('')
   const [selectedFace, setSelectedFace] = useState<FaceSelection | null>(null)
   const [selectedDimension, setSelectedDimension] = useState<string | null>(null)
+  const [showReferencePlanes, setShowReferencePlanes] = useState(true)
   useEffect(() => {
     apiFetch('/api/catalog').then(r => { if (!r.ok) throw Error('Catalog unavailable'); return r.json() })
       .then(body => setCatalogData(body.parts))
@@ -454,16 +455,29 @@ function App() {
       <section className="studio-center" aria-label={ui.viewport}>
         <div className="viewport-heading">
           <div><div className="section-overline">02 / MODEL</div><h2>{ui.viewport}</h2></div>
-          <div className="viewport-badges"><span>◈ 3D</span><span>{units === 'metric' ? 'mm' : 'in'}</span></div>
+          <div className="viewport-badges">
+            <span>◈ 3D</span><span>{units === 'metric' ? 'mm' : 'in'}</span>
+            <label className="reference-toggle">
+              <input type="checkbox" checked={showReferencePlanes}
+                onChange={event => setShowReferencePlanes(event.target.checked)} />
+              {language === 'es' ? 'Planos 0,0,0' : 'Datum planes 0,0,0'}
+            </label>
+          </div>
         </div>
         <div className="viewport-frame">
           <div className="viewport-grid" aria-hidden="true"></div>
-          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} />
+          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} showReferencePlanes={showReferencePlanes} />
           {!stl && <div className="viewport-empty" aria-hidden="true">
             <div className="viewport-empty-icon">⬡</div>
             <strong>{ui.empty}</strong><p>{ui.emptyHelp}</p>
           </div>}
           <div className="viewport-axis" aria-hidden="true"><span>Z</span><span>Y</span><span>X</span></div>
+          <div className="datum-legend" aria-label={language === 'es' ? 'Planos de referencia' : 'Datum planes'}>
+            <span><i className="datum-swatch datum-xy"></i>XY · Z=0</span>
+            <span><i className="datum-swatch datum-xz"></i>XZ · Y=0</span>
+            <span><i className="datum-swatch datum-yz"></i>YZ · X=0</span>
+            <strong>⊙ (0,0,0)</strong>
+          </div>
           <span className="viewport-caption">{stl
             ? (language === 'es' ? 'Clic: seleccionar cara · Arrastrar: girar · Rueda: zoom' : 'Click: select face · Drag: orbit · Scroll: zoom')
             : ui.waiting}</span>
@@ -515,6 +529,12 @@ function App() {
             {partIds.map(id => <option key={id} value={id}>{t.parts[id]}</option>)}
           </select>
           <div className="sidebar-section-title">{ui.dimensions}</div>
+          <div className="absolute-origin-note">
+            <strong>⊙ {language === 'es' ? 'Origen absoluto' : 'Absolute origin'}: (0,0,0)</strong>
+            <span>{language === 'es'
+              ? 'Las medidas y posiciones toman como referencia el origen fijo de los planos XY, XZ e YZ. La vista puede girarse sin cambiar las coordenadas.'
+              : 'Dimensions and positions use the fixed origin of the XY, XZ and YZ datum planes. Orbiting does not change coordinates.'}</span>
+          </div>
           {aiNote && <label className="review-checkbox">
             <input type="checkbox" checked={reviewApproved}
               onChange={e => setReviewApproved(e.target.checked)} />{t.approveForExport}
