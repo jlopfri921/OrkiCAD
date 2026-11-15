@@ -42,6 +42,20 @@ class StudioWorkspaceContractTests(unittest.TestCase):
         self.assertIn('ORKICAD_STUDIO_PORT', shell)
         self.assertIn(".no_proxy()", shell)
 
+    def test_developer_icon_created_before_tauri_build(self):
+        builder = (WEB / "src-tauri/build.rs").read_text(encoding="utf-8")
+        self.assertIn('join("icons")', builder)
+        self.assertIn('join("icon.ico")', builder)
+        self.assertIn("create_windows_dev_icon()", builder)
+        self.assertLess(builder.index("create_windows_dev_icon().expect"),
+                        builder.index("tauri_build::build()"))
+
+    def test_ollama_models_can_be_refreshed_when_worker_starts_late(self):
+        code = (WEB / "src/main.tsx").read_text(encoding="utf-8")
+        self.assertIn("async function refreshOllamaModels()", code)
+        self.assertIn("onClick={refreshOllamaModels}", code)
+        self.assertIn("apiFetch('/api/ollama/models')", code)
+
     def test_accessible_and_responsive_styling(self):
         css = (WEB / "src/style.css").read_text(encoding="utf-8")
         for marker in (
