@@ -200,3 +200,23 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .fields>.param-focused label{color:#f8d9a2}
 .fields>.param-focused input:focus{border-color:#f6ce83;box-shadow:0 0 0 2px #dba64b40}
 .viewer canvas{cursor:crosshair}
+
+/* Fixed world coordinate system: three CAD datum planes meet at 0,0,0. */
+.reference-toggle{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;
+  border-radius:6px;background:#1c3540;border:1px solid #3c6670;color:#bfe9ec;
+  font-size:11px;cursor:pointer;white-space:nowrap;margin:0}
+.reference-toggle input{width:14px;height:14px;margin:0;accent-color:#6ae3d2}
+.datum-legend{position:absolute;z-index:3;top:18px;left:16px;display:flex;
+  gap:7px;flex-wrap:wrap;max-width:70%;pointer-events:none;font-size:10px}
+.datum-legend>span,.datum-legend>strong{display:inline-flex;align-items:center;gap:5px;
+  padding:5px 7px;border-radius:5px;background:#0a1929d9;border:1px solid #355365;
+  color:#cfdee8;font-weight:650}
+.datum-legend>strong{color:#ffffff}
+.datum-swatch{width:7px;height:7px;border-radius:2px;display:inline-block}
+.datum-xy{background:#5199ca}.datum-xz{background:#67c49f}.datum-yz{background:#d8a16b}
+.absolute-origin-note{display:grid;gap:6px;padding:11px;border:1px solid #41616a;
+  border-radius:8px;background:#152d35;color:#d1edf0}
+.absolute-origin-note strong{font-size:12px}
+.absolute-origin-note span{font-size:11px;line-height:1.6;color:#9fbdc6}
+.feature-anchor-help{font-size:10px;line-height:1.55;color:#97b6c9;margin:2px 0 4px}
+@media(max-width:820px){.datum-legend{top:65px;max-width:90%}.viewport-badges{flex-wrap:wrap}}
