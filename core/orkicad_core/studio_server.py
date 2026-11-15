@@ -11,6 +11,7 @@ from .parts_catalog import validated_spec
 from .parts_catalog import catalog_public
 from .ai_interpreter import AIError, interpret
 from .cloud_interpreter import interpret_cloud
+from .circular_prompt import parse_explicit_circular_plate
 import os
 import secrets
 
@@ -58,7 +59,12 @@ class StudioHandler(BaseHTTPRequestHandler):
                 if not isinstance(spec, dict):
                     raise ValueError("Expected an object containing a prompt")
                 provider = spec.get("provider", "ollama")
-                if provider == "ollama":
+                # A fully dimensioned simple disk needs no probabilistic
+                # template choice: preserve the user's actual circular shape.
+                exact = parse_explicit_circular_plate(spec.get("prompt", ""))
+                if exact is not None:
+                    proposal = exact
+                elif provider == "ollama":
                     proposal = interpret(spec.get("prompt", ""), model=spec.get("model"))
                 elif provider in ("openai", "anthropic", "gemini"):
                     proposal = interpret_cloud(
