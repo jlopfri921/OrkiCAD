@@ -4,8 +4,15 @@ All length dimensions are canonical millimetres. The UI may display inches.
 """
 from __future__ import annotations
 
-CATALOG_VERSION = "0.4-prototype"
+CATALOG_VERSION = "0.5-prototype"
 PARTS = {
+    "feature_model": {"fields": {"width": 100, "depth": 60, "height": 12,
+                                  "operations": [
+                                      {"op": "cut", "shape": "box", "position": [26, 15, 7], "size": [48, 30, 6]},
+                                      {"op": "cut", "shape": "cylinder", "position": [12, 30, -0.1], "radius": 3, "height": 12.2},
+                                      {"op": "cut", "shape": "cylinder", "position": [88, 30, -0.1], "radius": 3, "height": 12.2},
+                                      {"op": "add", "shape": "cylinder", "position": [50, 30, 11.8], "radius": 7, "height": 8}
+                                  ]}},
     "corner_plate": {"fields": {"width": 90, "depth": 55, "thickness": 6,
                                   "corner_style": "round", "corner_size": 5,
                                   "hole_diameter": 6, "hole_inset": 17}},
@@ -55,6 +62,7 @@ FIELDS = {
     "neck_outer_diameter": {"min": 0.1}, "top_thickness": {"min": 0.1},
     "thread_depth": {"min": 0.1},
     "pocket_width": {"min": 0.1}, "pocket_depth": {"min": 0.1},
+    "operations": {"editor": "feature_operations", "units": "mm"},
     "pocket_cut_depth": {"min": 0.1}, "corner_size": {"min": 0.1},
 }
 
@@ -77,6 +85,9 @@ def validated_spec(value):
 
     if not isinstance(value, dict):
         raise ParameterError("AI response must be a JSON object")
+    if value.get("type") == "feature_model":
+        from .feature_program import validate_feature_model
+        return validate_feature_model(value)
     kind = value.get("type")
     if not isinstance(kind, str) or kind not in PARTS:
         raise ParameterError("Unsupported part type. Supported: " + ", ".join(PARTS))
