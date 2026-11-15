@@ -1,0 +1,8 @@
+{
+  "type": "spur_gear",
+  "module": 2,
+  "teeth": 24,
+  "thickness": 8,
+  "shaft_diameter": 8,
+  "pressure_angle": 20
+}
