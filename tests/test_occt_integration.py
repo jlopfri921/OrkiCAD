@@ -29,7 +29,7 @@ else:
 @unittest.skipUnless(HAS_OCCT, "cadquery-ocp not installed")
 class OCCTSTEPIntegrationTests(unittest.TestCase):
     def test_all_supported_part_families_have_readable_valid_step_solids(self):
-        for kind in ("washer", "mounting_plate", "open_box", "box_lid"):
+        for kind in ("washer", "mounting_plate", "open_box", "box_lid", "machined_block"):
             with self.subTest(kind=kind):
                 spec = {"type": kind, **PARTS[kind]["fields"]}
                 data = render_occt_step(spec, python_path=sys.executable)
