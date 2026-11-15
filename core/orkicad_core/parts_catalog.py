@@ -4,8 +4,11 @@ All length dimensions are canonical millimetres. The UI may display inches.
 """
 from __future__ import annotations
 
-CATALOG_VERSION = "0.3-prototype"
+CATALOG_VERSION = "0.4-prototype"
 PARTS = {
+    "corner_plate": {"fields": {"width": 90, "depth": 55, "thickness": 6,
+                                  "corner_style": "round", "corner_size": 5,
+                                  "hole_diameter": 6, "hole_inset": 17}},
     "machined_block": {"fields": {"width": 100, "depth": 60, "height": 15,
                                     "hole_diameter": 6, "hole_inset": 12,
                                     "pocket_width": 48, "pocket_depth": 30,
@@ -31,6 +34,7 @@ PARTS = {
 
 # These fields are categorical rather than free-text values.
 OPTIONS = {
+    "corner_style": ["round", "chamfer"],
     "head": ["socket", "button", "hex", "pan", "flat", "none"],
     "drive": ["hex", "torx", "none", "slot", "phillips"],
     "shape": ["hex", "square"],
@@ -51,7 +55,7 @@ FIELDS = {
     "neck_outer_diameter": {"min": 0.1}, "top_thickness": {"min": 0.1},
     "thread_depth": {"min": 0.1},
     "pocket_width": {"min": 0.1}, "pocket_depth": {"min": 0.1},
-    "pocket_cut_depth": {"min": 0.1},
+    "pocket_cut_depth": {"min": 0.1}, "corner_size": {"min": 0.1},
 }
 
 
@@ -83,8 +87,11 @@ def validated_spec(value):
     spec = {"type": kind}
     for key, default in permitted.items():
         item = value[key]
-        if type(default) is str and not isinstance(item, str):
-            raise ParameterError(f"{key} must be text")
+        if type(default) is str:
+            if not isinstance(item, str):
+                raise ParameterError(f"{key} must be text")
+            if key in OPTIONS and item not in OPTIONS[key]:
+                raise ParameterError(f"{key} must be one of: {', '.join(OPTIONS[key])}")
         if type(default) in (int, float) and (
             isinstance(item, bool) or not isinstance(item, (int, float))
         ):
