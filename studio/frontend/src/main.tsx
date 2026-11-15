@@ -122,7 +122,7 @@ function App() {
     setReviewApproved(false)
   }
   function changeType(next: PartType) {
-    setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setStl(null); setError(''); setReviewApproved(false)
+    setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setStl(null); setError(''); setReviewApproved(false); setAiNote('')
   }
   function useExample(index: number) {
     setPrompt(PROMPT_EXAMPLES[language][index]); setAiNote(""); setError(""); setCopiedExample(null)
