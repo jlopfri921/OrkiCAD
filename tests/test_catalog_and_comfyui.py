@@ -40,6 +40,28 @@ class CatalogTests(unittest.TestCase):
             fields = details["fields"]
             self.assertEqual([f["key"] for f in fields], list(PARTS[part_type]["fields"]))
 
+    def test_machined_block_scad_extrusion_drills_and_pocket(self):
+        spec = {"type": "machined_block", **PARTS["machined_block"]["fields"]}
+        scad = generate_scad(spec)
+        self.assertIn("cube([100,60,15])", scad)
+        self.assertIn("translate([12,30,-0.1])", scad)
+        self.assertIn("translate([88,30,-0.1])", scad)
+        self.assertIn("translate([26,15,9])", scad)
+        self.assertIn("cube([48,30,6.1])", scad)
+        self.assertEqual(validated_spec(spec)["type"], "machined_block")
+
+    def test_machined_block_rejects_cut_through_base(self):
+        spec = {"type": "machined_block", **PARTS["machined_block"]["fields"]}
+        spec["pocket_cut_depth"] = spec["height"]
+        with self.assertRaisesRegex(ParameterError, "solid floor"):
+            validated_spec(spec)
+
+    def test_machined_block_rejects_colliding_holes_and_pocket(self):
+        spec = {"type": "machined_block", **PARTS["machined_block"]["fields"]}
+        spec["pocket_width"] = 80
+        with self.assertRaisesRegex(ParameterError, "intersect"):
+            validated_spec(spec)
+
     def test_lid_geometry(self):
         scad = generate_scad({"type": "box_lid", **PARTS["box_lid"]["fields"]})
         self.assertIn("union()", scad)
