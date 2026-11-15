@@ -74,7 +74,7 @@ class ComfyNodeTests(unittest.TestCase):
         self.assertEqual(set(self.nodes.NODE_CLASS_MAPPINGS), {
             "OrkiCADPartSpec", "OrkiCADGenerateSCAD",
             "OrkiCADRenderSTL", "OrkiCADInterpretLocal",
-            "OrkiCADReviewSpec",
+            "OrkiCADReviewSpec", "OrkiCADSavedDesign",
         })
 
     def test_part_to_scad(self):
@@ -148,6 +148,43 @@ class ComfyNodeTests(unittest.TestCase):
         self.assertIn('addDOMWidget', content)
         self.assertIn('MM_PER_INCH = 25.4', content)
         self.assertIn("overrides_json", content)
+        self.assertIn("OrkiCADSavedDesign", content)
+
+    def test_saved_design_edits_without_ollama(self):
+        initial = {"type": "box_lid", **PARTS["box_lid"]["fields"]}
+        with patch("orkicad_core.ai_interpreter.interpret",
+                   side_effect=AssertionError("Ollama must not run")):
+            spec, summary = self.nodes.OrkiCADSavedDesign().build(
+                json.dumps(initial), '{"box_width": 110, "box_depth": 75}'
+            )
+        self.assertEqual(json.loads(spec)["box_width"], 110)
+        self.assertEqual(json.loads(spec)["box_depth"], 75)
+        self.assertIn('"box_width": 110', summary)
+
+    def test_saved_design_rejects_unknown_field(self):
+        initial = {"type": "washer", **PARTS["washer"]["fields"]}
+        with self.assertRaisesRegex(ValueError, "Unknown saved design fields"):
+            self.nodes.OrkiCADSavedDesign().build(
+                json.dumps(initial), '{"arbitrary_source":"not allowed"}'
+            )
+
+    def test_saved_design_rejects_invalid_measurements(self):
+        initial = {"type": "washer", **PARTS["washer"]["fields"]}
+        with self.assertRaises(Exception):
+            self.nodes.OrkiCADSavedDesign().build(
+                json.dumps(initial), '{"inner_diameter": 10000}'
+            )
+
+    def test_saved_design_workflow_has_no_ai_dependency(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_saved_design_preview_stl.json"
+        flow = json.loads(path.read_text(encoding="utf-8"))
+        types = {node["id"]: node["type"] for node in flow["nodes"]}
+        self.assertEqual(types, {
+            1: "OrkiCADSavedDesign", 2: "OrkiCADRenderSTL", 3: "Preview3D"
+        })
+        self.assertEqual(flow["links"], [
+            [1, 1, 0, 2, 0, "STRING"], [2, 2, 1, 3, 0, "STRING"]
+        ])
 
     def test_preview_workflow_wiring(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl.json"
