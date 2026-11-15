@@ -6,6 +6,7 @@ import unittest
 from orkicad_core.geometry import ParameterError, generate_scad
 from orkicad_core.parts_catalog import PARTS, catalog_public, validated_spec
 from orkicad_core.ai_interpreter import AIError, validate_prompt_shape
+from orkicad_core.circular_prompt import parse_explicit_circular_plate
 
 
 SPEC = {
@@ -59,6 +60,22 @@ class CircularPlateTests(unittest.TestCase):
             with self.subTest(values=values):
                 with self.assertRaises(ParameterError):
                     validated_spec({**SPEC, **values})
+
+    def test_exact_user_prompt_creates_disk_without_ai_guesswork(self):
+        raw = (
+            "diseña una placa circular y por tanto sin esquinas, no quiero una pieza "
+            "cuadrada, tiene que ser un circulo de 50 mm de radio y con un cinco "
+            "orificios circulares de 3 mm de diametro que formen una matriz "
+            "circular a 20 mm del centro de la circunferencia principal el "
+            "centro de estos orificios. la placa tiene 4 mm de grosor"
+        )
+        self.assertEqual(parse_explicit_circular_plate(raw), SPEC)
+        self.assertNotIn("cube(", generate_scad(parse_explicit_circular_plate(raw)))
+
+    def test_incomplete_prompt_never_invents_drilling_pattern(self):
+        self.assertIsNone(parse_explicit_circular_plate(
+            "Diseña una placa circular de 50 mm de radio y 4 mm de grosor"
+        ))
 
     def test_spanish_intent_refuses_rectangle_from_ai(self):
         self.assertEqual(validate_prompt_shape(SPANISH_PROMPT, SPEC), SPEC)
