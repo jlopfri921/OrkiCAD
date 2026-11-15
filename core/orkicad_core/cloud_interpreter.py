@@ -15,6 +15,13 @@ from .ai_interpreter import AIError, build_cad_instruction, MAX_REQUEST
 from .parts_catalog import validated_spec
 
 PROVIDERS = ("openai", "anthropic", "gemini")
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Do not forward API credentials across redirects."""
+
+    def redirect_request(self, request, fp, code, msg, headers, newurl):
+        return None
 CLOUD_TIMEOUT = 90
 MODEL_PATTERN = re.compile(r"^[a-zA-Z0-9_.:/-]{1,120}$")
 
@@ -58,7 +65,7 @@ def interpret_cloud(prompt: str, *, provider: str, model: str, api_key: str) -> 
         headers={"Content-Type": "application/json", **headers}, method="POST"
     )
     try:
-        with urllib.request.urlopen(request, timeout=CLOUD_TIMEOUT) as response:
+        with urllib.request.build_opener(NoRedirect).open(request, timeout=CLOUD_TIMEOUT) as response:
             raw = response.read(128 * 1024 + 1)
             if len(raw) > 128 * 1024:
                 raise AIError("Cloud provider response exceeds safety limit")
