@@ -1,0 +1,8 @@
+{
+  "type": "mounting_plate",
+  "width": 80,
+  "depth": 50,
+  "thickness": 5,
+  "hole_diameter": 5,
+  "hole_inset": 10
+}
