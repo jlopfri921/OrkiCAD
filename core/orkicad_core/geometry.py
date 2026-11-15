@@ -41,7 +41,33 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
     if kind == "feature_model":
         from .feature_program import generate_feature_scad
         return generate_feature_scad(spec)
-    if kind == "washer":
+    if kind == "circular_plate":
+        radius = _number(spec, "outer_radius")
+        thickness = _number(spec, "thickness")
+        hole_diameter = _number(spec, "hole_diameter")
+        pattern_radius = _number(spec, "bolt_circle_radius")
+        raw_count = spec.get("hole_count")
+        if (isinstance(raw_count, bool) or not isinstance(raw_count, int)
+                or not 1 <= raw_count <= 64):
+            raise ParameterError("hole_count must be an integer from 1 to 64")
+        if pattern_radius + hole_diameter / 2 >= radius:
+            raise ParameterError("All radial holes must fit strictly inside the circular plate")
+        if raw_count > 1 and (2 * pattern_radius *
+                math.sin(math.pi / raw_count) <= hole_diameter):
+            raise ParameterError("Radial holes must not overlap")
+        cutters = "\n".join(
+            f"  translate([{_fmt(pattern_radius * math.cos(2 * math.pi * i / raw_count))},"
+            f"{_fmt(pattern_radius * math.sin(2 * math.pi * i / raw_count))},-0.1]) "
+            f"cylinder(h={_fmt(thickness + .2)},d={_fmt(hole_diameter)},$fn=96);"
+            for i in range(raw_count)
+        )
+        result = (
+            "difference() {\n"
+            f"  cylinder(h={_fmt(thickness)},r={_fmt(radius)},$fn=192);\n"
+            f"{cutters}\n"
+            "}\n"
+        )
+    elif kind == "washer":
         outer = _number(spec, "outer_diameter")
         inner = _number(spec, "inner_diameter")
         height = _number(spec, "thickness")
