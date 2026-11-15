@@ -88,7 +88,9 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
       const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(guideSize, guideSize),
         new THREE.MeshBasicMaterial({
-          color: entry.color, transparent: true, opacity: 0.065,
+          // Only outlines are drawn: translucent filled squares looked
+          // like rectangular material surrounding circular workpieces.
+          color: entry.color, transparent: true, opacity: 0,
           side: THREE.DoubleSide, depthWrite: false,
         }),
       )
