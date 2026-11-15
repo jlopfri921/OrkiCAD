@@ -112,7 +112,8 @@ async fn save_export_file(
     let expected = format!(".{format}");
     if filename.len() > 110
         || filename.len() <= expected.len()
-        || filename.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|'])
+        || filename.chars().any(|character| matches!(character,
+            '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|'))
         || filename.chars().any(|character| character.is_control())
         || !filename.to_ascii_lowercase().ends_with(&expected)
     {
