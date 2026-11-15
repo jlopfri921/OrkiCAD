@@ -65,3 +65,15 @@ Studio Web is **one of three required product interfaces**, alongside Studio Des
 The development HTTP server binds only to 127.0.0.1 and uses a non-secret client header. It is **not suitable for publishing to the Internet**. Hosted web deployment requires a hardened authenticated API, isolation, quotas, rate limiting, access controls, and protected file streaming.
 
 For real desktop packaging, OrkiCAD must distribute a license-reviewed OCCT runtime, not ask a user to install FreeCAD, Python or ComfyUI, and not expose OS-dependent interpreter path fields. See [ADR 0007](adr/0007-three-clients-one-core.md).
+
+## Testing the shared feature viewer and three-format CAD export
+
+After installing the development dependencies, start the localhost Python API and Vite frontend as described above.
+
+1. In Studio Web, choose **Feature model** from the catalog. The numbered feature cards now include an **interactive SVG axonometric schematic**. Select the first or last operation in the schematic; the corresponding card should highlight. Select a different operation card to update the schematic selection.
+2. Modify one cut dimension, generate STL, and confirm the final real mesh in the separate STL viewer. The SVG schematic is intentionally *not* a substitute for actual CSG/mesh geometry.
+3. Use **Export 3MF** and **Export STEP (OCCT)**. The backend automatically checks the current Python, a project-local `.venv-occt`, and prospective bundled runtime locations for native STEP. A source checkout still needs OCP installed, but users should not enter any engine path into Studio.
+4. Run `python scripts/sync_shared_ui.py --check` to ensure the ComfyUI and Studio copies of the exact same framework-neutral feature viewer match `shared/ui/feature_viewport.js`. Use `python scripts/sync_shared_ui.py` after changing the canonical shared source.
+5. Build the React frontend with `cd studio/frontend && npm install && npm run build`, and run `python -m unittest discover -s tests -v` from the installed Python Core environment.
+
+**No Tauri installer is available yet.** The web prototype is local-only, not Internet-ready. The long-term desktop app must use the same React frontend and bundle native OCCT for one-click STEP without any Python/FreeCAD installation.
