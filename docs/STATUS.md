@@ -314,3 +314,15 @@ Added Tauri 2 developer scaffold at `studio/frontend/src-tauri/` and `studio/fro
 **Desktop release gate:** Production bundling is explicitly **disabled** in Tauri config. The compiled app runtime has **not yet been packaged** with OpenSCAD, OCCT, licenses and Python Core. The source development scaffold needs Rust/Node and an existing local OrkiCAD Python venv; it is not a standalone Windows/Linux/macOS installer. A clean release must require **no** system FreeCAD, ComfyUI, externally configured Python, manually entered CAD executable paths, or preinstalled OpenSCAD. Internet-facing Web requires authentication and hardening; the existing localhost Python server is not an Internet service.
 
 **Acceptance not yet claimed:** Tauri Rust compile, React TypeScript build, launching `tauri dev` on maintainer PC, UI visual review, working API bridge and automated worker shutdown, real cross-format desktop imports, source regression suite after this increment, and independent clean installations on Windows, Linux and macOS. Repository commits are not test execution evidence. Details: `docs/STUDIO_DESKTOP.md`.
+
+## Windows Tauri boot and Ollama model-list repair (2026-11-15)
+
+Maintainer Windows `npm run tauri:dev` log showed Vite started at port 5173, but Rust's first compile failed inside `tauri-build` because **`src-tauri/icons/icon.ico` was missing**. While Rust compiled, visiting the Vite browser page resulted in `ECONNREFUSED 127.0.0.1:8765` for `/api/catalog`, `/api/providers` and `/api/ollama/models`: the browser proxy expects a separate web development API, while the Tauri app uses its own private ephemeral worker and IPC. This does not establish that Ollama itself lacks models.
+
+Committed fixes:
+- `studio/frontend/src-tauri/build.rs` now produces a deterministic valid 32×32 development ICO using only the Rust standard library **before** `tauri_build::build()`, so a fresh Windows checkout no longer requires a manually supplied icon. Production will use the approved project branding instead.
+- `studio/frontend/src-tauri/src/lib.rs` bypasses external HTTP proxy settings for private loopback worker requests/health checks.
+- `studio/frontend/src/main.tsx` adds an **Actualizar lista / Refresh list** button to retry Ollama discovery after the backend becomes available, automatically choosing an installed model when a list is returned; clear diagnostics distinguish unavailable CAD/Ollama services from an actually empty model catalog.
+- Source contract checks updated for Windows icon generation and retry availability.
+
+**Not yet accepted:** fresh Windows Tauri build past `tauri-build`, private worker start, live `/api/ollama/models` and actual dropdown population, full desktop model interpretation. The prior log shows an error in Tauri build, not a completed app launch. For Web preview in a browser, `npm run dev` alone is insufficient: start the Python Studio server on 127.0.0.1:8765 as well. For Tauri Desktop, `npm run tauri:dev` must finish Rust build and open the native window; only then does its private worker initialize.
