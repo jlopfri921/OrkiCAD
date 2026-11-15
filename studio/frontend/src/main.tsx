@@ -55,7 +55,7 @@ function App() {
       <label htmlFor="type">Part type</label>
       <select id="type" value={type} onChange={e => changeType(e.target.value as PartType)}>{Object.entries(catalog).map(([id, def]) => <option key={id} value={id}>{def.label}</option>)}</select>
       <h2>Dimensions and parameters</h2>
-      <div className="fields">{Object.entries(params).map(([name, value]) => <div key={name}><label htmlFor={name}>{name.replaceAll('_', ' ')}</label><input id={name} type={typeof value === 'number' ? 'number' : 'text'} step={name === 'teeth' || name === 'diameter' ? '1' : 'any'} value={value} onChange={e => setParams(p => ({ ...p, [name]: typeof value === 'number' ? e.target.value === '' ? 0 : Number(e.target.value) : e.target.value }))} /></div>)}</div>
+      <div className="fields">{Object.entries(params).map(([name, value]) => <div key={name}><label htmlFor={name}>{name.replace(/_/g, ' ')}</label><input id={name} type={typeof value === 'number' ? 'number' : 'text'} step={name === 'teeth' || name === 'diameter' ? '1' : 'any'} value={value} onChange={e => setParams(p => ({ ...p, [name]: typeof value === 'number' ? e.target.value === '' ? 0 : Number(e.target.value) : e.target.value }))} /></div>)}</div>
       <button disabled={working} onClick={generate}>{working ? 'Generating…' : 'Generate SCAD'}</button>
       {error && <p className="error" role="alert">{error}</p>}
       </section><section className="panel output"><h2>Generated CAD</h2><p className="hint">The preview below is OpenSCAD source, not a 3D viewer. A 3D viewport and Tauri desktop shell are future milestones.</p>
