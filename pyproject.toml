@@ -12,8 +12,12 @@ license = {text = "License pending selection; no redistribution grant implied"}
 authors = [{name = "OrkiCAD AI contributors"}]
 dependencies = []
 
+[project.optional-dependencies]
+mesh = ["trimesh>=4,<6", "networkx>=3,<4", "numpy>=1.24,<3"]
+
 [project.scripts]
 orkicad = "orkicad_core.cli:main"
+orkicad-inspect = "orkicad_core.inspect_mesh:main"
 
 [tool.setuptools]
 package-dir = {"" = "core"}
