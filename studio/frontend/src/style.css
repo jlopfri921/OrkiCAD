@@ -48,3 +48,8 @@
 .review-checkbox{display:flex;align-items:center;gap:9px;padding:10px;
   border:1px solid #476a83;border-radius:8px;text-transform:none;font-size:13px}
 .review-checkbox input{width:auto;min-width:18px;height:18px;margin:0}
+
+/* AI provider controls shared by Studio Web and the future desktop shell. */
+.model-picker{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:5px 0 12px}
+.model-picker select,.model-picker input{width:100%;min-width:0}
+.ai-review{border-left:3px solid #e6bc71;padding:9px 11px;background:#273042;color:#fff}
