@@ -45,3 +45,11 @@ The project must extend beyond parameterized screws, nuts and gears to: bidirect
 - Initial Windows unit tests: 4 passed, 1 failed because the test incorrectly treated a valid shallow open box as invalid. The test fixture was corrected and a valid shallow-box regression case was added in commit `57b7e75`.
 - **Pending confirmation:** rerun all 6 unit tests on the Windows machine; test OpenSCAD CLI export to STL and inspect generated geometry.
 - This is not yet an end-to-end CAD/mesh validation or a stable release.
+
+## Mechanical CAD source milestone (2026-11-15)
+
+- Committed a BOSL2-based generator for M3–M12 metric screws and nuts, plus an involute spur gear source generator.
+- Added sample M6 × 30 screw, M6 nut and 24-tooth module-2 gear JSON definitions.
+- Added parameter-validation/unit-test source and a CLI option `--bosl2-dir` for OpenSCAD include paths.
+- [BOSL2 setup and testing instructions](BOSL2_SETUP.md) published.
+- **Not yet verified:** rendering these new components into STL on the maintainer's Windows workstation, dimensional quality, thread mating, and the new test-suite pass rate. No production readiness claimed.
