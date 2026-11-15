@@ -53,3 +53,15 @@ The project must extend beyond parameterized screws, nuts and gears to: bidirect
 - Added parameter-validation/unit-test source and a CLI option `--bosl2-dir` for OpenSCAD include paths.
 - [BOSL2 setup and testing instructions](BOSL2_SETUP.md) published.
 - **Not yet verified:** rendering these new components into STL on the maintainer's Windows workstation, dimensional quality, thread mating, and the new test-suite pass rate. No production readiness claimed.
+
+## Windows integration verification — 2026-11-15
+
+Maintainer-reported results from Windows PowerShell in `F:\orkicad-ai-github`:
+
+- `git pull --ff-only origin main` succeeded.
+- `python -m unittest discover -s tests -v`: **10 tests run, OK**.
+- BOSL2 cloned at `F:\orkicad-deps\BOSL2`.
+- Three SCAD files generated successfully: `screw_M6x30.scad`, `nut_M6.scad`, `gear_24T.scad`.
+- **`screw_M6x30.stl` successfully reported generated** by OpenSCAD CLI via `--bosl2-dir`.
+
+**Still pending:** render/export nut and spur gear STL, independent mesh inspection (manifoldness, nonempty mesh, bounding dimensions), thread assembly clearance and print test. These are maintainer-provided logs, not independent geometric validation or a tagged release.
