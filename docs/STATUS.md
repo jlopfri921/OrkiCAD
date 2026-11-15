@@ -154,3 +154,7 @@ The earlier `npm install` audit reported **two dependency vulnerabilities (one m
 The maintainer installed the OrkiCAD custom nodes in ComfyUI Desktop on Windows and confirmed that all four nodes appear in the node search. The provided parametric box-lid workflow runs and **does create an STL file in the ComfyUI output directory**, despite having no in-UI mesh preview or visibly reported output file at this stage. This is the first maintainer-confirmed ComfyUI-to-OrkiCAD-Core-to-STL workflow result.
 
 **Remaining validation:** independently inspect the produced box-lid STL dimensions, manifoldness, component count and printing fit. The ComfyUI UI currently lacks an embedded 3D preview and an explicit saved-file notification. The optional local AI node has not yet been executed end-to-end. Native application release and official alpha tag remain pending.
+
+## External STL viewer smoke test — maintainer report (2026-11-15)
+
+The maintainer reports that the box-lid STL produced by the OrkiCAD ComfyUI workflow **opens and displays correctly in SolidCraft**, an external 3D viewer. This is an additional visual compatibility check, not yet a quantitative mesh inspection or a verification of printing tolerances/physical fit.
