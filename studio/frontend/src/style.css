@@ -14,3 +14,6 @@
 .header-controls label{margin:0;color:#c5d7e8}
 .header-controls select{width:auto;min-width:126px;padding:8px 11px}
 @media(max-width:620px){header{align-items:flex-start;gap:14px;flex-direction:column}}
+
+.unit-note{margin:12px 0 0;font-size:12px;line-height:1.45}
+.header-controls select{max-width:160px}
