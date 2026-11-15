@@ -4,6 +4,7 @@ import './style.css'
 import STLViewer from './STLViewer'
 import { apiFetch } from './api'
 import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
+import { fieldForSelectedFace, faceAxisLabel, type FaceSelection } from './selection'
 import FeatureOperationsEditor, { type Feature } from './FeatureOperationsEditor'
 import { initialLanguage, messages, type Language } from './i18n'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
@@ -64,6 +65,8 @@ function App() {
   const [saveStem, setSaveStem] = useState('')
   const [saveBusy, setSaveBusy] = useState(false)
   const [saveStatus, setSaveStatus] = useState('')
+  const [selectedFace, setSelectedFace] = useState<FaceSelection | null>(null)
+  const [selectedDimension, setSelectedDimension] = useState<string | null>(null)
   useEffect(() => {
     apiFetch('/api/catalog').then(r => { if (!r.ok) throw Error('Catalog unavailable'); return r.json() })
       .then(body => setCatalogData(body.parts))
@@ -137,14 +140,30 @@ function App() {
       setWorking(false)
     }
   }
+  function selectModelFace(face: FaceSelection | null) {
+    setSelectedFace(face)
+    const field = face ? fieldForSelectedFace(type, face, Object.keys(params)) : null
+    setSelectedDimension(field)
+    if (field) {
+      // Inspector may be in a collapsed layout on narrower screens.
+      requestAnimationFrame(() => {
+        const input = document.getElementById(field)
+        if (input) {
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          input.focus({ preventScroll: true })
+        }
+      })
+    }
+  }
   function updateParameter(name: string, value: ParamValue) {
     setParams(previous => ({ ...previous, [name]: value }))
     setScad('')
     setStl(null)
     setReviewApproved(false)
+    setSelectedFace(null)
   }
   function changeType(next: PartType) {
-    setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setStl(null); setError(''); setReviewApproved(false); setAiNote('')
+    setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setStl(null); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
   }
   function useExample(index: number) {
     setPrompt(PROMPT_EXAMPLES[language][index]); setAiNote(""); setError(""); setCopiedExample(null)
@@ -439,18 +458,30 @@ function App() {
         </div>
         <div className="viewport-frame">
           <div className="viewport-grid" aria-hidden="true"></div>
-          <STLViewer data={stl} emptyMessage={ui.emptyHelp} />
+          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} />
           {!stl && <div className="viewport-empty" aria-hidden="true">
             <div className="viewport-empty-icon">⬡</div>
             <strong>{ui.empty}</strong><p>{ui.emptyHelp}</p>
           </div>}
           <div className="viewport-axis" aria-hidden="true"><span>Z</span><span>Y</span><span>X</span></div>
-          <span className="viewport-caption">{stl ? t.help : ui.waiting}</span>
+          <span className="viewport-caption">{stl
+            ? (language === 'es' ? 'Clic: seleccionar cara · Arrastrar: girar · Rueda: zoom' : 'Click: select face · Drag: orbit · Scroll: zoom')
+            : ui.waiting}</span>
         </div>
         <div className="viewport-foot">
           <div className="current-part">
             <span className="part-icon">⬡</span><div><strong>{t.parts[type]}</strong><small>{ui.scene}</small></div>
           </div>
+          {selectedFace && <div className="face-selection-info" role="status">
+            <strong>◈ {faceAxisLabel(selectedFace, language)}</strong>
+            <span>{selectedDimension
+              ? (language === 'es'
+                ? 'Parámetro asociado: ' : 'Related parameter: ') +
+                (t.fields[selectedDimension as keyof typeof t.fields] ?? selectedDimension)
+              : (language === 'es'
+                ? 'Selección de superficie; todavía sin parámetro vinculado.'
+                : 'Surface selected; no mapped parameter yet.')}</span>
+          </div>}
           <div className="viewport-action-row">
             <button className="action-primary" disabled={exportBlocked} onClick={renderSTL}>◈ {ui.render}</button>
             <button className="secondary" disabled={!stl} onClick={downloadSTL}>↓ STL</button>
@@ -490,7 +521,7 @@ function App() {
           </label>}
           <div className="fields">
             {Object.entries(params).map(([name, value]) =>
-              <div key={name}>
+              <div key={name} className={selectedDimension === name ? 'param-focused' : undefined}>
                 <label htmlFor={name}>{t.fields[name as keyof typeof t.fields] ?? name.replace(/_/g, ' ')}
                   {fieldUnit(type, name, units) ? ' (' + fieldUnit(type, name, units) + ')' : ''}
                 </label>
