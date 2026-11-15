@@ -86,3 +86,7 @@ The official [OrkiCAD AI logo](logo_OrkiCAD-AI.png) is stored in the repository 
 - **Mesh inspector:** basic watertightness, connected-component count, volume and bounding-box checks, with a JSON report; requires the optional Python `mesh` extra. [Mesh validation guide](docs/MESH_VALIDATION.md).
 - **Studio frontend prototype:** React/TypeScript component editor with a localhost Python CAD API. It generates and downloads SCAD source but **does not yet contain a 3D viewer or Tauri/Rust desktop packaging**. [Run Studio prototype](docs/STUDIO_PROTOTYPE.md).
 - Windows validation of the initial STL samples is logged in [project status](docs/STATUS.md); the new inspector and Studio frontend still need local execution testing.
+
+## Languages
+
+OrkiCAD Studio is designed as a multilingual application. The initial React prototype has **Español** and **English** UI translations and a language selector; additional languages are planned. CAD parameter keys remain language-neutral. See [internationalization requirements](docs/I18N.md). This feature still requires validation in the maintainer's local build.
