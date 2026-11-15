@@ -14,6 +14,12 @@ const STRINGS = {
     catalog: "No se pudo cargar el catálogo de piezas.", overrides: "Los cambios se guardan en overrides_json.",
     freeze: "Copiar diseño para editar sin IA", copied: "Diseño copiado. Pégalo en base_spec_json del nodo Saved parametric design.",
     copyFailed: "No se pudo copiar: utiliza el JSON del nodo como alternativa.",
+    features: "Historial de operaciones", addFeature: "+ Añadir operación", removeFeature: "Eliminar",
+    moveUp: "Subir", moveDown: "Bajar", operation: "Operación", primitive: "Sólido",
+    add: "Añadir sólido", cut: "Restar sólido", box: "Caja", cylinder: "Cilindro",
+    position: "Posición", size: "Dimensiones", radius: "Radio", height: "Altura",
+    rawJSON: "JSON avanzado (mm)", maxFeatures: "Máximo: 8 operaciones.",
+    minFeatures: "Se necesita al menos una operación.", invalidJSON: "Introduce un array JSON válido.",
   },
   en: {
     title: "Parametric editor", noProposal: "Run the AI once to receive part parameters.",
@@ -24,6 +30,12 @@ const STRINGS = {
     catalog: "Could not load the parts catalog.", overrides: "Changes are saved to overrides_json.",
     freeze: "Copy design for AI-free edits", copied: "Design copied. Paste into base_spec_json of Saved parametric design.",
     copyFailed: "Unable to copy; use the node JSON as an alternative.",
+    features: "Feature history", addFeature: "+ Add operation", removeFeature: "Remove",
+    moveUp: "Move up", moveDown: "Move down", operation: "Operation", primitive: "Primitive",
+    add: "Add solid", cut: "Subtract solid", box: "Box", cylinder: "Cylinder",
+    position: "Position", size: "Size", radius: "Radius", height: "Height",
+    rawJSON: "Advanced JSON (mm)", maxFeatures: "Maximum: 8 operations.",
+    minFeatures: "At least one operation is required.", invalidJSON: "Enter a valid JSON array.",
   },
 };
 let catalogPromise;
@@ -56,6 +68,186 @@ function element(tag, text, css) {
   if (css) Object.assign(item.style, css);
   return item;
 }
+
+const MAX_FEATURES = 8;
+function featureTemplate(shape = "box", op = "cut") {
+  return shape === "cylinder"
+    ? { op, shape, position: [12, 12, -0.1], radius: 3, height: 12.2 }
+    : { op, shape: "box", position: [10, 10, 3], size: [20, 20, 5] };
+}
+function featureEditor({ node, current, overridesWidget, approvedWidget, t }) {
+  const panel = element("div", undefined, {
+    gridColumn: "1 / -1", display: "grid", gap: "7px", width: "100%",
+    padding: "8px", border: "1px solid #555", borderRadius: "5px",
+    boxSizing: "border-box",
+  });
+  // The operation list is always canonical millimetres. It must not change
+  // when the separate form display-unit selector changes.
+  function commit(operations) {
+    const updated = parseObject(overridesWidget?.value);
+    updated.operations = operations;
+    if (overridesWidget) overridesWidget.value = JSON.stringify(updated);
+    if (approvedWidget) approvedWidget.value = false;
+    app.graph?.setDirtyCanvas(true, true);
+    paint(node);
+  }
+  function makeButton(title, callback, disabled = false) {
+    const button = element("button", title, {
+      padding: "4px 7px", color: "#fff", background: "#383838",
+      border: "1px solid #777", borderRadius: "4px", cursor: "pointer",
+    });
+    button.type = "button";
+    button.disabled = disabled;
+    if (!disabled) button.addEventListener("click", callback);
+    return button;
+  }
+  function select(options, selected, handler, label) {
+    const control = element("select");
+    control.setAttribute("aria-label", label);
+    for (const [value, title] of options) control.append(new Option(title, value));
+    control.value = selected;
+    control.style.cssText = "color:white;background:#292929;border:1px solid #777;padding:4px;max-width:100%;";
+    control.addEventListener("change", () => handler(control.value));
+    return control;
+  }
+  function numberInput(value, label, handler) {
+    const input = element("input");
+    input.type = "number";
+    input.step = "any";
+    input.value = String(value);
+    input.setAttribute("aria-label", label + " (mm)");
+    input.style.cssText = "min-width:0;width:100%;box-sizing:border-box;color:white;background:#292929;border:1px solid #777;padding:4px;";
+    input.addEventListener("change", () => {
+      const next = Number(input.value);
+      if (!input.value.trim() || !Number.isFinite(next) ||
+          Math.abs(next) > 500) {
+        input.setCustomValidity(t.invalid);
+        input.reportValidity();
+        return;
+      }
+      input.setCustomValidity("");
+      handler(next);
+    });
+    return input;
+  }
+  const operations = Array.isArray(current) ? current : [];
+  panel.append(element("div", t.features + " · " + operations.length + "/" + MAX_FEATURES, {
+    fontWeight: "700", marginBottom: "3px",
+  }));
+  operations.forEach((feature, i) => {
+    const block = element("div", undefined, {
+      border: "1px solid #484848", borderRadius: "5px", padding: "7px",
+      background: "#272727", display: "grid", gap: "7px",
+    });
+    const header = element("div", undefined, {
+      display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap",
+    });
+    header.append(element("strong", String(i + 1) + "."));
+    header.append(select(
+      [["add", t.add], ["cut", t.cut]], feature.op,
+      (value) => {
+        const next = structuredClone(operations);
+        next[i].op = value;
+        commit(next);
+      }, t.operation + " " + (i + 1)
+    ));
+    header.append(select(
+      [["box", t.box], ["cylinder", t.cylinder]], feature.shape,
+      (value) => {
+        const next = structuredClone(operations);
+        // Do not retain obsolete keys when changing primitive type.
+        next[i] = { ...featureTemplate(value, next[i].op),
+                    position: next[i].position };
+        commit(next);
+      }, t.primitive + " " + (i + 1)
+    ));
+    header.append(makeButton("↑ " + t.moveUp, () => {
+      const next = structuredClone(operations);
+      [next[i - 1], next[i]] = [next[i], next[i - 1]];
+      commit(next);
+    }, i === 0));
+    header.append(makeButton("↓ " + t.moveDown, () => {
+      const next = structuredClone(operations);
+      [next[i], next[i + 1]] = [next[i + 1], next[i]];
+      commit(next);
+    }, i === operations.length - 1));
+    header.append(makeButton(t.removeFeature, () => {
+      if (operations.length <= 1) return;
+      commit(operations.filter((_, index) => index !== i));
+    }, operations.length <= 1));
+    block.append(header);
+    function tripletField(key, title) {
+      const line = element("div", undefined, {
+        display: "grid", gridTemplateColumns: "85px repeat(3,minmax(0,1fr))",
+        gap: "5px", alignItems: "center",
+      });
+      line.append(element("span", title + " (mm)"));
+      ["X", "Y", "Z"].forEach((axis, axisIndex) => {
+        line.append(numberInput(feature[key]?.[axisIndex] ?? 0,
+          title + " " + axis + " " + (i + 1), (value) => {
+            const next = structuredClone(operations);
+            next[i][key][axisIndex] = value;
+            commit(next);
+          }));
+      });
+      block.append(line);
+    }
+    tripletField("position", t.position);
+    if (feature.shape === "box") {
+      tripletField("size", t.size);
+    } else {
+      const line = element("div", undefined, {
+        display: "grid", gridTemplateColumns: "85px 1fr 85px 1fr",
+        gap: "5px", alignItems: "center",
+      });
+      for (const [key, title] of [["radius", t.radius], ["height", t.height]]) {
+        line.append(element("span", title + " (mm)"));
+        line.append(numberInput(feature[key], title + " " + (i + 1), (value) => {
+          const next = structuredClone(operations);
+          next[i][key] = value;
+          commit(next);
+        }));
+      }
+      block.append(line);
+    }
+    panel.append(block);
+  });
+  panel.append(makeButton(t.addFeature, () => {
+    if (operations.length >= MAX_FEATURES) return;
+    commit([...operations, featureTemplate()]);
+  }, operations.length >= MAX_FEATURES));
+
+  // Keep a raw editor for advanced users. It edits the same state and cannot
+  // bypass server validation. The details element is closed by default.
+  const advanced = element("details");
+  const summary = element("summary", t.rawJSON);
+  summary.style.cursor = "pointer";
+  advanced.append(summary);
+  const raw = element("textarea");
+  raw.rows = 8;
+  raw.value = JSON.stringify(operations, null, 2);
+  raw.style.cssText = "width:100%;box-sizing:border-box;min-height:130px;background:#292929;color:white;border:1px solid #777;padding:6px;font:11px monospace;";
+  raw.setAttribute("aria-label", "operations JSON (mm)");
+  raw.addEventListener("change", () => {
+    let parsed;
+    try {
+      parsed = JSON.parse(raw.value);
+      if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > MAX_FEATURES) {
+        throw new Error("Operation count outside limits");
+      }
+    } catch {
+      raw.setCustomValidity(t.invalidJSON);
+      raw.reportValidity();
+      return;
+    }
+    raw.setCustomValidity("");
+    commit(parsed);
+  });
+  advanced.append(raw);
+  panel.append(advanced);
+  return panel;
+}
+
 function paint(node) {
   const host = node.__orkicadEditor;
   if (!host) return;
@@ -108,34 +300,10 @@ function paint(node) {
     fields.append(element("label", key.replaceAll("_", " ") +
       (isAngle ? " (°)" : isCount ? "" : " (" + units.value + ")")));
     if (desc.editor === "feature_operations") {
-      const editor = element("textarea");
-      editor.rows = 10;
-      editor.value = JSON.stringify(current, null, 2);
-      editor.style.cssText = "width:100%;min-height:200px;box-sizing:border-box;background:#292929;color:white;border:1px solid #666;padding:6px;font:11px monospace;resize:vertical;";
-      editor.setAttribute("aria-label", "operations JSON (mm)");
-      // Operations always use millimetres; changing the display units must not
-      // silently rescale or rewrite a nested feature program.
-      const existingLabel = fields.lastChild;
-      if (existingLabel) existingLabel.textContent = "operations (JSON, mm)";
-      editor.addEventListener("change", () => {
-        let parsed;
-        try {
-          parsed = JSON.parse(editor.value);
-          if (!Array.isArray(parsed)) throw new Error("Expected an array");
-        } catch {
-          editor.setCustomValidity("Invalid operations JSON array");
-          editor.reportValidity();
-          return;
-        }
-        editor.setCustomValidity("");
-        const updated = parseObject(overridesWidget?.value);
-        updated[key] = parsed;
-        if (overridesWidget) overridesWidget.value = JSON.stringify(updated);
-        if (approvedWidget) approvedWidget.value = false;
-        app.graph?.setDirtyCanvas(true, true);
-        paint(node);
-      });
-      fields.append(editor);
+      fields.lastChild.textContent = t.features + " (mm)";
+      fields.append(featureEditor({
+        node, current, overridesWidget, approvedWidget, t,
+      }));
       continue;
     }
     const input = desc.options?.length ? element("select") : element("input");
