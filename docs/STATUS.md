@@ -78,3 +78,9 @@ Maintainer-provided PowerShell output confirms all four prototype STL files were
 | `washer.stl` | 172947 | Present in output directory |
 
 Previous maintainer test run: 10/10 Python unit tests passed. These outputs are **not yet validated** for watertightness, dimensions, normals, manifoldness, printed fit or standards compliance. Next milestone: inspect and report actual mesh topology and bounding boxes with a local geometry validator, then make any needed corrections and document test environment versions.
+
+## Preliminary Trimesh gear inspection (2026-11-15)
+
+Maintainer ran Trimesh 5.2.1 / NumPy 2.2.6 on Windows. The generated `gear_24T.stl` loaded with 2,752 triangles, `is_watertight=True`, volume 13,836.84 mm³, bounding-box extents [51.98, 51.98, 8.00] mm. For an unshifted standard module-2, 24-tooth spur gear, theoretical outside diameter is 52 mm; this matches the observed bounding-box diameter within mesh tessellation.
+
+The inspection script then failed at `mesh.split(only_watertight=False)` with `ImportError: no graph engines available!` because no Trimesh connectivity graph backend was installed. Remaining STL files were **not inspected** by that run; next step: install `networkx` into the OrkiCAD virtual environment and rerun. The current watertight result does not establish full topology, tooth-profile accuracy, printing quality or mating fit.
