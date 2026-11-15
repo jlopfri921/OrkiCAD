@@ -4,11 +4,15 @@ import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { FaceSelection, PrincipalAxis } from './selection'
 
+export type CameraAction = 'fit' | 'center' | 'iso' | 'top' | 'front' | 'right' | 'left' | 'rotate-left' | 'rotate-right' | 'zoom-in' | 'zoom-out'
+export type CameraCommand = { action: CameraAction; sequence: number }
+
 type Props = {
   data: ArrayBuffer | null
   emptyMessage?: string
   onFaceSelect?: (selection: FaceSelection | null) => void
   showReferencePlanes?: boolean
+  cameraCommand?: CameraCommand
 }
 
 function principalAxis(normal: THREE.Vector3): PrincipalAxis | null {
@@ -22,11 +26,15 @@ function principalAxis(normal: THREE.Vector3): PrincipalAxis | null {
  * coplanar triangles as one face when possible. Selection is intentionally
  * not presented as stable OCCT topology/feature identity.
  */
-export default function STLViewer({ data, emptyMessage, onFaceSelect, showReferencePlanes = true }: Props) {
+export default function STLViewer({ data, emptyMessage, onFaceSelect, showReferencePlanes = true, cameraCommand }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const onSelect = useRef(onFaceSelect)
   onSelect.current = onFaceSelect
   const references = useRef<THREE.Group | null>(null)
+  const cameraController = useRef<((action: CameraAction) => void) | null>(null)
+  useEffect(() => {
+    if (cameraCommand) cameraController.current?.(cameraCommand.action)
+  }, [cameraCommand])
   useEffect(() => {
     if (references.current) references.current.visible = showReferencePlanes
   }, [showReferencePlanes])
@@ -116,6 +124,63 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
     controls.enableDamping = true
     controls.target.set(0, 0, 0)
     controls.update()
+    // Camera commands operate on the current live controls, not on a new
+    // viewer instance, so selecting a view does not reset the STL or selection.
+    const centre = new THREE.Vector3(0, 0, 0)
+    const fitDistance = Math.max(radius * 2.7, 2)
+    const setView = (direction: THREE.Vector3) => {
+      const target = controls.target.clone()
+      const distance = Math.max(camera.position.distanceTo(target), radius * 1.8)
+      camera.position.copy(target).addScaledVector(direction.normalize(), distance)
+      camera.up.set(0, 0, 1)
+      controls.update()
+    }
+    cameraController.current = action => {
+      switch (action) {
+        case 'fit':
+          controls.target.copy(centre)
+          camera.position.set(fitDistance * .63, -fitDistance * .77, fitDistance * .54)
+          camera.zoom = 1
+          break
+        case 'center':
+          // Pan back to the mesh centre while retaining viewing direction.
+          camera.position.add(centre.clone().sub(controls.target))
+          controls.target.copy(centre)
+          break
+        case 'iso':
+          setView(new THREE.Vector3(1, -1.3, 1.1))
+          break
+        case 'top':
+          setView(new THREE.Vector3(0, 0, 1))
+          camera.up.set(0, 1, 0)
+          break
+        case 'front':
+          setView(new THREE.Vector3(0, -1, 0))
+          break
+        case 'right':
+          setView(new THREE.Vector3(1, 0, 0))
+          break
+        case 'left':
+          setView(new THREE.Vector3(-1, 0, 0))
+          break
+        case 'rotate-left':
+        case 'rotate-right': {
+          const delta = action === 'rotate-left' ? Math.PI / 12 : -Math.PI / 12
+          const offset = camera.position.clone().sub(controls.target)
+          offset.applyAxisAngle(new THREE.Vector3(0, 0, 1), delta)
+          camera.position.copy(controls.target).add(offset)
+          break
+        }
+        case 'zoom-in':
+          camera.zoom = Math.min(camera.zoom * 1.25, 25)
+          break
+        case 'zoom-out':
+          camera.zoom = Math.max(camera.zoom / 1.25, .05)
+          break
+      }
+      camera.updateProjectionMatrix()
+      controls.update()
+    }
     const raycaster = new THREE.Raycaster()
     const cursor = new THREE.Vector2()
     let down: { x: number; y: number } | null = null
@@ -228,6 +293,7 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
       renderer.domElement.removeEventListener('pointerup', onPointerUp)
       clearHighlight()
       controls.dispose()
+      cameraController.current = null
       references.current = null
       datum.traverse(object => {
         if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
