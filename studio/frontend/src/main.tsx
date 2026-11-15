@@ -253,6 +253,8 @@ function App() {
           {fieldUnit(type, name, units) ? ` (${fieldUnit(type, name, units)})` : ''}
         </label>{name === 'operations' && Array.isArray(value)
           ? <FeatureOperationsEditor operations={value as Feature[]} language={language}
+              width={Number(params.width) || 100} depth={Number(params.depth) || 60}
+              height={Number(params.height) || 12}
               onChange={next => updateParameter(name, next)} />
           : catalogData?.[type]?.fields.find(field => field.key === name)?.options
           ? <select id={name} value={String(value)}
