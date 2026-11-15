@@ -148,3 +148,9 @@ The maintainer also ran `npm run build` in `studio/frontend`: TypeScript compila
 The earlier `npm install` audit reported **two dependency vulnerabilities (one moderate, one high)**. Investigate with `npm audit`; avoid blindly running `npm audit fix --force` without assessing major-version or API changes.
 
 **Still not verified:** loading nodes inside ComfyUI Desktop, importing/running the supplied workflow, rendering the newly added lid/cap via OpenSCAD, working Ollama inference and Studio interaction tests for units/languages. No official alpha release yet.
+
+## ComfyUI Desktop first end-to-end STL output — maintainer confirmation (2026-11-15)
+
+The maintainer installed the OrkiCAD custom nodes in ComfyUI Desktop on Windows and confirmed that all four nodes appear in the node search. The provided parametric box-lid workflow runs and **does create an STL file in the ComfyUI output directory**, despite having no in-UI mesh preview or visibly reported output file at this stage. This is the first maintainer-confirmed ComfyUI-to-OrkiCAD-Core-to-STL workflow result.
+
+**Remaining validation:** independently inspect the produced box-lid STL dimensions, manifoldness, component count and printing fit. The ComfyUI UI currently lacks an embedded 3D preview and an explicit saved-file notification. The optional local AI node has not yet been executed end-to-end. Native application release and official alpha tag remain pending.
