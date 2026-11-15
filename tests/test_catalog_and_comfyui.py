@@ -130,6 +130,25 @@ class ComfyNodeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown override fields"):
             self.nodes.OrkiCADReviewSpec().review(original, '{"malicious": 1}', True)
 
+    def test_ai_node_communicates_proposed_parameters_to_ui(self):
+        proposal = {"type": "washer", **PARTS["washer"]["fields"]}
+        with patch("orkicad_core.ai_interpreter.interpret", return_value=proposal):
+            result = self.nodes.OrkiCADInterpretLocal().interpret(
+                "Make a washer with a 6.5 mm hole", "local-test-model"
+            )
+        self.assertEqual(json.loads(result["result"][0]), proposal)
+        self.assertEqual(json.loads(result["ui"]["proposed_spec"][0]), proposal)
+
+    def test_visual_editor_assets_registered(self):
+        self.assertEqual(self.nodes.WEB_DIRECTORY, "./web")
+        script = REPO / "comfyui" / "orkicad_nodes" / "web" / "parametric_editor.js"
+        content = script.read_text(encoding="utf-8")
+        self.assertIn("app.registerExtension", content)
+        self.assertIn("OrkiCADReviewSpec", content)
+        self.assertIn('addDOMWidget', content)
+        self.assertIn('MM_PER_INCH = 25.4', content)
+        self.assertIn("overrides_json", content)
+
     def test_preview_workflow_wiring(self):
         path = REPO / "comfyui" / "workflows" / "orkicad_ollama_review_preview_stl.json"
         flow = json.loads(path.read_text(encoding="utf-8"))
