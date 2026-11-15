@@ -295,3 +295,18 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .face-quick-row small{font-size:10px;margin-left:4px;font-weight:500;color:#94bac2}
 @media(max-width:760px){.preview-computing,.preview-stale{top:111px;left:10px}}
 @media(prefers-reduced-motion:reduce){.preview-pulse{animation:none}}
+
+/* Unambiguous circular-plate footprint check: not STL geometry. */
+.circular-plan-toggle[aria-pressed="true"]{border-color:#80ddcd;color:#c6ffef;background:#1a4341}
+.circular-plan-overlay{position:absolute;z-index:7;inset:48px 12px 40px;display:flex;
+  align-items:center;justify-content:center;pointer-events:none;overflow:auto}
+.circular-plan{display:flex;align-items:center;justify-content:center;gap:17px;max-width:530px;
+  width:100%;min-height:230px;padding:12px 15px;border-radius:13px;
+  border:1px solid #54788a;background:#0b1723f5;box-shadow:0 16px 50px #0009}
+.circular-plan svg{width:min(53%,250px);max-height:270px;flex:none}
+.circular-plan-facts{display:grid;gap:9px;min-width:0;color:#d6ecf4;font-size:12px}
+.circular-plan-facts strong{font-size:15px}
+.circular-plan-facts span{font-variant-numeric:tabular-nums}
+.circular-plan-facts small{font-size:10px;line-height:1.5;color:#a6b7c5}
+@media(max-width:650px){.circular-plan{flex-direction:column;gap:4px;padding:8px}
+  .circular-plan svg{width:min(65%,185px)}.circular-plan-facts{gap:3px;text-align:center}}
