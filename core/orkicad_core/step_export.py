@@ -24,12 +24,62 @@ class STEPExportError(RuntimeError):
     """Native B-rep export cannot be performed."""
 
 
-def render_step(spec: Mapping[str, Any], *, timeout: int = FREECAD_TIMEOUT) -> bytes:
+def resolve_freecad_cmd(configured_path: str = "") -> str:
+    """Resolve a FreeCAD CLI path without machine-specific hardcoding.
+
+    Priority: workflow setting > ORKICAD_FREECAD_CMD > PATH > common
+    Windows installations. Only FreeCADCmd.exe is accepted on Windows.
+    """
+    if not isinstance(configured_path, str):
+        raise STEPExportError("FreeCAD executable path must be a string")
+    setting = configured_path.strip().strip('"')
+    if setting and setting.lower() != "auto":
+        candidate = Path(os.path.expandvars(setting)).expanduser()
+        if candidate.is_dir():
+            candidate = candidate / "FreeCADCmd.exe"
+        if candidate.name.lower() != "freecadcmd.exe":
+            raise STEPExportError(
+                "Configured FreeCAD executable must be FreeCADCmd.exe, "
+                "not FreeCAD.exe or an arbitrary program"
+            )
+        if not candidate.is_file():
+            raise STEPExportError(
+                f"Configured FreeCADCmd path does not exist: {candidate}. "
+                "Set the correct path in the STEP node or choose Auto."
+            )
+        return str(candidate.resolve())
+    environment_path = os.environ.get("ORKICAD_FREECAD_CMD", "").strip()
+    if environment_path:
+        return resolve_freecad_cmd(environment_path)
+    from_path = shutil.which("FreeCADCmd.exe") or shutil.which("FreeCADCmd")
+    if from_path:
+        return from_path
+    roots = [os.environ.get("ProgramW6432"), os.environ.get("ProgramFiles"),
+             os.environ.get("ProgramFiles(x86)")]
+    for root in dict.fromkeys(value for value in roots if value):
+        location = Path(root)
+        if not location.is_dir():
+            continue
+        for folder in sorted(location.glob("FreeCAD*"), reverse=True):
+            for candidate in (folder / "bin" / "FreeCADCmd.exe",
+                              folder / "FreeCADCmd.exe"):
+                if candidate.is_file():
+                    return str(candidate.resolve())
+    raise STEPExportError(
+        "FreeCADCmd was not found. In the 'Export native STEP' node "
+        "enter the absolute path to FreeCADCmd.exe (or its bin folder) "
+        "in the freecad_path field. Alternatively set ORKICAD_FREECAD_CMD "
+        "for the user and restart ComfyUI."
+    )
+
+
+def render_step(spec: Mapping[str, Any], *, timeout: int = FREECAD_TIMEOUT,
+                freecad_path: str = "Auto") -> bytes:
     """Build and return a STEP file using FreeCADCmd, or raise STEPExportError.
 
     FreeCAD is optional and must be installed independently from ComfyUI.
-    Explicitly configure ORKICAD_FREECAD_CMD to the real FreeCADCmd.exe path
-    if it is not present in PATH.
+    Per-workflow freecad_path is preferred. The environment variable is an
+    optional fallback. Auto detection searches PATH and common Windows installs.
     """
     safe_spec = validated_spec(spec)
     kind = safe_spec["type"]
@@ -38,14 +88,7 @@ def render_step(spec: Mapping[str, Any], *, timeout: int = FREECAD_TIMEOUT) -> b
             f"Native STEP support for '{kind}' is not yet implemented. "
             "Supported: " + ", ".join(sorted(STEP_SUPPORTED_TYPES))
         )
-    executable = os.environ.get("ORKICAD_FREECAD_CMD", "FreeCADCmd")
-    resolved = shutil.which(executable)
-    if not resolved:
-        raise STEPExportError(
-            "FreeCADCmd was not found. Install FreeCAD and configure "
-            "ORKICAD_FREECAD_CMD with the absolute path to FreeCADCmd.exe; "
-            "then restart ComfyUI Desktop."
-        )
+    resolved = resolve_freecad_cmd(freecad_path)
     worker = Path(__file__).with_name("freecad_worker.py")
     if not worker.is_file():
         raise STEPExportError("OrkiCAD FreeCAD worker script is missing")
