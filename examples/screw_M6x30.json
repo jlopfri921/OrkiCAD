@@ -1,0 +1,8 @@
+{
+  "type": "metric_screw",
+  "diameter": 6,
+  "pitch": 1,
+  "length": 30,
+  "head": "socket",
+  "drive": "hex"
+}
