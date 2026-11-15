@@ -43,3 +43,7 @@ docs/             Architecture, decisions, user/developer guides
 ```
 
 Keep interfaces versioned and stable. A backend's unsupported export formats must fail explicitly rather than silently emitting wrong geometry.
+
+## External dependencies and reference models
+
+Maintain a single [catalog of CAD engines, AI models, mesh tools, model licensing and official references](DEPENDENCIES_AND_RESOURCES.md). Provider and CAD engine adapters must declare required versions, installation paths, permitted outputs and test status. Developer-specific paths (e.g. `F:\orkicad-ai`) are not embedded in source code.
