@@ -12,6 +12,7 @@ export const messages = {
     reviewDimensions: 'Revisa todas las medidas: la IA puede haber supuesto valores. No se ha generado ningún STL todavía.',
     dimensions: 'Dimensiones y parámetros',
     generateSCAD: 'Generar SCAD', generateSTL: 'Generar STL y ver en 3D',
+    export3MF: 'Exportar 3MF', exportSTEP: 'Exportar STEP (OCCT)',
     working: 'Procesando…', viewer: 'Visor 3D', downloadSTL: 'Descargar STL',
     emptyViewer: 'Genera un STL para visualizar la pieza en 3D.',
     code: 'Código OpenSCAD', downloadSCAD: 'Descargar SCAD',
@@ -30,7 +31,8 @@ export const messages = {
     parts: {
       washer: 'Arandela', mounting_plate: 'Placa de montaje', open_box: 'Caja abierta',
       metric_screw: 'Tornillo métrico', metric_nut: 'Tuerca métrica', spur_gear: 'Engranaje recto',
-      box_lid: 'Tapadera de caja', bottle_cap: 'Tapón de botella'
+      box_lid: 'Tapadera de caja', bottle_cap: 'Tapón de botella',
+      corner_plate: 'Placa con esquinas', machined_block: 'Bloque mecanizado', feature_model: 'Modelo por operaciones'
     },
     fields: {
       outer_diameter: 'Diámetro exterior', inner_diameter: 'Diámetro interior',
@@ -44,7 +46,10 @@ export const messages = {
       box_wall: 'Grosor de pared de caja', overhang: 'Vuelo de la tapa',
       plug_depth: 'Profundidad del encaje', clearance: 'Holgura',
       neck_outer_diameter: 'Diámetro exterior del cuello',
-      top_thickness: 'Espesor de tapa superior', thread_depth: 'Profundidad de rosca'
+      top_thickness: 'Espesor de tapa superior', thread_depth: 'Profundidad de rosca',
+      corner_style: 'Acabado de esquina', corner_size: 'Tamaño de esquina',
+      pocket_width: 'Anchura del vaciado', pocket_depth: 'Fondo del vaciado',
+      pocket_cut_depth: 'Profundidad del vaciado', operations: 'Operaciones CAD'
     }
   },
   en: {
@@ -59,6 +64,7 @@ export const messages = {
     reviewDimensions: 'Review every dimension: AI may have assumed values. No STL has been generated yet.',
     dimensions: 'Dimensions and parameters',
     generateSCAD: 'Generate SCAD', generateSTL: 'Generate STL and view in 3D',
+    export3MF: 'Export 3MF', exportSTEP: 'Export STEP (OCCT)',
     working: 'Working…', viewer: '3D viewer', downloadSTL: 'Download STL',
     emptyViewer: 'Generate an STL to view the part in 3D.',
     code: 'OpenSCAD code', downloadSCAD: 'Download SCAD',
@@ -77,7 +83,8 @@ export const messages = {
     parts: {
       washer: 'Washer', mounting_plate: 'Mounting plate', open_box: 'Open box',
       metric_screw: 'Metric screw', metric_nut: 'Metric nut', spur_gear: 'Spur gear',
-      box_lid: 'Box lid', bottle_cap: 'Bottle cap'
+      box_lid: 'Box lid', bottle_cap: 'Bottle cap',
+      corner_plate: 'Corner plate', machined_block: 'Machined block', feature_model: 'Feature model'
     },
     fields: {
       outer_diameter: 'Outer diameter', inner_diameter: 'Inner diameter',
@@ -91,7 +98,10 @@ export const messages = {
       box_wall: 'Box wall', overhang: 'Lid overhang',
       plug_depth: 'Insert depth', clearance: 'Clearance',
       neck_outer_diameter: 'Neck outer diameter',
-      top_thickness: 'Top thickness', thread_depth: 'Thread depth'
+      top_thickness: 'Top thickness', thread_depth: 'Thread depth',
+      corner_style: 'Corner style', corner_size: 'Corner size',
+      pocket_width: 'Pocket width', pocket_depth: 'Pocket depth',
+      pocket_cut_depth: 'Pocket cut depth', operations: 'CAD operations'
     }
   }
 } as const
