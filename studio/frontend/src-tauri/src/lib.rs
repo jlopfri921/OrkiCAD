@@ -98,6 +98,54 @@ fn studio_request(
     })
 }
 
+/// Explicitly initiated by a user-confirmed export. Never accept arbitrary
+/// filesystem paths or file formats from the webview.
+#[tauri::command]
+async fn save_export_file(
+    filename: String,
+    format: String,
+    data_base64: String,
+) -> Result<Option<String>, String> {
+    if !matches!(format.as_str(), "stl" | "3mf" | "step" | "scad") {
+        return Err("Unsupported export format".into());
+    }
+    let expected = format!(".{format}");
+    if filename.len() > 110
+        || filename.len() <= expected.len()
+        || filename.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|'])
+        || filename.chars().any(|character| character.is_control())
+        || !filename.to_ascii_lowercase().ends_with(&expected)
+    {
+        return Err("Invalid export filename".into());
+    }
+    // A binary payload is provided by OrkiCAD's validated CAD worker.
+    if data_base64.len() > 75 * 1024 * 1024 {
+        return Err("Export exceeds application size limit".into());
+    }
+    let bytes = STANDARD.decode(data_base64.as_bytes())
+        .map_err(|_| "Invalid export contents".to_string())?;
+    if bytes.is_empty() || bytes.len() > 55 * 1024 * 1024 {
+        return Err("Invalid export size".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let choice = rfd::FileDialog::new()
+            .set_title("Guardar modelo CAD · OrkiCAD Studio")
+            .set_file_name(&filename)
+            .add_filter(format.to_uppercase(), &[format.as_str()])
+            .save_file();
+        let Some(path) = choice else { return Ok(None); };
+        // Maintain the selected CAD format even if the OS dialog permits
+        // editing the extension. The native dialog handles overwrite prompts.
+        let mut destination = path;
+        destination.set_extension(&format);
+        std::fs::write(&destination, bytes)
+            .map_err(|error| format!("No se pudo guardar el archivo: {error}"))?;
+        Ok(Some(destination.to_string_lossy().into_owned()))
+    })
+    .await
+    .map_err(|_| "Native Save As dialog failed".to_string())?
+}
+
 fn locate_worker(app: &tauri::App) -> Result<(PathBuf, Vec<String>, Option<PathBuf>), String> {
     // A packaged application must contain its own self-sufficient CAD worker.
     if let Ok(resources) = app.path().resource_dir() {
@@ -211,7 +259,7 @@ pub fn run() {
             app.manage(worker);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![studio_request])
+        .invoke_handler(tauri::generate_handler![studio_request, save_export_file])
         .run(tauri::generate_context!())
         .expect("OrkiCAD Studio desktop launcher failed");
 }
