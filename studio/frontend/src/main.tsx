@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer from './STLViewer'
+import { apiFetch } from './api'
 import FeatureOperationsEditor, { type Feature } from './FeatureOperationsEditor'
 import { initialLanguage, messages, type Language } from './i18n'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
@@ -59,17 +60,17 @@ function App() {
   const [reviewApproved, setReviewApproved] = useState(false)
   const [copiedExample, setCopiedExample] = useState<number | null>(null)
   useEffect(() => {
-    fetch('/api/catalog').then(r => { if (!r.ok) throw Error('Catalog unavailable'); return r.json() })
+    apiFetch('/api/catalog').then(r => { if (!r.ok) throw Error('Catalog unavailable'); return r.json() })
       .then(body => setCatalogData(body.parts))
       .catch(() => setCatalogData(null))
-    fetch('/api/providers').then(r => r.json()).then(body => {
+    apiFetch('/api/providers').then(r => r.json()).then(body => {
       const selected = body.providers?.[0]
       if (selected) {
         setAiModel(selected.model || '')
         setProviderInfo(selected.endpoint || '')
       }
     }).catch(() => {})
-    fetch('/api/ollama/models').then(async response => {
+    apiFetch('/api/ollama/models').then(async response => {
       const body = await response.json()
       if (!response.ok) throw Error(body.error || 'Ollama unavailable')
       setOllamaModels(Array.isArray(body.models) ? body.models.filter((x: unknown) => typeof x === 'string') : [])
@@ -85,7 +86,7 @@ function App() {
   async function interpretPrompt() {
     setWorking(true); setError(''); setAiNote('')
     try {
-      const response = await fetch('/api/interpret', {
+      const response = await apiFetch('/api/interpret', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
         body: JSON.stringify({ prompt, model: aiModel || undefined, provider: aiProvider, ...(aiProvider === 'ollama' ? {} : { api_key: apiKey }) })
@@ -142,7 +143,7 @@ function App() {
     if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
     setWorking(true); setError('')
     try {
-      const response = await fetch('/api/scad', {
+      const response = await apiFetch('/api/scad', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
         body: JSON.stringify({ type, ...params })
       })
@@ -181,7 +182,7 @@ function App() {
     if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
     setWorking(true); setError(''); setStl(null)
     try {
-      const response = await fetch('/api/stl', {
+      const response = await apiFetch('/api/stl', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
         body: JSON.stringify({ type, ...params })
@@ -212,7 +213,7 @@ function App() {
     if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
     setWorking(true); setError("")
     try {
-      const response = await fetch("/api/" + format, {
+      const response = await apiFetch("/api/" + format, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-OrkiCAD-Client": "studio" },
         body: JSON.stringify({ type, ...params }),
