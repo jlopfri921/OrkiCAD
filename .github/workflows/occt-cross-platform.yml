@@ -4,9 +4,12 @@ on:
   push:
     paths:
       - "core/orkicad_core/occt*.py"
+      - "core/orkicad_core/feature_program.py"
+      - "core/orkicad_core/geometry.py"
       - "core/orkicad_core/step_export.py"
       - "core/orkicad_core/parts_catalog.py"
       - "tests/test_occt_integration.py"
+      - "tests/test_feature_program.py"
       - ".github/workflows/occt-cross-platform.yml"
   pull_request:
   workflow_dispatch:
@@ -31,6 +34,8 @@ jobs:
           python -m pip install -e . "cadquery-ocp>=7.9,<9"
       - name: Verify actual OCP availability
         run: python -c "import OCP; print('OCP loaded')"
+      - name: Run feature grammar safety tests
+        run: python -m unittest discover -s tests -p test_feature_program.py -v
       - name: Run native STEP round-trip tests
         run: python -m unittest discover -s tests -p test_occt_integration.py -v
       - name: Run core and workflow regression tests
