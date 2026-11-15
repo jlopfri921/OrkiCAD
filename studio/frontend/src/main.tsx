@@ -70,12 +70,28 @@ function App() {
         setProviderInfo(selected.endpoint || '')
       }
     }).catch(() => {})
-    apiFetch('/api/ollama/models').then(async response => {
+    refreshOllamaModels()
+  }, [])
+  async function refreshOllamaModels() {
+    setModelsError('')
+    try {
+      const response = await apiFetch('/api/ollama/models')
       const body = await response.json()
       if (!response.ok) throw Error(body.error || 'Ollama unavailable')
-      setOllamaModels(Array.isArray(body.models) ? body.models.filter((x: unknown) => typeof x === 'string') : [])
-    }).catch(err => setModelsError(String(err)))
-  }, [])
+      const names: string[] = Array.isArray(body.models)
+        ? body.models.filter((name: unknown): name is string => typeof name === 'string')
+        : []
+      setOllamaModels(names)
+      if (names.length) setAiModel(old => old && names.includes(old) ? old : names[0])
+      else setModelsError(language === 'es'
+        ? 'No se han encontrado modelos instalados en el servidor Ollama activo.'
+        : 'No installed models were found on the active Ollama server.')
+    } catch {
+      setModelsError(language === 'es'
+        ? 'El servidor CAD u Ollama no responde. Comprueba que se han iniciado y pulsa Actualizar.'
+        : 'CAD server or Ollama is unavailable. Start the services and click Refresh.')
+    }
+  }
   const activeCatalog = catalogData
     ? Object.fromEntries(Object.entries(catalogData).map(([id, desc]) => [
         id, { label: id, params: Object.fromEntries(
@@ -351,6 +367,10 @@ function App() {
                 <option value="">{t.chooseModel}</option>
                 {ollamaModels.map(model => <option key={model} value={model}>{model}</option>)}
               </select>
+              <button type="button" className="secondary" onClick={refreshOllamaModels}
+                aria-label={language === 'es' ? 'Actualizar modelos Ollama' : 'Refresh Ollama models'}>
+                ↻ {language === 'es' ? 'Actualizar lista' : 'Refresh list'}
+              </button>
               <input id="ai-model" type="text" value={aiModel}
                 placeholder={t.modelIdPlaceholder} aria-label={t.manualModel}
                 onChange={e => setAiModel(e.target.value)} />
