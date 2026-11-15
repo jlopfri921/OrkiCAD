@@ -32,6 +32,7 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
   onSelect.current = onFaceSelect
   const references = useRef<THREE.Group | null>(null)
   const cameraController = useRef<((action: CameraAction) => void) | null>(null)
+  const lastCamera = useRef<{ direction: [number, number, number]; distanceRatio: number; target: [number, number, number]; zoom: number } | null>(null)
   useEffect(() => {
     if (cameraCommand) cameraController.current?.(cameraCommand.action)
   }, [cameraCommand])
@@ -123,6 +124,17 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.target.set(0, 0, 0)
+    // A new generated STL should not disorient the user or discard zoom.
+    // Restore the orbit direction and scale relative to the new model size.
+    const previousCamera = lastCamera.current
+    if (previousCamera) {
+      const direction = new THREE.Vector3(...previousCamera.direction)
+      const distance = Math.max(radius * previousCamera.distanceRatio, radius * 1.1)
+      controls.target.set(...previousCamera.target)
+      camera.position.copy(controls.target).addScaledVector(direction, distance)
+      camera.zoom = previousCamera.zoom
+      camera.updateProjectionMatrix()
+    }
     controls.update()
     // Camera commands operate on the current live controls, not on a new
     // viewer instance, so selecting a view does not reset the STL or selection.
@@ -292,6 +304,13 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
       renderer.domElement.removeEventListener('pointerdown', onPointerDown)
       renderer.domElement.removeEventListener('pointerup', onPointerUp)
       clearHighlight()
+      const cameraOffset = camera.position.clone().sub(controls.target)
+      lastCamera.current = {
+        direction: cameraOffset.clone().normalize().toArray() as [number, number, number],
+        distanceRatio: cameraOffset.length() / radius,
+        target: controls.target.toArray() as [number, number, number],
+        zoom: camera.zoom,
+      }
       controls.dispose()
       cameraController.current = null
       references.current = null
