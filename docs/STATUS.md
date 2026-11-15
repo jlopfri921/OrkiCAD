@@ -169,3 +169,7 @@ The maintainer reports that the box-lid STL produced by the OrkiCAD ComfyUI work
 ## Ollama AI node timeout diagnostic / fix (2026-11-15)
 
 The maintainer's ComfyUI `OrkiCADInterpretLocal` run failed with `AIError: Local Ollama unavailable: timed out`. This is an AI-provider response timeout (previously fixed at 75 seconds), **not evidence of an OpenSCAD/STL failure**. An unverified source patch increases the default request deadline to 180 seconds (configurable via `ORKICAD_OLLAMA_TIMEOUT`, range 5–600) and gives targeted timeout, HTTP and connection messages. Offline tests were added for timeout and configuration validation. Check actual `ollama list`, `ollama ps`, loopback service status and local model warm-up before re-running the workflow. **The end-to-end AI workflow has not yet passed.**
+
+## Local Ollama → ComfyUI workflow maintainer retest (2026-11-15)
+
+After the Ollama timeout handling update, the maintainer reports **"ya funciona"** (now works) for the previously failing ComfyUI local-AI workflow. This is a user-reported end-to-end runtime success following the timeout fix. Exact model, output STL path, dimensions, mesh quality, and whether each stage was individually inspected were not supplied; these remain open verification tasks. The native ComfyUI preview, parameter-review gate, and first official alpha release remain pending.
