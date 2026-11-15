@@ -5,6 +5,11 @@ export const messages = {
     title: 'Estudio CAD paramétrico',
     intro: 'Configura piezas y genera modelos OpenSCAD y STL con el núcleo Python de OrkiCAD.',
     component: 'Componente', partType: 'Tipo de pieza',
+    aiTitle: 'Diseño asistido por IA', aiDescription: 'Describe una pieza y sus medidas. Ollama propondrá un formulario paramétrico editable. No se ejecutará código generado por IA.',
+    aiPromptLabel: 'Descripción de la pieza', aiPlaceholder: 'Ejemplo: tapa para una caja de 80 × 50 mm, pared de 2 mm, con holgura de 0,3 mm',
+    aiModel: 'Modelo Ollama', aiLocalOnly: 'Conexión local',
+    aiInterpret: 'Proponer pieza y parámetros',
+    reviewDimensions: 'Revisa todas las medidas: la IA puede haber supuesto valores. No se ha generado ningún STL todavía.',
     dimensions: 'Dimensiones y parámetros',
     generateSCAD: 'Generar SCAD', generateSTL: 'Generar STL y ver en 3D',
     working: 'Procesando…', viewer: 'Visor 3D', downloadSTL: 'Descargar STL',
@@ -24,7 +29,8 @@ export const messages = {
     emptySTL: 'El archivo STL está vacío o incompleto.',
     parts: {
       washer: 'Arandela', mounting_plate: 'Placa de montaje', open_box: 'Caja abierta',
-      metric_screw: 'Tornillo métrico', metric_nut: 'Tuerca métrica', spur_gear: 'Engranaje recto'
+      metric_screw: 'Tornillo métrico', metric_nut: 'Tuerca métrica', spur_gear: 'Engranaje recto',
+      box_lid: 'Tapadera de caja', bottle_cap: 'Tapón de botella'
     },
     fields: {
       outer_diameter: 'Diámetro exterior', inner_diameter: 'Diámetro interior',
@@ -33,7 +39,12 @@ export const messages = {
       height: 'Altura', wall: 'Grosor de pared', diameter: 'Diámetro',
       pitch: 'Paso de rosca', length: 'Longitud', head: 'Cabeza', drive: 'Accionamiento',
       shape: 'Forma', module: 'Módulo', teeth: 'Dientes',
-      shaft_diameter: 'Diámetro del eje', pressure_angle: 'Ángulo de presión'
+      shaft_diameter: 'Diámetro del eje', pressure_angle: 'Ángulo de presión',
+      box_width: 'Ancho exterior de caja', box_depth: 'Fondo exterior de caja',
+      box_wall: 'Grosor de pared de caja', overhang: 'Vuelo de la tapa',
+      plug_depth: 'Profundidad del encaje', clearance: 'Holgura',
+      neck_outer_diameter: 'Diámetro exterior del cuello',
+      top_thickness: 'Espesor de tapa superior', thread_depth: 'Profundidad de rosca'
     }
   },
   en: {
@@ -41,6 +52,11 @@ export const messages = {
     title: 'Parametric CAD Studio',
     intro: 'Configure parts and generate OpenSCAD and STL models using the OrkiCAD Python core.',
     component: 'Component', partType: 'Part type',
+    aiTitle: 'AI-assisted design', aiDescription: 'Describe a part and its dimensions. Local Ollama proposes an editable parameter form. No AI-generated code is executed.',
+    aiPromptLabel: 'Part description', aiPlaceholder: 'Example: lid for an 80 × 50 mm box with 2 mm walls and 0.3 mm clearance',
+    aiModel: 'Ollama model', aiLocalOnly: 'Local connection',
+    aiInterpret: 'Suggest part and parameters',
+    reviewDimensions: 'Review every dimension: AI may have assumed values. No STL has been generated yet.',
     dimensions: 'Dimensions and parameters',
     generateSCAD: 'Generate SCAD', generateSTL: 'Generate STL and view in 3D',
     working: 'Working…', viewer: '3D viewer', downloadSTL: 'Download STL',
@@ -60,7 +76,8 @@ export const messages = {
     emptySTL: 'The STL file is empty or incomplete.',
     parts: {
       washer: 'Washer', mounting_plate: 'Mounting plate', open_box: 'Open box',
-      metric_screw: 'Metric screw', metric_nut: 'Metric nut', spur_gear: 'Spur gear'
+      metric_screw: 'Metric screw', metric_nut: 'Metric nut', spur_gear: 'Spur gear',
+      box_lid: 'Box lid', bottle_cap: 'Bottle cap'
     },
     fields: {
       outer_diameter: 'Outer diameter', inner_diameter: 'Inner diameter',
@@ -69,7 +86,12 @@ export const messages = {
       height: 'Height', wall: 'Wall thickness', diameter: 'Diameter',
       pitch: 'Thread pitch', length: 'Length', head: 'Head', drive: 'Drive',
       shape: 'Shape', module: 'Module', teeth: 'Teeth',
-      shaft_diameter: 'Shaft diameter', pressure_angle: 'Pressure angle'
+      shaft_diameter: 'Shaft diameter', pressure_angle: 'Pressure angle',
+      box_width: 'Box outer width', box_depth: 'Box outer depth',
+      box_wall: 'Box wall', overhang: 'Lid overhang',
+      plug_depth: 'Insert depth', clearance: 'Clearance',
+      neck_outer_diameter: 'Neck outer diameter',
+      top_thickness: 'Top thickness', thread_depth: 'Thread depth'
     }
   }
 } as const
