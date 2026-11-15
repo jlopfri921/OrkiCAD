@@ -155,6 +155,7 @@ function App() {
       setStl(null)
       setSelectedFace(null)
       setSelectedDimension(null)
+      if (nextType === 'circular_plate') setShowReferencePlanes(false)
       setType(nextType); setParams(next); setScad(''); setPreviewReady(false)
       setReviewApproved(false)
       setAiNote(t.reviewDimensions)
@@ -198,6 +199,7 @@ function App() {
     // Changing part family changes topology: the last mesh must be cleared.
     // Keeping it visible made users mistake an old square for their new disk.
     setStl(null)
+    if (next === 'circular_plate') setShowReferencePlanes(false)
     setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setPreviewReady(false); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
   }
   function useExample(index: number) {
