@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
+import CircularPlatePlan from './CircularPlatePlan'
 import { apiFetch } from './api'
 import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
 import { fieldForSelectedFace, faceAxisLabel, type FaceSelection } from './selection'
@@ -69,6 +70,7 @@ function App() {
   const [selectedFace, setSelectedFace] = useState<FaceSelection | null>(null)
   const [selectedDimension, setSelectedDimension] = useState<string | null>(null)
   const [showReferencePlanes, setShowReferencePlanes] = useState(true)
+  const [showCircularPlan, setShowCircularPlan] = useState(false)
   const [cameraCommand, setCameraCommand] = useState<CameraCommand | undefined>()
   const [expandedInspector, setExpandedInspector] = useState<'size' | 'details' | 'operations' | null>('size')
   const [livePreview, setLivePreview] = useState(true)
@@ -156,6 +158,7 @@ function App() {
       setSelectedFace(null)
       setSelectedDimension(null)
       if (nextType === 'circular_plate') setShowReferencePlanes(false)
+      setShowCircularPlan(nextType === 'circular_plate')
       setType(nextType); setParams(next); setScad(''); setPreviewReady(false)
       setReviewApproved(false)
       setAiNote(t.reviewDimensions)
@@ -200,6 +203,7 @@ function App() {
     // Keeping it visible made users mistake an old square for their new disk.
     setStl(null)
     if (next === 'circular_plate') setShowReferencePlanes(false)
+    setShowCircularPlan(next === 'circular_plate')
     setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setPreviewReady(false); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
   }
   function useExample(index: number) {
@@ -528,6 +532,11 @@ function App() {
         <div className="viewport-heading">
           <div><div className="section-overline">02 / MODEL</div><h2>{ui.viewport}</h2></div>
           <div className="viewport-badges">
+            {type === 'circular_plate' && <button type="button"
+              className="secondary circular-plan-toggle" aria-pressed={showCircularPlan}
+              onClick={() => setShowCircularPlan(old => !old)}>
+              {language === 'es' ? '⊙ Planta acotada' : '⊙ Dimensioned top view'}
+            </button>}
             <label className="reference-toggle live-preview-toggle">
               <input type="checkbox" checked={livePreview}
                 onChange={event => setLivePreview(event.target.checked)} />
@@ -556,6 +565,13 @@ function App() {
                 : previewPhase === 'error' ? 'Last valid view · check dimensions' : 'Previous view · click Update'}
             </div>}
           <div className="viewport-grid" aria-hidden="true"></div>
+          {type === 'circular_plate' && showCircularPlan && <div className="circular-plan-overlay">
+            <CircularPlatePlan outerRadius={Number(params.outer_radius)}
+              pitchRadius={Number(params.bolt_circle_radius)}
+              holeCount={Number(params.hole_count)}
+              holeDiameter={Number(params.hole_diameter)}
+              language={language} />
+          </div>}
           <div className="cad-camera-toolbar" role="toolbar" aria-label={language === 'es' ? 'Navegación de la cámara CAD' : 'CAD camera navigation'}>
             <div className="camera-toolbar-group">
               <button title={language === 'es' ? 'Ajustar toda la pieza' : 'Fit model'} aria-label={language === 'es' ? 'Ajustar pieza' : 'Fit model'} disabled={!stl} onClick={() => moveCamera('fit')}>⛶</button>
