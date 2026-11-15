@@ -48,7 +48,7 @@ def resolve_occt_python(configured_path: str = "Auto") -> str:
         candidate = executable(Path(os.path.expandvars(option)).expanduser())
         found = check(candidate)
         if not found:
-            raise OCCTExportError(f"Invalid OCCT runtime: {candidate}")
+            raise OCCTExportError(f"Invalid OCCT Python runtime: {candidate}")
         return found
 
     configured = os.environ.get("ORKICAD_OCCT_PYTHON", "").strip().strip('"')
