@@ -15,6 +15,7 @@ on:
       - "tests/test_studio_desktop_auth.py"
       - "tests/test_studio_workspace_contract.py"
       - "tests/test_save_dialog_contract.py"
+      - "tests/test_face_selection_contract.py"
       - "shared/ui/**"
       - "comfyui/orkicad_nodes/web/feature_viewport.js"
       - "scripts/sync_shared_ui.py"
@@ -75,6 +76,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_studio_workspace_contract.py -v
       - name: Check CAD Save As confirmation contract
         run: python -m unittest discover -s tests -p test_save_dialog_contract.py -v
+      - name: Check direct 3D selection to inspector contract
+        run: python -m unittest discover -s tests -p test_face_selection_contract.py -v
       - name: Test local and cloud provider JSON contracts
         run: python -m unittest discover -s tests -p test_cloud_interpreter.py -v
       - name: Check identical shared viewport sources
