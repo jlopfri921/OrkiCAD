@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "OrkiCAD Studio",
+  "version": "0.0.1",
+  "identifier": "org.orkicad.studio",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:5173",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "OrkiCAD Studio",
+        "width": 1520,
+        "height": 970,
+        "minWidth": 980,
+        "minHeight": 670,
+        "backgroundColor": "#090f19",
+        "label": "main"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost; worker-src 'self' blob:;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "shortDescription": "OrkiCAD AI parametric CAD Studio"
+  }
+}
