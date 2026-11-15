@@ -101,8 +101,8 @@ class OrkiCADRenderSTL:
             "file_stem": ("STRING", {"default": "part"}),
         }}
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("stl_path",)
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("stl_path", "preview_path")
     FUNCTION = "render"
     OUTPUT_NODE = True
     CATEGORY = "OrkiCAD/Parametric"
@@ -117,7 +117,9 @@ class OrkiCADRenderSTL:
         import uuid
         destination = _output_dir() / f"{file_stem}_{uuid.uuid4().hex[:10]}.stl"
         destination.write_bytes(binary)
-        return (str(destination),)
+        # Relative to ComfyUI output, so its native Preview3D can resolve the mesh.
+        preview_path = f"orkicad/{destination.name}"
+        return (str(destination), preview_path)
 
 
 class OrkiCADInterpretLocal:
