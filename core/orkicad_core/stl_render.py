@@ -14,6 +14,7 @@ from typing import Any, Mapping
 from .geometry import ParameterError, generate_scad
 
 MAX_STL_BYTES = 25 * 1024 * 1024
+MESH_EXPORT_FORMATS = frozenset({"stl", "3mf", "obj", "off", "amf"})
 MECHANICAL = frozenset({"metric_screw", "metric_nut", "spur_gear"})
 
 
@@ -21,8 +22,14 @@ class RenderError(RuntimeError):
     """OpenSCAD could not export the requested mesh."""
 
 
-def render_stl(spec: Mapping[str, Any], *, timeout: int = 120) -> bytes:
-    """Return STL bytes or raise an actionable error. No user source is executed."""
+def render_mesh(spec: Mapping[str, Any], *, format: str = "stl", timeout: int = 120) -> bytes:
+    """Return OpenSCAD mesh bytes for a validated, allowlisted format.
+
+    STEP/IGES/BREP are explicitly excluded: mesh conversion does not recreate
+    mathematically precise CAD surfaces.
+    """
+    if format not in MESH_EXPORT_FORMATS:
+        raise RenderError("Unsupported mesh export format. Use stl, 3mf, obj, off or amf.")
     source = generate_scad(spec)
     executable = os.environ.get("ORKICAD_OPENSCAD", "openscad")
     openscad = shutil.which(executable)
@@ -49,7 +56,7 @@ def render_stl(spec: Mapping[str, Any], *, timeout: int = 120) -> bytes:
 
     with tempfile.TemporaryDirectory(prefix="orkicad_studio_") as temp:
         input_path = Path(temp) / "source.scad"
-        output_path = Path(temp) / "result.stl"
+        output_path = Path(temp) / f"result.{format}"
         input_path.write_text(source, encoding="utf-8")
         try:
             finished = subprocess.run(
@@ -78,7 +85,12 @@ def render_stl(spec: Mapping[str, Any], *, timeout: int = 120) -> bytes:
                 "OpenSCAD no pudo generar la geometría: " + log.strip()[-1000:]
             )
         if not output_path.is_file() or output_path.stat().st_size == 0:
-            raise RenderError("OpenSCAD no ha generado un STL válido.")
+            raise RenderError(f"OpenSCAD no ha generado un archivo {format.upper()} válido.")
         if output_path.stat().st_size > MAX_STL_BYTES:
-            raise RenderError("STL demasiado grande para el visor del prototipo (25 MiB).")
+            raise RenderError(f"Archivo {format.upper()} demasiado grande para este prototipo (25 MiB).")
         return output_path.read_bytes()
+
+
+def render_stl(spec: Mapping[str, Any], *, timeout: int = 120) -> bytes:
+    """Backward-compatible STL entry point shared by Studio and ComfyUI."""
+    return render_mesh(spec, format="stl", timeout=timeout)
