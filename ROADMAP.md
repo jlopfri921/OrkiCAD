@@ -1,29 +1,285 @@
-# Roadmap
+# OrkiCAD AI — Master Roadmap
 
-This roadmap describes **targets**, not delivered functionality. Milestones have no promised dates.
+**Canonical technical documentation: English only (for now).**  
+**Planning baseline:** 2026-11-15.  
+**Current internal source version:** `0.0.1` (no official tagged release).  
+**Next proposed prerelease:** `0.1.0-alpha.1` (pending integration tests).
 
-| Milestone | Target | Exit criteria |
+> This is the canonical long-term product vision. The 140 items below are target capabilities, **not** a statement that all are implemented or guaranteed stable in v1.0.0. Every milestone is evidence-based and has no promised calendar date.
+
+## Mission
+
+OrkiCAD AI is a local-first, multilingual **parametric CAD, 2D/3D, AI and manufacturing ecosystem**. Its interfaces share a Python core:
+
+- **OrkiCAD Studio Desktop:** Tauri 2 / Rust / React/TypeScript; independent of ComfyUI, with optional web interface.
+- **OrkiCAD ComfyUI:** installable custom nodes, JSON workflows and potentially an embedded parameter editor.
+- **OrkiCAD Core:** versioned part schemas, validated geometric generators, exporters, mesh inspection, provider adapters and jobs.
+- **Engine adapters:** OpenSCAD/BOSL2 initially; CadQuery/OCCT and FreeCAD for more advanced solid modeling, B-rep and STEP.
+- **AI adapters:** local Ollama initially; optional explicit connections to OpenAI, Anthropic Claude and Google Gemini.
+- **Multimodal adapters:** OCR, image/PDF-to-vector, photo reconstruction, image-to-3D, texture and asset workflows via ComfyUI.
+
+**Non-negotiable:** AI transforms requests into *structured, validated parametric specifications* and **must not execute arbitrary AI-generated Python, SCAD or shell code**. Both product interfaces consume one shared, versioned catalog of part types and parameter metadata.
+
+## Documentation policy — confirmed 2026-11-15
+
+1. All **technical documentation** in the repository is written and maintained in **English**, including this roadmap, README, architecture, developer/API/testing instructions, changelog and release notes.
+2. A **Spanish copy or translated edition** may be evaluated in the future. No second technical documentation track is maintained at present. A future translation must reference the revision of its canonical English source.
+3. The product UI remains **multilingual**, initially English and Spanish; selecting a UI language does not switch documentation language or measurement system.
+
+## Engineering and UI requirements
+
+- Switch between **metric (mm)** and **imperial (inches)** independently of UI language; accept decimal values and eventually common fractional-inch input. Store canonical geometry in millimetres; changing display units must not rescale STL or SCAD.
+- Treat metric screw designations, UNC/UNF thread families, metric gear module and imperial diametral pitch as distinct design standards, not naive unit conversions.
+- Prompt-driven part design must **create the relevant editable form**, e.g., a fitted box lid with width/depth/walls/clearance and a bottle cap with neck dimensions/thread/height/clearance. AI assumptions must be visibly marked.
+- Use limits, enums, conditional fields, unit categories, validations and localized labels in the shared catalog. Allow safe addition of part families without hand-authoring another frontend screen.
+- A bottle cap's visual resemblance is **not proof of leak tightness or mechanical fit**. Expose guessed geometry, tolerances and measurement uncertainty.
+- Offer local Ollama endpoint/model settings, connection tests, opt-in cloud API keys with secure storage, request review and timeout/health reporting. Manual CAD must work without AI.
+- Keep the development Python server local-only unless authentication, authorization and network hardening have been completed. Limit rendering resources and isolate engine subprocesses.
+
+## Formats and capability boundaries
+
+| Format | Intended use | Primary engine or pipeline |
 | --- | --- | --- |
-| v0.0.0 Foundation | Repository, decisions, security, scope | Docs in GitHub; no executable workflows claimed |
-| v0.1.0 CAD core | Parameter schemas, deterministic primitive generators and CLI | Tests pass; sample parts export to STL/SCAD |
-| v0.2.0 ComfyUI | Nodes with registered identifiers and workflow JSON | Workflows load and run on tested ComfyUI version |
-| v0.3.0 Studio alpha | Tauri 2 / Rust / React UI, parameter forms and viewer | Windows dev build and end-to-end part export |
-| v0.4.0 AI adapters | Ollama first, then OpenAI / Claude / Gemini | Structured validated output; local-only and opt-in cloud tests |
-| v0.5.0 CAD interoperability | CadQuery/FreeCAD adapters, STEP, 2D DXF/SVG | Dimensional and output-format regression tests |
-| v0.6.0 Visual AI | OCR/line vectorization and image-to-3D via ComfyUI | Demonstrated reproducible workflows |
-| v1.0.0 Stable | Packaging, docs, security, release automation | Supported matrix, migration guide and test coverage |
+| SCAD | Parametric source | OpenSCAD |
+| STL | 3D printing mesh (OrkiCAD convention: mm) | OpenSCAD, FreeCAD or mesh tools |
+| 3MF | Manufacturing model/metadata when supported | Mesh/export pipeline |
+| STEP | Editable CAD/B-rep exchange | CadQuery/OCCT, FreeCAD |
+| FCStd | Native FreeCAD project | FreeCAD |
+| DXF / SVG | Dimensioned 2D profiles/drawings | 2D CAD exporters |
+| PDF | Plans and reports | Document/drawing exporter |
+| OBJ | Mesh interchange | Mesh pipeline |
+| GLB / glTF | Visual and game assets | Visual mesh pipeline |
 
-## Near-term work packages
+Format availability is declared per backend. Mesh-to-CAD conversion may lose parametric editability. Reconstruction from photographs is approximate without calibration and measurements.
 
-1. Define part schemas, units, dimensions, tolerances and geometry assertions.
-2. Prototype OpenSCAD CLI adapter and explicit export capabilities.
-3. Build example fasteners and gear generation using vetted CAD libraries.
-4. Write geometry tests and test artifacts.
-5. Add ComfyUI node registration and workflows against a real installation.
-6. Introduce Studio frontend and provider adapters after CAD core is solid.
+## Evidence-based starting status
 
-Progress belongs in [docs/STATUS.md](docs/STATUS.md). User-visible changes belong in [CHANGELOG.md](CHANGELOG.md).
+**Verified by maintainer on Windows, 2026-11-15:** Core/BOSL2 generated four sample STLs (washer, screw, nut, gear); preliminary Trimesh checks reported watertight, connected volumes; 10 early Python tests passed; local Python API and React/Vite Studio launched; Studio 3D viewer displayed an M6 screw using a compatible OpenSCAD 2026 release candidate.
 
-## Broader multimodal scope
+**Committed but not yet integration-tested:** Spanish/English UI, metric/imperial conversions, catalog-based dynamic forms, prototype box lid/bottle cap, local Ollama interpreter and provider endpoints. A source commit alone does not prove functionality.
 
-In addition to parametric CAD components, upcoming milestones will cover 2D-to-3D and 3D-to-2D technical drawings; text and LLM to plans/solids; hand sketches and dimensioned scanned drawings; single- and multi-photo reconstruction with user-specified measurements; printing-ready mesh repair and STL splitting with connectors; game/design asset generation and optimization; SVG/DXF/STEP/STL/3MF/GLB exports; optional Ollama and cloud providers. These are **proposed capabilities**, not implemented features. Each needs test cases and engineering validation before release.
+**Not delivered:** native Tauri install, verified ComfyUI plugin/workflow, stable AI settings and secure cloud providers, STEP/B-rep workflow, most visual/2D/printing pipelines and any tagged release.
+
+## Version milestones (proposed, not calendar deadlines)
+
+| Version | Focus | Required proof before release |
+| --- | --- | --- |
+| `0.0.1` internal | CAD core prototype and web Studio | Partial verification; not a release |
+| `0.1.0-alpha.1` | Fix and validate dynamic forms, lid/cap models, local AI and initial ComfyUI bridge | Python tests; frontend build; STL validation; ComfyUI workflow successfully executed |
+| `0.1.0-alpha.2` | Studio editing, camera/cotas, settings and project persistence | Unit conversion/round-trip and UI tests |
+| `0.2.0` | Installable ComfyUI integration with documented JSON workflows | Tested ComfyUI Desktop import/run/export |
+| `0.3.0` | Tauri 2 Windows desktop app | Fresh install and launch without PowerShell servers |
+| `0.4.0` | Local + opt-in remote AI providers and configuration | Schema validation, secret storage, explicit cloud consent |
+| `0.5.0` | CadQuery/FreeCAD, B-rep STEP, 2D DXF/SVG | Dimensional regression and interoperable export tests |
+| `0.6.0` | OCR, sketches/PDF and image-based reconstruction | Reproducible examples, scale review and uncertainty estimates |
+| `0.7.0` | Mesh repair, printing prep, splitting and slicer handoff | Sample mesh validation and handoff tests |
+| `0.8.0` | Visual assets, GLB/PBR/LOD and automation | Reproducible batch and asset exports |
+| `0.9.0-beta` | Security, performance, packaging, compatibility and docs | CI + fresh-install matrix + release candidate acceptance |
+| `1.0.0` | First supported stable **core subset** of the product vision | Tagged release, installers, docs, regression tests, limitations |
+
+Version numbers represent **verified milestones**, not daily revisions. Several days of commits belong to the same `[Unreleased]` development cycle. See [versioning](docs/VERSIONING.md).
+
+## Next execution plan (priority ordered)
+
+1. **Stabilize code now:** Windows `git pull`, Python unit tests, `npm run build`, local Studio UI smoke test; verify language and unit switches do not change actual geometry.
+2. **Verify new geometries:** check box lid and approximate threaded cap (STL watertightness, dimensions, thread profile, explicit fit limitations). Repair implementation failures.
+3. **Complete canonical schemas:** move part definitions and UI fields to versioned typed metadata, bounds, localized labels, standard selection, unit classification and conditional choices.
+4. **Complete local AI configuration:** Ollama connection health, model list, selected model and endpoint settings; validated spec proposals and user approval of defaults. Cloud provider keys are a separate secure phase.
+5. **Create and verify first ComfyUI custom nodes:** parameters → Core SCAD/STL → mesh inspection → output file; provide JSON workflow, installation instructions and actual ComfyUI Desktop test results.
+6. **Publish the first alpha only after proof:** update `CHANGELOG.md`, `docs/STATUS.md`, supported versions and release notes; then tag `v0.1.0-alpha.1`.
+
+## Master capability inventory — 140 targets
+
+**Scope:** These are tracked ambitions of the complete ecosystem. Capabilities requiring extra research may remain experimental or move beyond stable v1.0.0. Verification status lives in `docs/STATUS.md`, not in this wishlist.
+
+### AI-assisted CAD
+
+1. Natural language CAD requests.
+2. Multilingual instructions.
+3. Automatic part family detection.
+4. Dynamic form generation.
+5. Extract dimensions and constraints.
+6. Ask for missing critical dimensions.
+7. Highlight assumed defaults.
+8. Conversational editing.
+9. Design variants.
+10. Parameter explanations.
+11. Geometry constraint checks.
+12. Local Ollama models.
+13. Optional cloud AI.
+14. Provider and model selection.
+15. Mandatory user review.
+
+### Parametric parts
+
+16. Metric and imperial fasteners.
+17. Spur and helical gears.
+18. Pulleys shafts and couplings.
+19. Mounting brackets.
+20. Boxes and enclosures.
+21. Box lids and covers.
+22. Bottle caps and closures.
+23. Internal and external threads.
+24. Holes and slots.
+25. Spacers and adapters.
+26. Hinges and latches.
+27. Connectors and joints.
+28. Bearing and hardware housings.
+29. Reusable part templates.
+30. Extensible part families.
+
+### Parametric editing
+
+31. Edit dimensions.
+32. Rebuild geometry on change.
+33. Metric and imperial inputs.
+34. Fractional-inch inputs.
+35. Geometry constraints.
+36. CAD sketches.
+37. Extrusions and revolutions.
+38. Boolean operations.
+39. Pockets and ribs.
+40. Fillets and chamfers.
+41. Mirrors and arrays.
+42. Multipart designs.
+43. Project organization.
+44. Saved parameters.
+45. Versioned design variations.
+
+### 3D viewer
+
+46. Orbit zoom and pan.
+47. Standard camera views.
+48. Grids and axes.
+49. Dimension overlays.
+50. Distance and diameter measures.
+51. Wireframe mode.
+52. Component coloring.
+53. Component visibility.
+54. Basic assemblies.
+55. Sections and clipping.
+56. Model version comparisons.
+57. Dimensional comparisons.
+58. Geometry inspection.
+
+### 2D CAD and drawings
+
+59. 2D sketches.
+60. Lines arcs and circles.
+61. 2D dimensional constraints.
+62. Orthographic projections.
+63. Section drawings.
+64. SVG and DXF drawings.
+65. PDF technical reports.
+66. Vector profile imports.
+67. 2D-to-3D extrusion.
+68. Drawing templates.
+
+### Photo sketch and PDF reconstruction
+
+69. Object photo input.
+70. Hand sketch input.
+71. Scanned plan input.
+72. PDF extraction.
+73. OCR for dimensions.
+74. Contour detection.
+75. Vectorization.
+76. Handwriting recognition.
+77. 2D reconstruction.
+78. Drawing-to-3D proposals.
+79. Multiview input.
+80. Reference-based scale.
+81. Possible feature detection.
+82. Manual correction.
+
+### 3D printing
+
+83. Watertight checks.
+84. Component connectivity checks.
+85. Volume and dimension checks.
+86. Topology inspection.
+87. Mesh repair.
+88. Wall-thickness analysis.
+89. Fit clearances.
+90. Split large models.
+91. Pins and connectors.
+92. FDM and resin preparation.
+93. STL and 3MF export.
+94. Slicer handoff.
+95. Manufacturing reports.
+96. Printing presets.
+
+### Game and visualization assets
+
+97. Visual asset meshes.
+98. GLB/glTF transfer.
+99. Mesh decimation.
+100. LOD variants.
+101. Textures and materials.
+102. PBR maps.
+103. Game engine profiles.
+104. Visual design variants.
+
+### ComfyUI
+
+105. Installable custom nodes.
+106. Text-to-parameter nodes.
+107. SCAD generation node.
+108. STL generation node.
+109. Mesh inspection node.
+110. Sketch vectorization workflows.
+111. OCR workflows.
+112. Image-to-3D integrations.
+113. Typed data between nodes.
+114. Configurable output paths.
+115. End-to-end workflows.
+116. Importable JSON examples.
+117. Shared Studio part templates.
+118. Batch CAD workflows.
+
+### Settings and localization
+
+119. Multilingual interface.
+120. Independent language and unit selection.
+121. CAD engine configuration.
+122. Ollama endpoint setup.
+123. AI model selection.
+124. Cloud API configuration.
+125. Secure API credentials.
+126. Cloud consent controls.
+127. CAD library paths.
+128. Design presets.
+129. Job history.
+130. Diagnostics.
+131. Contextual help.
+132. Dependency management.
+
+### Automation and extensibility
+
+133. Integration API.
+134. Batch jobs.
+135. Parameter sweep.
+136. Job queues.
+137. Reports.
+138. Optional n8n workflows.
+139. Plugin interfaces.
+140. Dynamic extensible part catalog.
+
+## End-to-end acceptance scenarios
+
+1. **Box lid:** natural-language request with dimensions → editable dynamic field set → validated clearance → CAD solid → inspected STL.
+2. **Bottle cap:** measured bottle neck and proposed thread profile → parameters → 3D preview → explicit *unverified fit* warning → prototype print and measurement.
+3. **ComfyUI:** import a versioned workflow → create part parameters → render STL using shared Core → validate and save mesh.
+4. **Units and language:** switch Spanish/English and mm/in without modifying the canonical CAD dimensions or changing STL scale.
+5. **Offline mode:** create and export a part without Ollama or internet; optional local AI can generate a parameter proposal when connected.
+6. **2D/3D:** build a dimensioned 2D profile and produce a B-rep solid/STEP when the corresponding engine is ready.
+7. **Image/PDF:** extract dimensions and line geometry, review scale and confidence, produce candidate geometry without pretending photographic precision.
+
+## Documentation ownership
+
+- **`ROADMAP.md` (this document):** canonical long-term master plan and feature inventory.
+- **`docs/STATUS.md`:** only evidence-based implemented/tested status.
+- **`CHANGELOG.md`:** source changes and released features.
+- **`docs/WORKFLOW_CATALOG.md`:** planned and verified ComfyUI workflows.
+- **`docs/VERSIONING.md`:** release and version discipline.
+- Maintain all technical documentation in English; consider a Spanish copy **later**, only if explicitly approved.
