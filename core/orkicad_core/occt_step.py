@@ -24,26 +24,57 @@ class OCCTExportError(RuntimeError):
 
 
 def resolve_occt_python(configured_path: str = "Auto") -> str:
-    """Select a Python executable, with an explicit optional per-node override."""
+    """Locate the optional OCCT runtime without machine-specific user paths.
+
+    Auto priority: explicit environment override, bundled runtime, local
+    development venv, and finally the active interpreter. A future desktop
+    installer is responsible for bundling its own licensed OCCT runtime.
+    """
     if not isinstance(configured_path, str):
         raise OCCTExportError("OCCT Python path must be a string")
-    option = configured_path.strip().strip('"')
-    if not option or option.lower() == "auto":
-        option = os.environ.get("ORKICAD_OCCT_PYTHON", "").strip().strip('"')
-    if not option:
-        # This allows an advanced user who already has OCP in ComfyUI to
-        # use it, but an isolated venv is strongly recommended.
-        return sys.executable
-    candidate = Path(os.path.expandvars(option)).expanduser()
-    if candidate.is_dir():
-        candidate = candidate / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-    if not candidate.is_file() or candidate.name.lower() not in {"python.exe", "python"}:
-        raise OCCTExportError(
-            f"Invalid OCCT Python executable: {candidate}. "
-            "Provide a Python interpreter containing cadquery-ocp."
-        )
-    return str(candidate.resolve())
 
+    def executable(folder: Path) -> Path:
+        if folder.is_file():
+            return folder
+        return folder / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+    def check(candidate: Path) -> str | None:
+        if candidate.is_file() and candidate.name.lower() in ("python", "python.exe"):
+            return str(candidate.resolve())
+        return None
+
+    option = configured_path.strip().strip('"')
+    if option and option.lower() != "auto":
+        candidate = executable(Path(os.path.expandvars(option)).expanduser())
+        found = check(candidate)
+        if not found:
+            raise OCCTExportError(f"Invalid OCCT runtime: {candidate}")
+        return found
+
+    configured = os.environ.get("ORKICAD_OCCT_PYTHON", "").strip().strip('"')
+    if configured:
+        candidate = executable(Path(os.path.expandvars(configured)).expanduser())
+        found = check(candidate)
+        if not found:
+            raise OCCTExportError(f"ORKICAD_OCCT_PYTHON is invalid: {candidate}")
+        return found
+
+    # The Python package may reside in the source tree OR in a future
+    # application bundle. Relative candidates support both without relying
+    # on the developer's Windows drive or an absolute global install.
+    here = Path(__file__).resolve()
+    roots = (here.parents[2], here.parents[1], Path(sys.executable).resolve().parent)
+    candidates = (
+        Path("runtime/occt"),
+        Path("runtimes/occt"),
+        Path(".venv-occt"),
+    )
+    for root in roots:
+        for child in candidates:
+            found = check(executable(root / child))
+            if found:
+                return found
+    return sys.executable
 
 def render_occt_step(
     spec: Mapping[str, Any], *, python_path: str = "Auto", timeout: int = DEFAULT_TIMEOUT
@@ -88,9 +119,9 @@ def render_occt_step(
         if result.returncode != 0 or "ORKICAD_OCCT_STEP_OK" not in log:
             if "No module named 'OCP'" in log or 'No module named "OCP"' in log:
                 raise OCCTExportError(
-                    "cadquery-ocp is missing from the selected Python. "
-                    "Install cadquery-ocp in a dedicated virtual environment "
-                    "and set occt_python_path to its python.exe."
+                    "OrkiCAD OCCT runtime is unavailable. Desktop distributions "
+                    "must include their own OCCT runtime; for source builds "
+                    "install cadquery-ocp in the project .venv-occt environment."
                 )
             raise OCCTExportError("OCCT STEP generation failed: " + log[-1800:])
         if not destination.is_file() or destination.stat().st_size == 0:
