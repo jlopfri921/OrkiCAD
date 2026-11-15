@@ -90,3 +90,7 @@ The official [OrkiCAD AI logo](logo_OrkiCAD-AI.png) is stored in the repository 
 ## Languages
 
 OrkiCAD Studio is designed as a multilingual application. The initial React prototype has **Español** and **English** UI translations and a language selector; additional languages are planned. CAD parameter keys remain language-neutral. See [internationalization requirements](docs/I18N.md). This feature still requires validation in the maintainer's local build.
+
+## Measurement units
+
+OrkiCAD Studio now offers **Metric (mm)** and **Imperial (inches)** display/input for linear dimensions, independently of its Spanish/English interface selection. The core and exported files remain in millimetres; changing display units alone does not rescale the model. Standard metric thread identifiers and metric gear module are not converted into imperial standards. [Requirements and limitations](docs/REQUIREMENTS.md).
