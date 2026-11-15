@@ -1,9 +1,9 @@
-# Architecture (proposed)
+# Architecture — three-client shared-core target
 
 ```text
 OrkiCAD Studio Desktop (Tauri 2 / Rust / React / TypeScript)
-OrkiCAD Studio Web (optional React client)
-OrkiCAD ComfyUI (custom Python nodes + JSON workflows)
+OrkiCAD Studio Web (required React client)
+OrkiCAD ComfyUI (optional adapter + JSON workflows)
                     │
              OrkiCAD API/contracts
                     │
@@ -13,7 +13,7 @@ OrkiCAD ComfyUI (custom Python nodes + JSON workflows)
          ├── part generators
          ├── geometry and mesh quality checks
          ├── job management + sandboxed exporters
-         ├── engine adapters (OpenSCAD/BOSL2; CadQuery; FreeCAD)
+         ├── engine adapters (OpenSCAD/BOSL2; native OCCT; optional FreeCAD)
          └── AI provider adapters (Ollama; OpenAI; Claude; Gemini)
                     │
         CAD assets + engine-specific files
@@ -34,8 +34,9 @@ OrkiCAD ComfyUI (custom Python nodes + JSON workflows)
 ```text
 core/             Python package: geometry, schemas, validators, exports
 adapters/         CAD engines and AI providers
+shared/           Portable versioned contracts and UI/editor components
 comfyui/          Custom nodes + workflow JSON definitions
-studio/           Tauri/Rust shell and React/TypeScript frontend
+studio/           Single React/TypeScript UI for Web + Tauri/Rust desktop shell
 api/              Optional Python API for Studio Web / remote workers
 tests/            Schema, geometry and integration tests
 docs/             Architecture, decisions, user/developer guides
@@ -47,3 +48,17 @@ Keep interfaces versioned and stable. A backend's unsupported export formats mus
 ## External dependencies and reference models
 
 Maintain a single [catalog of CAD engines, AI models, mesh tools, model licensing and official references](DEPENDENCIES_AND_RESOURCES.md). Provider and CAD engine adapters must declare required versions, installation paths, permitted outputs and test status. Developer-specific paths (e.g. `F:\orkicad-ai`) are not embedded in source code.
+
+## Product-level decision: one app, three presentations
+
+The required interfaces are **Studio Web**, **Studio Desktop on Windows/Linux/macOS** and **OrkiCAD ComfyUI**. Each consumes the same validated `feature_model` and part catalog, uses the same deterministic CAD engine, and must expose compatible STEP, STL and 3MF output capabilities. The desktop application must be independently runnable and its own bundled OCCT runtime must remove manual interpreter paths and any FreeCAD requirement. ComfyUI remains optional.
+
+- **Studio Web** executes exports on an authenticated server-side worker (not a native browser process). The present localhost HTTP server is for development only.
+- **Studio Desktop** is the same Studio frontend packaged using Tauri 2, with an application-managed local CAD runtime. No packaged installer is yet available.
+- **ComfyUI** adapts Core to node graphs; no dedicated geometry or independent format definitions are allowed.
+
+The existing `feature_viewport.js` is a framework-neutral SVG axonometric **operation schematic**, not a final CAD CSG mesh. The final STL view and the operation selection view have different purposes. The UI should progressively migrate to a reusable package built for all three clients. Full shared UI packaging is **not yet complete**.
+
+The STEP development adapter now auto-discovers project-local `.venv-occt` or future `runtime/occt` folders; this is a developer convenience only and does **not** meet the desktop release requirement of a packaged, license-reviewed OCCT runtime. The optional FreeCAD exporter remains a compatibility adapter, not the primary STEP path.
+
+See [ADR 0007](adr/0007-three-clients-one-core.md) for delivery gates and the requirement that all three interfaces move forward together.
