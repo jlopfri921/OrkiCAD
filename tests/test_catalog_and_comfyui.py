@@ -40,6 +40,42 @@ class CatalogTests(unittest.TestCase):
             fields = details["fields"]
             self.assertEqual([f["key"] for f in fields], list(PARTS[part_type]["fields"]))
 
+    def test_corner_plate_round_and_chamfer_generate_distinct_shapes(self):
+        spec = {"type": "corner_plate", **PARTS["corner_plate"]["fields"]}
+        round_scad = generate_scad(spec)
+        self.assertIn("offset(r=5, $fn=96)", round_scad)
+        self.assertIn("linear_extrude(height=6)", round_scad)
+        self.assertIn("translate([17,27.5,-0.1])", round_scad)
+        self.assertIn("translate([73,27.5,-0.1])", round_scad)
+        spec["corner_style"] = "chamfer"
+        chamfer_scad = generate_scad(spec)
+        self.assertIn("polygon(points=", chamfer_scad)
+        self.assertNotIn("offset(r=", chamfer_scad)
+
+    def test_corner_plate_rejects_bad_style_and_colliding_drills(self):
+        spec = {"type": "corner_plate", **PARTS["corner_plate"]["fields"]}
+        spec["corner_style"] = "bevel_python"
+        with self.assertRaises(ParameterError):
+            validated_spec(spec)
+        spec["corner_style"] = "round"
+        spec["hole_inset"] = 7
+        with self.assertRaisesRegex(ParameterError, "outside the corner"):
+            validated_spec(spec)
+        spec["hole_inset"] = 17
+        spec["corner_size"] = 30
+        with self.assertRaisesRegex(ParameterError, "shortest side"):
+            validated_spec(spec)
+
+    def test_corner_plate_ai_workflow_graph(self):
+        path = REPO / "comfyui" / "workflows" / "orkicad_ai_corner_plate_stl_3mf_occt_step.json"
+        flow = json.loads(path.read_text(encoding="utf-8"))
+        types = {node["id"]: node["type"] for node in flow["nodes"]}
+        self.assertEqual(types[1], "OrkiCADInterpretLocal")
+        self.assertEqual(types[2], "OrkiCADReviewSpec")
+        self.assertEqual(types[6], "OrkiCADExportOCCTSTEP")
+        self.assertIn("corner_plate", flow["nodes"][0]["widgets_values"][0])
+        self.assertIn([5, 2, 0, 6, 0, "STRING"], flow["links"])
+
     def test_machined_block_scad_extrusion_drills_and_pocket(self):
         spec = {"type": "machined_block", **PARTS["machined_block"]["fields"]}
         scad = generate_scad(spec)
