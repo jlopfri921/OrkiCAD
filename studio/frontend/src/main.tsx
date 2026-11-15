@@ -690,7 +690,7 @@ function App() {
                               <option key={option} value={option}>{option}</option>)}
                           </select>
                         : <input id={name} type={typeof value === 'number' ? 'number' : 'text'}
-                            step={name === 'teeth' || name === 'diameter' ? '1' : 'any'}
+                            step={name === 'teeth' || name === 'hole_count' || name === 'diameter' ? '1' : 'any'}
                             value={typeof value === 'number'
                               ? displayNumber(value, units, usesLinearUnits(type, name))
                               : String(value)}
