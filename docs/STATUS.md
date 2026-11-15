@@ -267,3 +267,9 @@ Extended the existing catalog-driven ComfyUI editor's `feature_operations` rende
 Added `comfyui/workflows/orkicad_visual_feature_editor_stl_3mf_occt_step.json`, an **AI-free** saved-design example using the same editor and simultaneous STL/3MF/OCCT STEP branches. The previously working Ollama-driven example is unchanged. Added source-level regression assertions for the UI controls, invalid geometry rejection and graph wiring; updated the integration documentation.
 
 **Verification boundary:** the implementation is committed, but the maintainer has not yet exercised visual add/delete/reorder/modify interactions or the new AI-free workflow in real ComfyUI Desktop. Python tests, browser compatibility, independent STEP parity and cross-platform UI compatibility remain to be validated. No release tag.
+
+## Maintainer acceptance: visual feature history editor in ComfyUI Desktop (2026-11-15)
+
+**User-confirmed working:** Following the release of visual operation cards and the AI-free `comfyui/workflows/orkicad_visual_feature_editor_stl_3mf_occt_step.json` workflow, the maintainer reported **"funciona"**. This confirms a successful basic Windows ComfyUI Desktop trial of visual feature editing on the parametric model, with the existing STL/3MF/OCCT STEP export pipeline.
+
+**Evidence boundary:** The short success report does not independently confirm that every available add/remove/reorder/shape-switch control was tested, nor establish exact dimensional parity, exhaustive feature history correctness, Linux/macOS compatibility, or passing CI. Those remain separate acceptance criteria. The visual feature history is a sequential Boolean operations list rather than a full constraint-based CAD feature tree. No release tag.
