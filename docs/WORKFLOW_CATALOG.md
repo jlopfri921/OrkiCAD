@@ -20,3 +20,7 @@ Each workflow will eventually have a versioned ComfyUI JSON, matching custom nod
 | W14 | Product visualization and design variants | ComfyUI + CAD preview |
 
 All rows describe **planned capabilities only**. Existing external workflow examples are not presented as OrkiCAD-verified until tested.
+
+## First source implementation — parametric STL workflow
+
+A draft LiteGraph workflow is now tracked at `comfyui/workflows/orkicad_parametric_stl.json`, connecting `OrkiCADPartSpec` to `OrkiCADGenerateSCAD` and `OrkiCADRenderSTL` for a sample box lid. Native node definitions are in `comfyui/orkicad_nodes/__init__.py`. **Status: committed, not yet tested inside ComfyUI Desktop**; do not mark W01–W04 as operational until runtime evidence is recorded. See [integration guide](COMFYUI_INTEGRATION.md).
