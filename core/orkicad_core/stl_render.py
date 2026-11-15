@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 import subprocess
 import tempfile
 from pathlib import Path
@@ -22,6 +23,64 @@ class RenderError(RuntimeError):
     """OpenSCAD could not export the requested mesh."""
 
 
+
+def resolve_openscad() -> str:
+    """Find a user-installed or app-bundled OpenSCAD without fixed drive paths.
+
+    Resolution order: explicit environment override, PATH, portable app
+    bundle/development tools, standard Windows install locations. Installed
+    desktop apps must supply their own redistributable OpenSCAD binary.
+    """
+    configured = os.environ.get("ORKICAD_OPENSCAD", "").strip().strip('"')
+    if configured:
+        found = shutil.which(configured)
+        if found:
+            return found
+        candidate = Path(os.path.expandvars(configured)).expanduser()
+        if candidate.is_file():
+            return str(candidate.resolve())
+        raise RenderError(
+            "ORKICAD_OPENSCAD points to a missing executable: " + configured
+        )
+
+    for command in ("openscad", "openscad.exe"):
+        found = shutil.which(command)
+        if found:
+            return found
+
+    package = Path(__file__).resolve()
+    roots = (package.parents[2], package.parents[1],
+             Path(sys.executable).resolve().parent)
+    filenames = ("openscad.exe",) if os.name == "nt" else ("openscad",)
+    for root in roots:
+        for folder in ("runtime/openscad", "runtimes/openscad", "tools/openscad"):
+            for filename in filenames:
+                candidate = root / folder / filename
+                if candidate.is_file():
+                    return str(candidate.resolve())
+
+    if os.name == "nt":
+        for name in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"):
+            root = os.environ.get(name)
+            if not root:
+                continue
+            base = Path(root)
+            folders = (
+                base / "OpenSCAD",
+                base / "Programs" / "OpenSCAD",
+                base / "OpenSCAD (Nightly)",
+            )
+            for folder in folders:
+                candidate = folder / "openscad.exe"
+                if candidate.is_file():
+                    return str(candidate.resolve())
+
+    raise RenderError(
+        "OpenSCAD was not found. Install OpenSCAD, add it to PATH, "
+        "or configure ORKICAD_OPENSCAD once for this development environment. "
+        "Production OrkiCAD Desktop will ship its own managed runtime."
+    )
+
 def render_mesh(spec: Mapping[str, Any], *, format: str = "stl", timeout: int = 120) -> bytes:
     """Return OpenSCAD mesh bytes for a validated, allowlisted format.
 
@@ -31,13 +90,7 @@ def render_mesh(spec: Mapping[str, Any], *, format: str = "stl", timeout: int = 
     if format not in MESH_EXPORT_FORMATS:
         raise RenderError("Unsupported mesh export format. Use stl, 3mf, obj, off or amf.")
     source = generate_scad(spec)
-    executable = os.environ.get("ORKICAD_OPENSCAD", "openscad")
-    openscad = shutil.which(executable)
-    if not openscad:
-        raise RenderError(
-            "No se encuentra OpenSCAD. Configura ORKICAD_OPENSCAD con "
-            "la ruta de openscad.exe y reinicia el servidor Python."
-        )
+    openscad = resolve_openscad()
 
     environment = os.environ.copy()
     if spec["type"] in MECHANICAL:
