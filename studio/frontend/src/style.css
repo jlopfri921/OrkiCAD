@@ -275,3 +275,23 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
   .cad-camera-toolbar{right:10px;bottom:38px}
   .camera-toolbar-group button{min-height:28px}
 }
+
+/* Dynamic CAD preview: keep previous shape visible during recomputation. */
+.live-preview-toggle{border-color:#3f806d;background:#14332f;color:#a7f1d6}
+.preview-computing,.preview-stale{position:absolute;z-index:6;top:64px;left:17px;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;
+  font-size:11px;font-weight:700;pointer-events:none;backdrop-filter:blur(7px)}
+.preview-computing{background:#17392cdb;border:1px solid #3f9478;color:#bcf9d8}
+.preview-stale{background:#4b3924dd;border:1px solid #aa794c;color:#f6dfb0}
+.preview-pulse{width:8px;height:8px;border-radius:50%;background:#67e6ad;box-shadow:0 0 9px #60e2a6;
+  animation:preview-pulse 1.1s ease-in-out infinite alternate}
+@keyframes preview-pulse{to{opacity:.35;transform:scale(.72)}}
+.face-quick-adjust{display:grid;flex:1 1 220px;gap:7px;min-width:190px;background:#162d38;
+  padding:9px 12px;border:1px solid #377d8b;border-radius:9px}
+.face-quick-adjust label{font-size:11px;color:#a5e6e9;margin:0}
+.face-quick-row{display:flex;align-items:center;gap:11px}
+.face-quick-row input[type=range]{flex:1;min-width:70px;accent-color:#62e3ce;padding:0;cursor:ew-resize}
+.face-quick-row strong{font-size:13px;white-space:nowrap;color:#f2f9fa}
+.face-quick-row small{font-size:10px;margin-left:4px;font-weight:500;color:#94bac2}
+@media(max-width:760px){.preview-computing,.preview-stale{top:111px;left:10px}}
+@media(prefers-reduced-motion:reduce){.preview-pulse{animation:none}}
