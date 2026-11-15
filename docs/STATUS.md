@@ -122,3 +122,11 @@ Next suggested step: improve the 3D viewport with camera controls, dimensional o
 - Automatic Spanish detection based on browser locale, otherwise English. CAD data contracts remain unchanged.
 - **Pending local verification:** TypeScript production build and actual language switching in the browser after git pull. Backend errors and enum values have not yet been fully localized.
 - See [I18N.md](I18N.md).
+
+## Metric / Imperial Studio parameter inputs (2026-11-15)
+
+- Committed an independent **Metric (mm) / Imperial (in)** units selector alongside the language selector.
+- Linear dimensional inputs display/accept inches in imperial mode; conversions take place exclusively at the frontend boundary. All backend JSON dimensions remain canonical millimetres.
+- Changing display units does not mutate a generated part or its stored dimensions. Editing a parameter invalidates outdated SCAD/STL previews to avoid mismatched downloads.
+- Metric screw nominal designation and gear module remain metric standard values; angles and counts are unchanged.
+- **Pending maintainer verification:** run `npm run build` and confirm unit switch and STL dimensions remain unchanged for a sample washer.
