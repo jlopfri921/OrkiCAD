@@ -50,6 +50,40 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
             f"  translate([0,0,-0.1]) cylinder(h={_fmt(height + 0.2)}, d={_fmt(inner)}, $fn=128);\n"
             f"}}\n"
         )
+    elif kind == "machined_block":
+        width = _number(spec, "width")
+        depth = _number(spec, "depth")
+        height = _number(spec, "height")
+        hole = _number(spec, "hole_diameter")
+        inset = _number(spec, "hole_inset")
+        pocket_w = _number(spec, "pocket_width")
+        pocket_d = _number(spec, "pocket_depth")
+        cut = _number(spec, "pocket_cut_depth")
+        if pocket_w >= width or pocket_d >= depth or cut >= height:
+            raise ParameterError("Pocket must fit inside block with a solid floor")
+        if inset <= hole / 2 or inset + hole / 2 >= width / 2:
+            raise ParameterError("Mounting holes must be separate and inside block")
+        if hole >= depth:
+            raise ParameterError("Mounting hole exceeds block depth")
+        # Both holes sit outside the centered pocket with real edge clearance.
+        pocket_left = (width - pocket_w) / 2
+        if inset + hole / 2 >= pocket_left:
+            raise ParameterError("Mounting holes must not intersect the centered pocket")
+        px = pocket_left
+        py = (depth - pocket_d) / 2
+        cutters = "\\n".join(
+            f"  translate([{_fmt(x)},{_fmt(depth / 2)},-0.1]) "
+            f"cylinder(h={_fmt(height + .2)}, d={_fmt(hole)}, $fn=96);"
+            for x in (inset, width - inset)
+        )
+        result = (
+            "difference() {\\n"
+            f"  cube([{_fmt(width)},{_fmt(depth)},{_fmt(height)}]);\\n"
+            f"{cutters}\\n"
+            f"  translate([{_fmt(px)},{_fmt(py)},{_fmt(height-cut)}]) "
+            f"cube([{_fmt(pocket_w)},{_fmt(pocket_d)},{_fmt(cut + .1)}]);\\n"
+            "}\\n"
+        )
     elif kind == "mounting_plate":
         width = _number(spec, "width")
         depth = _number(spec, "depth")
@@ -94,7 +128,7 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
         return generate_mechanical_scad(spec)
     else:
         raise ParameterError(
-            "type must be one of: washer, mounting_plate, open_box, "
+            "type must be one of: machined_block, washer, mounting_plate, open_box, "
             "metric_screw, metric_nut, spur_gear, box_lid, bottle_cap"
         )
     return "// OrkiCAD AI prototype. Units: mm.\n" + result
