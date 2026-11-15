@@ -158,3 +158,10 @@ The maintainer installed the OrkiCAD custom nodes in ComfyUI Desktop on Windows 
 ## External STL viewer smoke test — maintainer report (2026-11-15)
 
 The maintainer reports that the box-lid STL produced by the OrkiCAD ComfyUI workflow **opens and displays correctly in SolidCraft**, an external 3D viewer. This is an additional visual compatibility check, not yet a quantitative mesh inspection or a verification of printing tolerances/physical fit.
+
+## Local Ollama → ComfyUI → STL workflow source (2026-11-15)
+
+- Added `comfyui/workflows/orkicad_ollama_text_to_stl.json`: `OrkiCADInterpretLocal` feeds the existing `OrkiCADGenerateSCAD` and `OrkiCADRenderSTL` nodes.
+- Added structural workflow and bad-prompt regression tests, and extended the English ComfyUI guide with Ollama preflight and known limitations.
+- The sample `qwen3-coder:30b` model name is provisional and must be verified with `ollama list` on the maintainer machine.
+- **Not yet runtime-verified:** Ollama output compatibility, actual AI-generated STL, the revised unit-test suite and dimensional validation. The prototype currently passes AI-generated parameters directly to export without a separate approval gate; production flows will require parameter review.
