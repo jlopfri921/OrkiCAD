@@ -69,6 +69,31 @@ class FeatureProgramTests(unittest.TestCase):
         with self.assertRaises(ParameterError):
             validated_spec(self.spec)
 
+    def test_visual_editor_contains_feature_history_controls(self):
+        script = ROOT / "comfyui/orkicad_nodes/web/parametric_editor.js"
+        content = script.read_text(encoding="utf-8")
+        self.assertIn("function featureEditor(", content)
+        self.assertIn("function featureTemplate(", content)
+        self.assertIn("MAX_FEATURES = 8", content)
+        self.assertIn("t.addFeature", content)
+        self.assertIn("t.removeFeature", content)
+        self.assertIn("t.moveUp", content)
+        self.assertIn("t.moveDown", content)
+        self.assertIn('tripletField("position"', content)
+        self.assertIn('tripletField("size"', content)
+        self.assertIn('["radius", t.radius]', content)
+        self.assertIn('"operations JSON (mm)"', content)
+        self.assertIn("if (approvedWidget) approvedWidget.value = false", content)
+        self.assertIn("node, current, overridesWidget, approvedWidget, t,", content)
+
+    def test_saved_feature_program_still_validates_with_normal_core(self):
+        spec = self.spec
+        self.assertEqual(validated_spec(spec)["type"], "feature_model")
+        # Malformed edits from either the visual form or raw JSON must fail.
+        spec["operations"][0]["position"] = [1, "unsafe", 3]
+        with self.assertRaises(ParameterError):
+            validated_spec(spec)
+
     def test_comfyui_graph_and_manual_approval(self):
         path = ROOT / "comfyui/workflows/orkicad_ai_feature_program_stl_3mf_occt_step.json"
         wf = json.loads(path.read_text(encoding="utf-8"))
