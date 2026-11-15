@@ -30,7 +30,27 @@ def make_shape(spec):
         ).Shape()
 
     kind = spec["type"]
-    if kind == "corner_plate":
+    if kind == "feature_model":
+        from OCP.BRepCheck import BRepCheck_Analyzer
+        from OCP.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse
+        shape = box(spec["width"], spec["depth"], spec["height"])
+        for index, feature in enumerate(spec["operations"]):
+            x, y, z = feature["position"]
+            if feature["shape"] == "box":
+                tool = box(*feature["size"], x, y, z)
+            elif feature["shape"] == "cylinder":
+                tool = cylinder(feature["radius"], feature["height"], x, y, z)
+            else:
+                raise ValueError("Unrecognized feature primitive")
+            operation = (BRepAlgoAPI_Fuse(shape, tool) if feature["op"] == "add"
+                         else BRepAlgoAPI_Cut(shape, tool))
+            operation.Build()
+            if not operation.IsDone() or operation.Shape().IsNull():
+                raise RuntimeError(f"OCCT feature operation {index} failed")
+            shape = operation.Shape()
+            if not BRepCheck_Analyzer(shape).IsValid():
+                raise RuntimeError(f"OCCT feature operation {index} produced an invalid solid")
+    elif kind == "corner_plate":
         from OCP.BRepFilletAPI import (
             BRepFilletAPI_MakeFillet, BRepFilletAPI_MakeChamfer
         )
