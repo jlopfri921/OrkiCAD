@@ -154,6 +154,35 @@ class OrkiCADExportMesh:
         return (str(destination),)
 
 
+class OrkiCADExportSTEP:
+    """Native analytic CAD export through installed FreeCADCmd."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "spec_json": ("STRING", {"forceInput": True}),
+            "file_stem": ("STRING", {"default": "cad_part"}),
+        }}
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("step_path",)
+    FUNCTION = "export"
+    OUTPUT_NODE = True
+    CATEGORY = "OrkiCAD/Export"
+
+    def export(self, spec_json: str, file_stem: str):
+        import re
+        import uuid
+        from orkicad_core.step_export import render_step
+
+        if not re.fullmatch(r"[a-zA-Z0-9_-]{1,50}", file_stem):
+            raise ValueError("file_stem must contain 1-50 ASCII letters, digits, _ or -")
+        binary = render_step(_spec(spec_json))
+        destination = _output_dir() / f"{file_stem}_{uuid.uuid4().hex[:10]}.step"
+        destination.write_bytes(binary)
+        return (str(destination),)
+
+
 class OrkiCADInterpretLocal:
     @classmethod
     def INPUT_TYPES(cls):
@@ -271,6 +300,7 @@ NODE_CLASS_MAPPINGS = {
     "OrkiCADReviewSpec": OrkiCADReviewSpec,
     "OrkiCADSavedDesign": OrkiCADSavedDesign,
     "OrkiCADExportMesh": OrkiCADExportMesh,
+    "OrkiCADExportSTEP": OrkiCADExportSTEP,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -281,6 +311,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "OrkiCADReviewSpec": "OrkiCAD · Review & approve CAD",
     "OrkiCADSavedDesign": "OrkiCAD · Saved parametric design",
     "OrkiCADExportMesh": "OrkiCAD · Export 3MF / OBJ / mesh",
+    "OrkiCADExportSTEP": "OrkiCAD · Export native STEP (FreeCAD)",
 }
 
 
