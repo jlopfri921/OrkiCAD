@@ -1,0 +1,69 @@
+# OrkiCAD Core ↔ ComfyUI: first prototype integration
+
+**Status:** code committed, not yet loaded or executed in the maintainer's ComfyUI Desktop installation. This is an early adapter, **not an officially released or certified ComfyUI plugin**.
+
+## Design
+
+OrkiCAD Studio and ComfyUI call the **same** `orkicad_core` functions to validate part specs and render geometry. There is no second CAD engine. ComfyUI nodes handle workflow inputs/outputs, not geometry generation.
+
+This first iteration provides:
+
+| Node ID | Inputs | Outputs | Behavior |
+| --- | --- | --- | --- |
+| `OrkiCADPartSpec` | Catalog part type, JSON overrides | JSON spec string | Merge allowlisted defaults with dimension overrides, validate |
+| `OrkiCADGenerateSCAD` | JSON spec string | SCAD source string | Generate deterministic parameterized SCAD |
+| `OrkiCADRenderSTL` | JSON spec string, safe filename stem | Absolute STL output path | Use the configured OpenSCAD runtime, save to ComfyUI output directory under `orkicad` |
+| `OrkiCADInterpretLocal` | Natural language, Ollama model | JSON spec string | Local-only Ollama returns a **proposal** subject to review |
+
+**Important:** parameter overrides are a JSON string in the first node. Fully dynamic ComfyUI input widgets require additional frontend work. Studio already consumes the live field catalog to display dynamic editing forms. The ComfyUI plugin offers a **native workflow path**, not yet an embedded editor.
+
+## Windows installation (ComfyUI Desktop)
+
+Use the Python interpreter from your ComfyUI environment, **not necessarily** the OrkiCAD `.venv`. Its location depends on the ComfyUI Desktop installation.
+
+1. Update the repository at `F:\orkicad-ai-github`.
+2. Install the shared package in the **ComfyUI Python environment** with `<comfy-python> -m pip install -e F:\orkicad-ai-github` (or configure `PYTHONPATH` appropriately). The version of `orkicad_core` imported by ComfyUI must match this repository.
+3. Place a directory link in ComfyUI's **actual `custom_nodes` path** named `orkicad_nodes`, pointing to `F:\orkicad-ai-github\comfyui\orkicad_nodes`. Do not infer the custom_nodes location from the Desktop install directory; inspect ComfyUI's own configured paths.
+4. Configure `ORKICAD_OPENSCAD` with the actual `openscad.exe` in `F:\OpenSCAD-2026`. For screws/gears, configure `ORKICAD_BOSL2_DIR` to `F:\orkicad-deps\BOSL2`. These variables must exist **in the ComfyUI process environment** before launch.
+5. Restart ComfyUI fully and confirm the four `OrkiCAD` nodes appear in its node search.
+6. Import `comfyui/workflows/orkicad_parametric_stl.json`, run the workflow and inspect the generated STL in the ComfyUI output directory under `orkicad`.
+
+If ComfyUI Desktop maintains its own controlled Python/extension manager, use its package management UI to install `orkicad-core` and ensure it persists after updates. Avoid editing its bundled Python installation blindly.
+
+## Smoke tests before loading ComfyUI
+
+From the **OrkiCAD project** environment:
+
+```powershell
+cd F:\orkicad-ai-github
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+From the selected **ComfyUI Python** environment verify:
+
+```powershell
+& "<comfy-python>" -c "from orkicad_core.parts_catalog import PARTS; print(list(PARTS))"
+```
+
+Run the JSON workflow in the ComfyUI UI. This file is authored for a standard LiteGraph workflow shape, but version-specific ComfyUI Desktop compatibility requires a real runtime test.
+
+## Safety and known limitations
+
+- `OrkiCADRenderSTL` does not accept arbitrary output paths. It writes inside the resolved ComfyUI output folder, with a generated suffix and strict filename stem.
+- The first integration runs OpenSCAD synchronously. Larger jobs may block their workflow node until the subprocess finishes or times out.
+- It does not upload input or output artifacts externally. The Ollama node sends a prompt only to a loopback HTTP endpoint configured in the Core.
+- All CAD inputs are parsed through allowlisted, validated part schemas. AI-generated raw source is not executed.
+- A bottle-cap model is **experimental**: printed mechanical fit and sealing are unverified.
+- The ComfyUI node set has no direct STL preview widget, 3D scene editor or fractional-inch control in this iteration.
+- Downloaded STL files have no inherent unit metadata; OrkiCAD uses millimetres as the mesh unit convention.
+
+## Acceptance gates for 0.1.0-alpha.1
+
+- [ ] All Python unit tests pass.
+- [ ] All default catalog parts generate valid SCAD, new lids/caps produce inspected STL.
+- [ ] ComfyUI starts without extension load errors.
+- [ ] Each native node appears in the ComfyUI search.
+- [ ] The example JSON workflow imports and runs with the target ComfyUI Desktop version.
+- [ ] STL output is present, nonempty, watertight and dimensionally plausible.
+- [ ] AI node is tested with an available local Ollama model and offline failure handling is confirmed.
+- [ ] The Studio frontend builds successfully with the shared dynamic catalog.
