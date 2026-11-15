@@ -122,6 +122,38 @@ class OrkiCADRenderSTL:
         return (str(destination), preview_path)
 
 
+class OrkiCADExportMesh:
+    """Export a validated design to an allowlisted OpenSCAD mesh format."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "spec_json": ("STRING", {"forceInput": True}),
+            "format": (["3mf", "obj", "off", "amf", "stl"],),
+            "file_stem": ("STRING", {"default": "cad_export"}),
+        }}
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("export_path",)
+    FUNCTION = "export"
+    OUTPUT_NODE = True
+    CATEGORY = "OrkiCAD/Export"
+
+    def export(self, spec_json: str, format: str, file_stem: str):
+        import re
+        import uuid
+        from orkicad_core.stl_render import render_mesh, MESH_EXPORT_FORMATS
+
+        if format not in MESH_EXPORT_FORMATS:
+            raise ValueError("Unsupported mesh export format")
+        if not re.fullmatch(r"[a-zA-Z0-9_-]{1,50}", file_stem):
+            raise ValueError("file_stem must contain 1-50 ASCII letters, digits, _ or -")
+        binary = render_mesh(_spec(spec_json), format=format)
+        destination = _output_dir() / f"{file_stem}_{uuid.uuid4().hex[:10]}.{format}"
+        destination.write_bytes(binary)
+        return (str(destination),)
+
+
 class OrkiCADInterpretLocal:
     @classmethod
     def INPUT_TYPES(cls):
@@ -238,6 +270,7 @@ NODE_CLASS_MAPPINGS = {
     "OrkiCADInterpretLocal": OrkiCADInterpretLocal,
     "OrkiCADReviewSpec": OrkiCADReviewSpec,
     "OrkiCADSavedDesign": OrkiCADSavedDesign,
+    "OrkiCADExportMesh": OrkiCADExportMesh,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -247,6 +280,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "OrkiCADInterpretLocal": "OrkiCAD · Local AI → CAD parameters",
     "OrkiCADReviewSpec": "OrkiCAD · Review & approve CAD",
     "OrkiCADSavedDesign": "OrkiCAD · Saved parametric design",
+    "OrkiCADExportMesh": "OrkiCAD · Export 3MF / OBJ / mesh",
 }
 
 
