@@ -50,6 +50,54 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
             f"  translate([0,0,-0.1]) cylinder(h={_fmt(height + 0.2)}, d={_fmt(inner)}, $fn=128);\n"
             f"}}\n"
         )
+    elif kind == "corner_plate":
+        width = _number(spec, "width")
+        depth = _number(spec, "depth")
+        thickness = _number(spec, "thickness")
+        corner = _number(spec, "corner_size")
+        diameter = _number(spec, "hole_diameter")
+        inset = _number(spec, "hole_inset")
+        style = spec.get("corner_style")
+        if style not in ("round", "chamfer"):
+            raise ParameterError("corner_style must be round or chamfer")
+        if corner >= min(width, depth) / 2:
+            raise ParameterError("corner_size must be less than half the shortest side")
+        if inset <= corner + diameter / 2 or inset >= width / 2:
+            raise ParameterError("Mounting holes must remain outside the corner treatments")
+        if diameter >= depth:
+            raise ParameterError("Mounting holes must fit inside the plate")
+        if style == "round":
+            profile = (
+                f"  translate([{_fmt(corner)},{_fmt(corner)}]) "
+                f"offset(r={_fmt(corner)}, $fn=96) "
+                f"square([{_fmt(width - 2 * corner)},"
+                f"{_fmt(depth - 2 * corner)}]);\n"
+            )
+        else:
+            vertices = [
+                (corner, 0), (width - corner, 0),
+                (width, corner), (width, depth - corner),
+                (width - corner, depth), (corner, depth),
+                (0, depth - corner), (0, corner),
+            ]
+            points = ",".join(
+                f"[{_fmt(x)},{_fmt(y)}]" for x, y in vertices
+            )
+            profile = f"  polygon(points=[{points}]);\n"
+        drills = "\n".join(
+            f"  translate([{_fmt(x)},{_fmt(depth / 2)},-0.1]) "
+            f"cylinder(h={_fmt(thickness + .2)},"
+            f"d={_fmt(diameter)},$fn=96);"
+            for x in (inset, width - inset)
+        )
+        result = (
+            "difference() {\n"
+            f"  linear_extrude(height={_fmt(thickness)}) {{\n"
+            f"{profile}"
+            "  }\n"
+            f"{drills}\n"
+            "}\n"
+        )
     elif kind == "machined_block":
         width = _number(spec, "width")
         depth = _number(spec, "depth")
@@ -128,7 +176,7 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
         return generate_mechanical_scad(spec)
     else:
         raise ParameterError(
-            "type must be one of: machined_block, washer, mounting_plate, open_box, "
+            "type must be one of: corner_plate, machined_block, washer, mounting_plate, open_box, "
             "metric_screw, metric_nut, spur_gear, box_lid, bottle_cap"
         )
     return "// OrkiCAD AI prototype. Units: mm.\n" + result
