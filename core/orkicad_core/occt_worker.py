@@ -30,7 +30,53 @@ def make_shape(spec):
         ).Shape()
 
     kind = spec["type"]
-    if kind == "machined_block":
+    if kind == "corner_plate":
+        from OCP.BRepFilletAPI import (
+            BRepFilletAPI_MakeFillet, BRepFilletAPI_MakeChamfer
+        )
+        from OCP.TopExp import TopExp_Explorer
+        from OCP.TopAbs import TopAbs_EDGE
+        from OCP.TopoDS import TopoDS
+        from OCP.BRepAdaptor import BRepAdaptor_Curve
+
+        width, depth, thickness = (
+            spec[key] for key in ("width", "depth", "thickness")
+        )
+        radius = spec["corner_size"]
+        base = box(width, depth, thickness)
+        style = spec["corner_style"]
+        if style == "round":
+            finishing = BRepFilletAPI_MakeFillet(base)
+        elif style == "chamfer":
+            finishing = BRepFilletAPI_MakeChamfer(base)
+        else:
+            raise ValueError("Unsupported corner style")
+        edges = TopExp_Explorer(base, TopAbs_EDGE)
+        selected = set()
+        while edges.More():
+            edge = TopoDS.Edge_s(edges.Current())
+            curve = BRepAdaptor_Curve(edge)
+            first = curve.Value(curve.FirstParameter())
+            last = curve.Value(curve.LastParameter())
+            key = (round(first.X(), 7), round(first.Y(), 7))
+            if (abs(first.X() - last.X()) < 1e-7
+                    and abs(first.Y() - last.Y()) < 1e-7
+                    and abs(first.Z() - last.Z()) >= thickness - 1e-7
+                    and key not in selected):
+                finishing.Add(radius, edge)
+                selected.add(key)
+            edges.Next()
+        if len(selected) != 4:
+            raise RuntimeError("Could not identify four vertical corner edges")
+        finishing.Build()
+        if not finishing.IsDone() or finishing.Shape().IsNull():
+            raise RuntimeError("OCCT corner finishing operation failed")
+        shape = finishing.Shape()
+        for x in (spec["hole_inset"], width - spec["hole_inset"]):
+            tool = cylinder(spec["hole_diameter"] / 2,
+                            thickness + .2, x, depth / 2, -.1)
+            shape = BRepAlgoAPI_Cut(shape, tool).Shape()
+    elif kind == "machined_block":
         width, depth, height = (
             spec[key] for key in ("width", "depth", "height")
         )
