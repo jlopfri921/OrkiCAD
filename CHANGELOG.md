@@ -4,6 +4,14 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Stabilization & verification (2026-11-16)
+
+- Identified an OCCT/cadquery-ocp binding incompatibility causing actual STEP corner finishing tests to fail: older supported bindings expose `TopoDS.Edge` instead of `TopoDS.Edge_s`. Added a compatibility conversion and source-level regression checks; **native B-rep STEP tests are not yet reverified**.
+- Added a repeatable local Windows verification entry point `scripts/verify-studio.ps1`: Python Core tests, version guard and Web build, with opt-in actual OCCT integration and localhost preview.
+- GitHub Actions provisioner issues may terminate jobs without a runner or any executed steps. CI must be rerun successfully, and Windows GUI acceptance performed, before integrating unverified changes into `main`.
+
+
+
 ### First native project document slice — 2026-11-16
 
 - Adopted **`.okad`** as the official OrkiCAD AI project extension, retaining JSON inside and legacy `.orkicad.json` import support.
