@@ -170,7 +170,7 @@ function App() {
   useEffect(() => {
     apiFetch('/api/catalog').then(r => { if (!r.ok) throw Error('Catalog unavailable'); return r.json() })
       .then(body => {
-        if (!body.parts || !body.parts.circular_plate) {
+        if (!body.parts || !body.parts.circular_plate || !body.parts.split_ring) {
           throw Error('OLD_CAD_CORE')
         }
         setCatalogData(body.parts)
@@ -179,8 +179,8 @@ function App() {
         setCatalogData(null)
         setError(reason instanceof Error && reason.message === 'OLD_CAD_CORE'
           ? (language === 'es'
-            ? 'El servidor CAD es una versión anterior: no admite placas circulares. Cierra el servidor Python y Tauri, actualiza GitHub y vuelve a iniciarlos.'
-            : 'CAD backend is outdated and lacks circular plates. Stop Python/Tauri, update the repository, and restart.')
+            ? 'El servidor CAD es una versión anterior: no admite placas circulares o anillos abiertos. Cierra el servidor Python y Tauri, actualiza GitHub y vuelve a iniciarlos.'
+            : 'CAD backend is outdated and lacks circular plates or open rings. Stop Python/Tauri, update the repository, and restart.')
           : (language === 'es'
             ? 'No se puede consultar el catálogo CAD. Comprueba que el servidor está iniciado.'
             : 'CAD catalog is unavailable. Check that the server is running.'))
