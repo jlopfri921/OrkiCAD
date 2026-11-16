@@ -42,6 +42,8 @@ try {
         Assert-CommandSuccess 'OCP import (install cadquery-ocp into the chosen Python environment)'
         & $python -m unittest discover -s tests -p test_occt_integration.py -v
         Assert-CommandSuccess 'native STEP round-trip acceptance'
+        & $python -m unittest discover -s tests -p test_occt_section_integration.py -v
+        Assert-CommandSuccess 'native B-rep XZ section acceptance'
     }
 
     Set-Location $frontend
