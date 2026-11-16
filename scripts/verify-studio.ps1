@@ -32,6 +32,9 @@ try {
     }
 
     $env:PYTHONPATH = (Join-Path $root 'core') + [IO.Path]::PathSeparator + $originalPythonPath
+    Write-Host 'OrkiCAD AI: checking Python source syntax before startup...' -ForegroundColor Cyan
+    & $python -m compileall -q (Join-Path $root 'core\orkicad_core') (Join-Path $root 'studio')
+    Assert-CommandSuccess 'Python source syntax'
     Write-Host 'OrkiCAD AI: verifying native project / CAD Core...' -ForegroundColor Cyan
     & $python -m unittest discover -s tests -v
     Assert-CommandSuccess 'Python Core tests'
