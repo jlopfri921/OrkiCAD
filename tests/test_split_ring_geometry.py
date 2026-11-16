@@ -37,9 +37,10 @@ class OpenRingTests(unittest.TestCase):
         self.assertNotIn("square(", scad)
         self.assertNotIn("cube(", scad)
         source = scad.split("polygon(points=[", 1)[1]
+        # Accept scientific notation from the shared SCAD numeric formatter.
         coords = [
-            (float(x), float(y))
-            for x, y in re.findall(r"\[(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\]", source)
+            tuple(float(value) for value in pair.split(","))
+            for pair in re.findall(r"\[([^][]+)\]", source)
         ]
         n = len(coords)
         self.assertGreater(n, 180)
