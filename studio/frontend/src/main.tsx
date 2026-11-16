@@ -880,6 +880,7 @@ function App() {
         </details>
         </> : type === 'split_ring'
           ? <SplitRingWorkspace mode={workspace} language={language} parameters={params}
+              showDimensions={showDimensions} onToggleDimensions={setShowDimensions}
               onChangeParameter={updateParameter}/>
           : <DrawingWorkspace mode={workspace} part={type} parameters={params} language={language}
               showDimensions={showDimensions} onToggleDimensions={setShowDimensions} />}
