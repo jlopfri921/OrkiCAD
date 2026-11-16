@@ -8,6 +8,7 @@ import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
 import CircularPlatePlan from './CircularPlatePlan'
 import DrawingWorkspace, { describePrimitive } from './DrawingWorkspace'
+import SplitRingWorkspace from './SplitRingWorkspace'
 import { apiFetch } from './api'
 import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
 import { fieldForSelectedFace, faceAxisLabel, type FaceSelection } from './selection'
@@ -16,7 +17,7 @@ import { initialLanguage, messages, type Language } from './i18n'
 import { readAIPreferences, writeAIPreferences, type AIProvider } from './aiPreferences'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
 
-type PartType = 'bevel_gear_straight' | 'solid_shaft' | 'hollow_tube' | 'angle_bracket' | 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model' | 'circular_plate'
+type PartType = 'split_ring' | 'bevel_gear_straight' | 'solid_shaft' | 'hollow_tube' | 'angle_bracket' | 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model' | 'circular_plate'
 type CatalogCategory = 'plates' | 'fasteners' | 'transmission' | 'shafts' | 'supports' | 'enclosures' | 'printing' | 'pipes' | 'machining'
 const CATEGORY_ORDER: CatalogCategory[] = ['plates', 'fasteners', 'transmission', 'shafts', 'supports', 'enclosures', 'printing', 'pipes', 'machining']
 const CATEGORY_LABELS: Record<CatalogCategory, { es: string; en: string }> = {
@@ -33,7 +34,7 @@ const CATEGORY_LABELS: Record<CatalogCategory, { es: string; en: string }> = {
 const PART_CATEGORY: Record<string, CatalogCategory> = {
   bevel_gear_straight: 'transmission',
   solid_shaft: 'shafts', hollow_tube: 'pipes', angle_bracket: 'supports',
-  circular_plate: 'plates', washer: 'fasteners', mounting_plate: 'plates',
+  split_ring: 'plates', circular_plate: 'plates', washer: 'fasteners', mounting_plate: 'plates',
   open_box: 'enclosures', metric_screw: 'fasteners', metric_nut: 'fasteners',
   spur_gear: 'transmission', box_lid: 'enclosures', bottle_cap: 'printing',
   corner_plate: 'plates', machined_block: 'machining', feature_model: 'machining'
@@ -81,6 +82,7 @@ const SCREW_OPTION_LABELS: Record<string, { es: string; en: string }> = {
 type ParamValue = number | string | Feature[]
 type Definition = { label: string; params: Record<string, ParamValue> }
 const catalog: Record<PartType, Definition> = {
+  split_ring: { label: 'Anillo abierto (corte radial)', params: { outer_diameter: 40, inner_radius: 10, outer_arc_gap: 20, thickness: 4 } },
   bevel_gear_straight: { label: 'Straight bevel gear', params: { module: 2, teeth: 20, mate_teeth: 20, shaft_angle: 90, face_width: 8, pressure_angle: 20, bore_diameter: 8, backlash: 0.1 } },
   solid_shaft: { label: 'Solid shaft', params: { diameter: 12, length: 80 } },
   hollow_tube: { label: 'Hollow tube', params: { outer_diameter: 30, inner_diameter: 24, length: 100 } },
@@ -255,7 +257,7 @@ function App() {
         body: JSON.stringify({ prompt, model: aiModel || undefined, provider: aiProvider, ...(aiProvider === 'ollama' ? {} : { api_key: apiKey }) })
       })
       const raw = await response.text()
-      let result: { error?: string; spec?: Record<string, ParamValue>; review_required?: boolean }
+      let result: { error?: string; spec?: Record<string, ParamValue>; review_required?: boolean; assumptions?: string[] }
       try { result = JSON.parse(raw) } catch {
         throw new Error(`${t.badJSON} (HTTP ${response.status})`)
       }
@@ -277,7 +279,7 @@ function App() {
       setShowCircularPlan(nextType === 'circular_plate')
       setType(nextType); setParams(next); setScad(''); setPreviewReady(false)
       setReviewApproved(false)
-      setAiNote(t.reviewDimensions)
+      setAiNote([t.reviewDimensions, ...(result.assumptions || [])].join(' '))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -856,8 +858,10 @@ function App() {
           <div className="output-actions">
             <button disabled={exportBlocked} onClick={generate}>SCAD</button>
             <button disabled={exportBlocked} onClick={() => exportFormat('3mf')}>3MF</button>
-            <button disabled={exportBlocked || type === 'bevel_gear_straight'}
-              title={type === 'bevel_gear_straight'
+            <button disabled={exportBlocked || type === 'bevel_gear_straight' || type === 'split_ring'}
+              title={type === 'split_ring'
+                ? (language === 'es' ? 'STEP pendiente para anillos abiertos; STL y 3MF disponibles' : 'STEP pending for split rings; STL and 3MF supported')
+                : type === 'bevel_gear_straight'
                 ? (language === 'es' ? 'STEP pendiente: este engranaje utiliza BOSL2 y aún no tiene generador OCCT' : 'STEP pending: this gear uses BOSL2 and has no OCCT generator yet')
                 : undefined}
               onClick={() => exportFormat('step')}>STEP</button>
@@ -868,8 +872,11 @@ function App() {
           <pre>{scad || t.empty}</pre>
           <button className="secondary" disabled={!scad} onClick={download}>{t.downloadSCAD}</button>
         </details>
-        </> : <DrawingWorkspace mode={workspace} part={type} parameters={params} language={language}
-          showDimensions={showDimensions} onToggleDimensions={setShowDimensions} />}
+        </> : type === 'split_ring'
+          ? <SplitRingWorkspace mode={workspace} language={language} parameters={params}
+              onChangeParameter={updateParameter}/>
+          : <DrawingWorkspace mode={workspace} part={type} parameters={params} language={language}
+              showDimensions={showDimensions} onToggleDimensions={setShowDimensions} />}
       </section>
 
       <aside className="studio-sidebar properties-sidebar" aria-label={ui.properties}>
