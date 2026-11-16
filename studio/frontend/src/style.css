@@ -1,7 +1,10 @@
 /* OrkiCAD Studio: shared Web / Desktop design system.
    Dark technical workspace; no external fonts or CDN dependencies. */
 :root{
-  font-family:Inter,"Segoe UI Variable",Segoe UI,system-ui,-apple-system,sans-serif;
+  /* Windows-first CAD identity; offline system-font fallbacks for Web/Desktop. */
+  font-family:"Segoe UI Variable Text","Segoe UI Variable","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-technical:"Bahnschrift","Bahnschrift SemiCondensed","Arial Narrow","Segoe UI Variable Display",sans-serif;
+  --font-code:"Cascadia Code","Consolas","Lucida Console",monospace;
   color:#e9f1fa;background:#090f19;font-synthesis:none;
   --base:#090f19;--panel:#101925;--raised:#162335;--line:#28384b;
   --text:#e9f1fa;--muted:#8396ac;--accent:#59d7c9;--cyan:#7ed4f5;
@@ -319,3 +322,46 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .parametric-catalog input,.parametric-catalog select{width:100%;min-height:35px;padding:7px 9px;font-size:12px}
 .parametric-catalog .catalog-result-count{font-size:10px;color:#8baac0}
 .parametric-catalog .catalog-no-results{font-size:11px;color:#f0c493;line-height:1.4}
+
+/* OrkiCAD visual identity. Do not stretch the official logo or load remote fonts. */
+.studio-brand-logo{display:block;object-fit:contain;object-position:left center;width:178px;height:48px;max-width:100%;flex:none}
+.brand-version{font:650 10px/1 var(--font-code);letter-spacing:.15px;color:#8da9b9;
+  border:1px solid #294459;padding:5px 7px;border-radius:5px;white-space:nowrap}
+.brand-studio{font-family:var(--font-technical);font-size:11px;letter-spacing:2px;margin-left:6px}
+.studio-topbar .studio-brand{gap:8px}
+.studio-brand strong,.sidebar-header h1,.sidebar-header h2,.viewport-heading h2,.sidebar-section-title,
+.inspector-section-toggle,.section-overline,.studio-disclosure summary,.source-panel summary,
+button,.studio-top-actions select,.parametric-catalog label{font-family:var(--font-technical)}
+.sidebar-header h1,.sidebar-header h2,.viewport-heading h2{letter-spacing:.15px}
+.section-overline{letter-spacing:2.1px}
+textarea,input,select{font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
+.studio-statusbar{font-family:var(--font-code)}
+.studio-footer-version{color:#84a6b4;font-size:10px;white-space:nowrap}
+
+/* Compact bilingual learning area: no extra scrolling until a disclosure opens. */
+.prompt-guide{display:grid;gap:8px}
+.prompt-guide-body{padding:0 12px 12px;display:grid;gap:8px}
+.prompt-guide-body label{margin:0}
+.prompt-guide-body select{padding:8px 10px;font-size:12px}
+.prompt-example-preview{margin:0;padding:11px;border-radius:7px;border:1px solid #30485b;
+  background:#142338;color:#c9dae9;font-size:12px;line-height:1.55;max-height:175px;overflow:auto;
+  user-select:text;overflow-wrap:anywhere;white-space:pre-wrap}
+.prompt-example-actions{display:flex;flex-wrap:wrap;gap:7px}
+.prompt-example-actions button{flex:1;min-width:110px;padding:8px 9px;font-size:12px}
+.prompt-guide-note{margin:2px 0 0;color:#94a9bb;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.prompt-tips{margin:0;padding:0 0 0 20px;display:grid;gap:10px}
+.prompt-tips li{padding-left:2px;font-size:11px;line-height:1.5;color:#9aafc1}
+.prompt-tips li strong{display:block;color:#daedf6;margin-bottom:2px;font:650 12px/1.45 var(--font-technical)}
+.prompt-tips li span{display:block}
+@media(max-width:1260px){
+  .studio-brand-logo{width:142px;height:42px}
+  .studio-brand .brand-studio{display:none}
+}
+@media(max-width:1040px){
+  .studio-brand-logo{width:128px}
+  .brand-version{font-size:9px}
+}
+@media(max-width:900px){
+  .studio-footer-version{display:none}
+}
