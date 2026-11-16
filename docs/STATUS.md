@@ -2,6 +2,14 @@
 
 **As of 2026-11-15 — Initial source prototype committed; no packaged application or tagged release yet.**
 
+## Roadmap update — 2026-11-16 (design work only)
+
+- Three linked workspaces are agreed: CAD 2D, CAD 3D and Drawings/Sections; shared Core, document history, constraints and measured dimension semantics.
+- **Reverse engineering is a dedicated capability:** existing STEP/STP analytic parts, STL/3MF mesh parts, dimensioned DXF/plans and measured physical samples should produce CAD feature reconstructions with provenance, uncertainty and dimensional comparisons. This is **planned and not yet implemented**. See `docs/REVERSE_ENGINEERING_PLAN.md`.
+- Structured multi-photo acquisition requires immutable F01/F02 references, clickable P/D/C/S markers, user-confirmed dimensions bound to exact features, plane-aware scale calibration and estimated-vs-confirmed depth distinctions. See `docs/MULTIVIEW_PHOTO_REFERENCES.md` and `docs/DEPTH_RECONSTRUCTION_PLAN.md`.
+- Core modeling scope includes explicit sketch extrusion, partial/full angle revolution about a chosen axis, loft between differing profiles and sweep along paths; all **design contracts only** in `docs/FEATURE_OPERATIONS_SPEC.md`.
+- ComfyUI remains intentionally limited to tested, headless and composable workflows. This branch contains documentation; no new drawing tools, importers, depth AI models or reverse-engineering functions are operational.
+
 ## Confirmed decisions
 
 - Project name: **OrkiCAD AI**.
