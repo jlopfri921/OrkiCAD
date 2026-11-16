@@ -73,3 +73,22 @@ Alternatively the existing two-window Vite development mode remains supported: r
 ## Release policy
 
 Use `0.0.1 · DEV` until branch CI and device-specific tests succeed. The next `0.1.0-alpha.1` prerelease requires deliberate tagging and verified Core, Web, Desktop and declared ComfyUI workflows; do not label a CI artifact a stable production release.
+
+## Offline/local Windows stabilization check (2026-11-16)
+
+If GitHub Actions jobs fail with `runner_id: 0` and **zero executed steps**, no code ran in CI and the failure cannot be used to judge Web/Tauri correctness. Do not repeatedly merge unverified changes. After updating the checkout of the reviewed branch, run:
+
+```powershell
+cd F:\orkicad-ai-github
+.\scripts\verify-studio.ps1
+```
+
+This executes Core regression tests, checks Python/Node version metadata and builds production Web (no OCCT dependency needed for the default route). If the dedicated `.venv-occt` has `cadquery-ocp`, additionally run:
+
+```powershell
+.\scripts\verify-studio.ps1 -VerifyOCCT
+```
+
+For a local Web smoke test, add `-LaunchWeb` and open `http://127.0.0.1:8765/`. Stop with Ctrl+C. Running this script **does not** certify the packaged Windows Tauri installer or any native STEP engine that is not available in the chosen Python environment; those require their own CI/native acceptance.
+
+**Known STEP regression under repair:** older cadquery-ocp builds exposed `TopoDS.Edge` instead of `TopoDS.Edge_s`, causing the corner plate fillet/chamfer export tests to fail. `core/orkicad_core/occt_worker.py` now resolves either binding; the actual native STEP geometry must pass integration tests before any release claim.
