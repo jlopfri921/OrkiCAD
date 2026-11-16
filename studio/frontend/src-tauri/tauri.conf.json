@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "OrkiCAD Studio",
+  "productName": "OrkiCAD AI Studio",
   "version": "0.0.1",
   "identifier": "org.orkicad.studio",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "OrkiCAD Studio",
+        "title": "OrkiCAD AI Studio",
         "width": 1520,
         "height": 970,
         "minWidth": 980,
@@ -29,7 +29,7 @@
   "bundle": {
     "active": false,
     "targets": "all",
-    "shortDescription": "OrkiCAD Studio desktop prototype (runtime packaging pending)",
+    "shortDescription": "OrkiCAD AI Studio desktop development prototype (runtime packaging pending)",
     "icon": []
   }
 }

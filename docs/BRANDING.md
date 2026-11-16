@@ -19,3 +19,7 @@ The primary logo is [`logo_OrkiCAD-AI.png`](../logo_OrkiCAD-AI.png), stored in t
 ## Third-party rights
 
 Branding files are project-specific assets. Their inclusion in this repository does not grant rights to unrelated third-party marks or CAD/AI model logos.
+
+## Name and license boundary
+
+The official product name is **OrkiCAD AI**. `Studio` describes the Web/Desktop editor. The original software source is licensed under Apache-2.0, **but the official logo, artwork and project branding are not granted for third-party product identity by that license**. The included `logo_OrkiCAD-AI.png` may be reproduced as required to identify OrkiCAD AI in project documentation, license notices and attribution. Reuse as the principal mark of unrelated products requires separate authorization. This limitation concerns branding/artwork, not the right to distribute Apache-2.0-licensed code.

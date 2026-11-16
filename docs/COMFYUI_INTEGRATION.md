@@ -1,5 +1,7 @@
 # OrkiCAD Core ↔ ComfyUI: first prototype integration
 
+> **OrkiCAD AI 2026-11-16 product decision:** ComfyUI is a small optional automation connector, **not** a mirror of the CAD 2D/3D/Planimetry UI. Only independently verified, headless and composable Core features qualify as nodes. Do not add drawing canvas editors, face selection, arbitrary plane controls or unverified format conversions. See [minimal ComfyUI parity policy](COMFYUI_PARITY.md) for the acceptance gate and current node inventory.
+
 **Status:** code committed, not yet loaded or executed in the maintainer's ComfyUI Desktop installation. This is an early adapter, **not an officially released or certified ComfyUI plugin**.
 
 ## Design
