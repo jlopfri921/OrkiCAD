@@ -22,7 +22,7 @@ class SplitRingUIContract(unittest.TestCase):
         self.assertNotIn("rect x={left}", sketch)
         self.assertIn("onClick={() => focusDimension(field)}", sketch)
         self.assertIn("onKeyDown={event =>", sketch)
-        self.assertIn("setSelectedEdge(field)", sketch)
+        self.assertIn("setSelectedEdge(key)", sketch)
         self.assertIn("onToggleDimensions(event.target.checked)", sketch)
 
     def test_drawing_is_parameter_editable_and_unsupported_views_honest(self):
