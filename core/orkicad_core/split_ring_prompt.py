@@ -40,10 +40,12 @@ def parse_split_ring(prompt: str) -> tuple[dict | None, list[str]]:
         rf"(?:di[aá]metro\s+exterior|di[aá]metro\s+externo|di[aá]metro\s+(?:de\s+)?(?:la\s+)?pieza)\s*(?:de\s*)?{NUM}\s*mm",
         rf"(?:pieza|aro|anillo)\s+circular\s+(?:de\s+)?{NUM}\s*mm",
         rf"(?:pieza|aro|anillo)\s+(?:de\s+)?{NUM}\s*mm\s+(?:de\s+)?di[aá]metro",
+        rf"(?:outer|outside)\s+diameter\s*(?:of\s*)?{NUM}\s*mm",
     )
     outer_radius = _match(s,
         rf"(?:radio\s+exterior|radio\s+externo)\s*(?:de\s*)?{NUM}\s*mm",
         rf"(?:pieza|aro|anillo)\s+circular\s+(?:de\s+)?{NUM}\s*mm\s+de\s+radio",
+        rf"outer\s+radius\s*(?:of\s*)?{NUM}\s*mm",
     )
     if outer_radius is not None:
         outer_diameter = outer_radius * 2
@@ -56,11 +58,13 @@ def parse_split_ring(prompt: str) -> tuple[dict | None, list[str]]:
         rf"(?:oquedad|hueco|agujero|círculo|circulo|circunferencia|radio|di[aá]metro)\s+(?:intern[ao]|interior)\s+(?:circular\s+)?(?:de\s+)?{NUM}\s*mm\s+de\s+radio",
         rf"(?:radio\s+interior|radio\s+interno)\s*(?:de\s*)?{NUM}\s*mm",
         rf"(?:oquedad|hueco|agujero)\s+(?:intern[ao]|interior)\s+circular\s+de\s+{NUM}\s*mm\s+de\s+radio",
+        rf"inner\s+radius\s*(?:of\s*)?{NUM}\s*mm",
     )
     outer_gap = _match(s,
         rf"(?:corte|abertura|separaci[oó]n|interrupci[oó]n)\s+(?:completo\s+)?(?:de\s+)?{NUM}\s*mm\s*(?:de\s+distancia\s+)?(?:en\s+el\s+)?(?:arco|circunferencia)",
         rf"(?:arco|circunferencia)\s+exterior.{0,40}?{NUM}\s*mm\b",
         rf"(?:corte|abertura|separaci[oó]n)\s+(?:completo\s+)?de\s+{NUM}\s*mm",
+        rf"(?:radial\s+(?:sector\s+)?cut|cut|gap|opening)\s+(?:of\s+)?{NUM}\s*mm\s+(?:of\s+)?(?:outer\s+)?arc",
     )
     if outer_diameter is None or inner_radius is None or outer_gap is None:
         # A topology-sensitive request must be rejected rather than
@@ -68,7 +72,9 @@ def parse_split_ring(prompt: str) -> tuple[dict | None, list[str]]:
         return None, ["missing_split_ring_dimensions"]
     thickness = _match(s,
         rf"(?:grosor|espesor|thickness)\s*(?:de\s*)?{NUM}\s*mm",
-        rf"{NUM}\s*mm\s+de\s+(?:grosor|espesor)")
+        rf"{NUM}\s*mm\s+de\s+(?:grosor|espesor)",
+        rf"thickness\s*(?:of\s*)?{NUM}\s*mm",
+        rf"{NUM}\s*mm\s+thick"
     assumptions = []
     if diameter_unqualified:
         assumptions.append("Se ha interpretado 40 mm como diámetro exterior (no radio). Comprueba esta cota.")
