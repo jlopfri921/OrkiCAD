@@ -226,9 +226,28 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
   const angleBracket = v.shape === 'angle_bracket'
   const cornerPlate = v.shape === 'corner_plate'
   const machinedBlock = v.shape === 'machined_block'
-  if (isSection && !annular) return <div className="cad-drawing-unsupported">
+  // Nominal XZ section: axial for round bodies (Y=0), central plane
+  // Y=depth/2 for rectangular catalog parts. Never use STL triangles as B-rep.
+  const supportedSection = annular || v.shape === 'disk' ||
+    v.shape === 'circular_plate' || v.shape === 'mounting' ||
+    v.shape === 'corner_plate' || v.shape === 'machined_block' ||
+    v.shape === 'box' || v.shape === 'angle_bracket'
+  const radialHoleSlices = v.shape === 'circular_plate' && v.holeCount &&
+      v.holeDiameter && v.boltCircleRadius
+    ? Array.from({ length: v.holeCount }, (_, i) => {
+        const angle = 2 * Math.PI * i / v.holeCount!
+        const yOffset = v.boltCircleRadius! * Math.sin(angle)
+        const r = v.holeDiameter! / 2
+        if (Math.abs(yOffset) >= r) return null
+        const halfChord = Math.sqrt(r * r - yOffset * yOffset)
+        return { x: v.boltCircleRadius! * Math.cos(angle), width: 2 * halfChord }
+      }).filter((slice): slice is { x: number; width: number } => slice !== null)
+    : []
+  const sectionSolidHeight = angleBracket && v.wall && v.depth / 2 > v.wall
+    ? v.wall * scale : rh
+  if (isSection && !supportedSection) return <div className="cad-drawing-unsupported">
     {language === 'es'
-      ? 'La sección geométrica de esta pieza requiere el motor de cortes B-rep (pendiente). No se inventará un corte.'
+      ? 'Esta sección necesita un corte geométrico real del motor OCCT (pendiente); no se mostrará una sección inventada.'
       : 'This part needs the B-rep section engine (not yet implemented). No approximate section is presented.'}
   </div>
   return <svg className="cad-drawing-svg" viewBox="0 0 400 280" role="img"
@@ -254,7 +273,8 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
       {isTop && circle
         ? <circle cx={cx} cy={cy} r={rw / 2}/>
         : !(cornerPlate && isTop) && !(angleBracket && projection === 'side')
-          ? <rect x={left} y={top} width={rw} height={rh}/>
+          ? <rect x={left} y={isSection && angleBracket ? top + rh - sectionSolidHeight : top}
+            width={rw} height={isSection && angleBracket ? sectionSolidHeight : rh}/>
           : null}
       {angleBracket && !isTop && projection === 'side' && v.wall &&
         <path d={`M ${left} ${top} L ${left + v.wall * scale} ${top}
@@ -331,6 +351,31 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
       {isTop && v.shape === 'box' && v.innerWidth && v.innerDepth &&
         <rect x={cx - v.innerWidth * scale / 2} y={cy - v.innerDepth * scale / 2}
           width={v.innerWidth * scale} height={v.innerDepth * scale} fill="#0c1a29"/>}
+      {isSection && supportedSection && !annular &&
+        <rect x={left} y={angleBracket ? top + rh - sectionSolidHeight : top}
+          width={rw} height={angleBracket ? sectionSolidHeight : rh}
+          fill="url(#cad-section-hatch)" stroke="#93e5e2" />}
+      {isSection && v.shape === 'box' && v.wall && (
+        <rect x={left + v.wall * scale} y={top}
+          width={(v.width - 2 * v.wall) * scale} height={(v.height - v.wall) * scale}
+          fill="#0c1a29" stroke="#93e5e2" />
+      )}
+      {isSection && v.shape === 'machined_block' && v.pocketWidth && v.pocketCutDepth && (
+        <rect x={cx - v.pocketWidth * scale / 2} y={top}
+          width={v.pocketWidth * scale} height={v.pocketCutDepth * scale}
+          fill="#0c1a29" stroke="#93e5e2" />
+      )}
+      {isSection && (v.shape === 'corner_plate' || v.shape === 'machined_block') &&
+        v.holeInset && v.holeDiameter &&
+        [v.holeInset, v.width - v.holeInset].map((x, i) =>
+          <rect key={i} x={left + (x - v.holeDiameter! / 2) * scale} y={top}
+            width={v.holeDiameter! * scale} height={rh}
+            fill="#0c1a29" stroke="#93e5e2" />)}
+      {isSection && v.shape === 'circular_plate' &&
+        radialHoleSlices.map((hole, i) =>
+          <rect key={i} x={cx + (hole.x - hole.width / 2) * scale} y={top}
+            width={hole.width * scale} height={rh}
+            fill="#0c1a29" stroke="#93e5e2" />)}
       {isSection && annular && v.bore &&
         <>
           <rect x={left} y={top} width={(w - v.bore) * scale / 2} height={rh} fill="url(#cad-section-hatch)"/>
@@ -400,7 +445,7 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
           {item === 'top' ? (isEs ? 'Planta XY' : 'Top XY')
             : item === 'front' ? (isEs ? 'Alzado XZ' : 'Front XZ')
               : item === 'side' ? (isEs ? 'Perfil YZ' : 'Side YZ')
-                : (isEs ? 'Sección axial' : 'Axial section')}
+                : (isEs ? 'Sección XZ' : 'XZ section')}
         </button>)}
     </div>}
     <div className="cad-drawing-canvas">
@@ -417,6 +462,10 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
       <span>{isEs
         ? 'Edita las cotas en el panel derecho. Esta vista vectorial se regenera al cambiar los parámetros.'
         : 'Edit dimensions in the right inspector. This vector preview updates whenever parameters change.'}</span>
+      {mode === 'drawings' && projection === 'section' && primitive &&
+        <span className="cad-drawing-scope">{isEs
+          ? 'Sección nominal XZ: plano central Y=0 para piezas circulares y Y=fondo/2 para piezas prismáticas. No sustituye a una sección B-rep verificada.'
+          : 'Nominal XZ section: Y=0 axis for round parts, Y=depth/2 center for prismatic parts. Not an independently verified B-rep cut.'}</span>}
       <span className="cad-drawing-scope">{isEs
         ? 'Primera fase: vistas nominales de piezas simples. DXF, importación STEP y cortes arbitrarios aún no disponibles.'
         : 'Initial scope: nominal views of simple parts. DXF, STEP import and arbitrary sections are not yet available.'}</span>
