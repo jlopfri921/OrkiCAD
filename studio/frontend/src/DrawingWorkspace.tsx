@@ -35,6 +35,55 @@ type Primitive = {
 const positive = (value: unknown): number | null =>
   typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null
 
+/** Quick user-facing checks. Core remains the source of truth on export. */
+export function explainPrimitiveIssue(part: string, p: Record<string, unknown>, language: Language): string | null {
+  const es = language === 'es'
+  const n = (key: string) => positive(p[key])
+  if (part === 'washer' || part === 'hollow_tube') {
+    const outer = n('outer_diameter')
+    const inner = n('inner_diameter')
+    if (outer !== null && inner !== null && inner >= outer) {
+      return es ? 'El diámetro interior debe ser menor que el exterior.'
+        : 'The inner diameter must be smaller than the outer diameter.'
+    }
+  }
+  if (part === 'circular_plate') {
+    const radius = n('outer_radius')
+    const pitch = n('bolt_circle_radius')
+    const hole = n('hole_diameter')
+    const count = p.hole_count
+    if (radius !== null && pitch !== null && hole !== null && pitch + hole / 2 >= radius) {
+      return es ? 'Los taladros alcanzan o sobrepasan el borde: reduce el radio de distribución o su diámetro.'
+        : 'Holes touch or cross the outer edge: reduce the pitch radius or hole diameter.'
+    }
+    if (pitch !== null && hole !== null && typeof count === 'number' &&
+        Number.isInteger(count) && count >= 2 && hole >= 2 * pitch * Math.sin(Math.PI / count)) {
+      return es ? 'Los taladros se solapan entre sí en la distribución circular.'
+        : 'The holes overlap within the circular pattern.'
+    }
+  }
+  if (part === 'mounting_plate') {
+    const width = n('width')
+    const depth = n('depth')
+    const inset = n('hole_inset')
+    const diameter = n('hole_diameter')
+    if (width !== null && depth !== null && inset !== null && diameter !== null &&
+        (inset <= diameter / 2 || 2 * inset + diameter >= Math.min(width, depth))) {
+      return es ? 'Los taladros salen del contorno o se solapan: revisa el margen y el diámetro.'
+        : 'Hole bores cross the outline or overlap: revise inset and diameter.'
+    }
+  }
+  if (part === 'open_box') {
+    const width = n('width'), depth = n('depth'), height = n('height'), wall = n('wall')
+    if (width !== null && depth !== null && height !== null && wall !== null &&
+        (2 * wall >= width || 2 * wall >= depth || wall >= height)) {
+      return es ? 'La pared es demasiado gruesa para el ancho, fondo o alto de la caja.'
+        : 'Wall thickness is too large for the box width, depth or height.'
+    }
+  }
+  return null
+}
+
 /** Only supported analytic outlines are included. Unknown shapes never turn into boxes. */
 export function describePrimitive(part: string, p: Record<string, unknown>): Primitive | null {
   const number = (field: string) => positive(p[field])
@@ -66,7 +115,8 @@ export function describePrimitive(part: string, p: Record<string, unknown>): Pri
     const count = p.hole_count
     return dims && holeDiameter !== null && boltCircleRadius !== null &&
       typeof count === 'number' && Number.isInteger(count) && count >= 1 &&
-      boltCircleRadius + holeDiameter / 2 < dims.width / 2
+      boltCircleRadius + holeDiameter / 2 < dims.width / 2 &&
+      (count === 1 || holeDiameter < 2 * boltCircleRadius * Math.sin(Math.PI / count))
       ? { ...dims, shape: 'circular_plate', holeDiameter, boltCircleRadius, holeCount: count } : null
   }
   if (part === 'mounting_plate') {
@@ -75,7 +125,7 @@ export function describePrimitive(part: string, p: Record<string, unknown>): Pri
     const holeInset = number('hole_inset')
     return dims && holeDiameter !== null && holeInset !== null &&
       holeInset > holeDiameter / 2 &&
-      2 * holeInset < dims.width && 2 * holeInset < dims.depth
+      2 * holeInset + holeDiameter < dims.width && 2 * holeInset + holeDiameter < dims.depth
       ? { ...dims, shape: 'mounting', holeDiameter, holeInset } : null
   }
   if (part === 'open_box') {
@@ -197,6 +247,7 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
   const [projection, setProjection] = useState<Projection>('top')
   const isEs = language === 'es'
   const primitive = describePrimitive(part, parameters)
+  const issue = explainPrimitiveIssue(part, parameters, language)
   const view = mode === '2d' ? 'top' : projection
   return <div className="cad-workspace-body">
     <header className="cad-workspace-tools">
@@ -223,10 +274,10 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
     <div className="cad-drawing-canvas">
       {primitive ? <ProjectionView primitive={primitive} projection={view}
         dimensions={showDimensions} language={language}/> :
-        <div className="cad-drawing-unsupported">
-          <strong>{isEs ? 'Vista técnica aún no disponible para esta pieza' : 'Technical view not yet available for this part'}</strong>
-          <p>{isEs ? 'Utiliza el espacio CAD 3D. La proyección exacta de sólidos complejos necesitará el motor B-rep y un importador CAD.'
-            : 'Use the 3D CAD workspace. Exact projections of complex solids will require the B-rep engine and CAD import.'}</p>
+        <div className="cad-drawing-unsupported" role="status">
+          <strong>{issue || (isEs ? 'Vista técnica aún no disponible para esta pieza' : 'Technical view not yet available for this part')}</strong>
+          {!issue && <p>{isEs ? 'Utiliza el espacio CAD 3D. La proyección exacta de sólidos complejos necesitará el motor B-rep y un importador CAD.'
+            : 'Use the 3D CAD workspace. Exact projections of complex solids will require the B-rep engine and CAD import.'}</p>}
         </div>}
     </div>
     <div className="cad-drawing-details">
