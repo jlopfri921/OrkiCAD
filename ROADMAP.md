@@ -7,6 +7,12 @@
 
 > This is the canonical long-term product vision. The 140 items below are target capabilities, **not** a statement that all are implemented or guaranteed stable in v1.0.0. Every milestone is evidence-based and has no promised calendar date.
 
+## Further editor requirements — 2026-11-16
+
+**CAD edge / circle selection** (tracked in [issue #13](https://github.com/jlopfri921/orkicad-ai/issues/13)): implement pointer selection of faces, edges and vertices with highlighted real CAD geometry, editable *driving* diameters/radii on recognized inner or outer circles, and verified B-rep fillet/chamfer operations. Do not confuse STL triangle borders with true editable OCCT edges. Make operations reversible, dimensionally validated and share the state across Web/Desktop and 2D/3D/Drawing workspaces. This is planned, not implemented.
+
+**User-specific Studio AI profiles** (tracked in [issue #12](https://github.com/jlopfri921/orkicad-ai/issues/12)): account isolation, private model preferences and safely stored **per-user** AI credentials/usage for Web and optionally Desktop. A local browser choice is not a secure user account. No Studio profile database, secret vault or multiuser UI is required or desired in ComfyUI.
+
 ## 2026-11-16: Agreed integrated delivery plan (current priority)
 
 **Project name: OrkiCAD AI.** The app is OrkiCAD AI Studio. This section supersedes older milestone **priorities**, but does not retroactively certify features or published versions. Track review-branch features as **under review**, not shipped. See [project status](docs/STATUS.md), [versioning](docs/VERSIONING.md), [feature operation design](docs/FEATURE_OPERATIONS_SPEC.md), [photo references](docs/MULTIVIEW_PHOTO_REFERENCES.md) and [depth reconstruction](docs/DEPTH_RECONSTRUCTION_PLAN.md).
