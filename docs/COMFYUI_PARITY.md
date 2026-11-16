@@ -54,3 +54,18 @@ Once Core supports **headless** validated section/profile extraction, a *single*
 5. Update `CHANGELOG.md`, `THIRD_PARTY_NOTICES.md`, and the acceptance evidence matrix when shipping.
 
 The minimal set of **well-tested** nodes is more valuable than dozens of fragile or overlapping nodes.
+
+
+## Studio-only accounts and AI preferences boundary (2026-11-16)
+
+- Collapsible AI settings, saved provider/model preferences, authenticated users, account
+  isolation, local application databases, secure credential vaults and usage billing
+  **belong only to OrkiCAD AI Studio Web/Desktop**.
+- The current per-browser/WebView preference store is **not an authenticated
+  per-user profile** and must never contain API keys.
+- **ComfyUI must not import or depend on Studio user accounts, SQLite/Postgres
+  profile databases, localStorage or private account credentials.** Users select
+  relevant node input/model connections inside ComfyUI workflows only as that
+  host supports, without duplicating the Studio settings UI.
+- Multiuser account design and acceptance are tracked in
+  [issue #12](https://github.com/jlopfri921/orkicad-ai/issues/12).
