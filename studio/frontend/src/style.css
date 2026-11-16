@@ -492,3 +492,11 @@ code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
 .ai-settings-fields{display:flex;flex-direction:column;gap:10px;padding:12px;
   border-top:1px solid #2d4055;min-width:0}
 .ai-settings-note{font-size:11px;line-height:1.5;color:#99afbf;margin:0}
+
+/* Real OCCT XZ section viewer; source quality must remain visible to users. */
+.cad-brep-section{display:flex;flex-direction:column;min-width:0;width:100%;align-items:stretch}
+.cad-brep-section .cad-drawing-svg{display:block;width:100%;height:auto}
+.cad-brep-source,.cad-brep-warning{font-size:11px;line-height:1.5;
+  margin:6px 14px 12px;padding:8px 10px;border-radius:6px;overflow-wrap:anywhere}
+.cad-brep-source{color:#98e8dc;background:#153c42;border:1px solid #326b68}
+.cad-brep-warning{color:#edd1a1;background:#322c23;border:1px solid #66513a}

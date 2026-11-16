@@ -76,6 +76,38 @@ class StudioServerTests(unittest.TestCase):
             self.assertEqual(status, 403)
             self.assertIn("error", result)
 
+    def test_native_occt_section_route_validates_and_is_explicitly_source_labeled(self):
+        spec = {
+            "type": "circular_plate", "outer_radius": 50, "thickness": 4,
+            "hole_count": 5, "hole_diameter": 3, "bolt_circle_radius": 20,
+        }
+        expected = {
+            "source": "occt-brep", "units": "mm",
+            "plane": {"name": "XZ", "origin_mm": [0, 0, 0], "normal": [0, 1, 0]},
+            "segments": [[[-50, 0], [-50, 4]], [[50, 0], [50, 4]]],
+        }
+        headers = {"Content-Type": "application/json", "X-OrkiCAD-Client": "studio"}
+        with patch("orkicad_core.studio_server.render_occt_section",
+                   return_value=expected) as sectioner:
+            status, data = self.request(
+                "POST", "/api/occt/section", json.dumps(spec), headers)
+            self.assertEqual(status, 200)
+            self.assertEqual(data, expected)
+            sectioner.assert_called_once()
+
+        invalid = dict(spec, bolt_circle_radius=90)
+        with patch("orkicad_core.studio_server.render_occt_section") as sectioner:
+            status, data = self.request(
+                "POST", "/api/occt/section", json.dumps(invalid), headers)
+            self.assertEqual(status, 400)
+            self.assertIn("error", data)
+            sectioner.assert_not_called()
+
+        status, data = self.request(
+            "POST", "/api/occt/section", json.dumps(spec),
+            {"Content-Type": "application/json"})
+        self.assertEqual(status, 403)
+
     def test_generate_valid_washer(self):
         body = json.dumps({
             "type": "washer", "outer_diameter": 18,

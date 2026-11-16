@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from .geometry import generate_scad
 from .stl_render import RenderError, render_stl, render_mesh
 from .occt_step import OCCTExportError, render_occt_step
+from .occt_section import render_occt_section
 from .parts_catalog import validated_spec
 from .project_document import validate_project_document
 from .parts_catalog import catalog_public, CATALOG_VERSION
@@ -32,7 +33,7 @@ class StudioHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self._check_private_token():
             return
-        if self.path not in ("/api/scad", "/api/stl", "/api/3mf", "/api/step", "/api/interpret", "/api/document/validate"):
+        if self.path not in ("/api/scad", "/api/stl", "/api/3mf", "/api/step", "/api/interpret", "/api/document/validate", "/api/occt/section"):
             self.send_error(404)
             return
         if self.headers.get("X-OrkiCAD-Client") != "studio":
@@ -50,6 +51,8 @@ class StudioHandler(BaseHTTPRequestHandler):
             spec = json.loads(self.rfile.read(size))
             if self.path == "/api/document/validate":
                 project = validate_project_document(spec)
+            elif self.path == "/api/occt/section":
+                section = render_occt_section(validated_spec(spec))
             elif self.path == "/api/scad":
                 scad = generate_scad(validated_spec(spec))
             elif self.path == "/api/stl":
@@ -87,6 +90,8 @@ class StudioHandler(BaseHTTPRequestHandler):
             return
         if self.path == "/api/document/validate":
             self._json(200, {"project": project})
+        elif self.path == "/api/occt/section":
+            self._json(200, section)
         elif self.path == "/api/interpret":
             self._json(200, {"spec": proposal, "review_required": True,
                              "message": "Review ALL dimensions and assumptions before generating."})

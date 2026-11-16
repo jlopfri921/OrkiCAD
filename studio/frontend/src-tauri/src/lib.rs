@@ -50,6 +50,7 @@ const ALLOWED_ROUTES: &[&str] = &[
     "/api/step",
     "/api/interpret",
     "/api/document/validate",
+    "/api/occt/section",
 ];
 
 #[tauri::command]

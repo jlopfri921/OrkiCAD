@@ -5,6 +5,7 @@
  * NOMINAL schema values, never measurements of an imported mesh/STEP solid.
  */
 import { useState } from 'react'
+import BrepSectionView from './BrepSectionView'
 import type { Language } from './i18n'
 
 type Mode = '2d' | 'drawings'
@@ -449,8 +450,17 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
         </button>)}
     </div>}
     <div className="cad-drawing-canvas">
-      {primitive ? <ProjectionView primitive={primitive} projection={view}
-        dimensions={showDimensions} language={language}/> :
+      {primitive
+        ? mode === 'drawings' && view === 'section' &&
+          (part === 'circular_plate' || part === 'washer' ||
+           part === 'hollow_tube' || part === 'solid_shaft')
+          ? <BrepSectionView key={part + JSON.stringify(parameters)}
+              part={part} parameters={parameters} language={language}
+              fallback={<ProjectionView primitive={primitive} projection={view}
+                dimensions={showDimensions} language={language}/>}/>
+          : <ProjectionView primitive={primitive} projection={view}
+              dimensions={showDimensions} language={language}/>
+        :
         <div className="cad-drawing-unsupported" role="status">
           <strong>{issue || (isEs ? 'Vista técnica aún no disponible para esta pieza' : 'Technical view not yet available for this part')}</strong>
           {!issue && <p>{isEs ? 'Esta familia todavía no tiene proyección técnica nominal. La futura proyección OCCT B-rep permitirá representar sus contornos, taladros y líneas ocultas sin inventar geometría.'
