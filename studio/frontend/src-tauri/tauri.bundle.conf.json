@@ -1,0 +1,14 @@
+{
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "resources": {
+      "resources/orkicad-runtime/orkicad-worker.exe": "orkicad-runtime/orkicad-worker.exe"
+    },
+    "icon": [
+      "icons/icon.ico"
+    ]
+  }
+}
