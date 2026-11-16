@@ -6,8 +6,10 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ### First native project document slice — 2026-11-16
 
+- Adopted **`.okad`** as the official OrkiCAD AI project extension, retaining JSON inside and legacy `.orkicad.json` import support.
+
 - Added `orkicad.project/1` strictly validated, versioned, single-part project format with persistent document and part IDs, canonical mm units, stable origin and revision number.
-- Added project **Open / Save** controls in the shared Web and Tauri interface with `.orkicad.json` export, compact editable project name, Core validation on load/save, and complete 3D regeneration after opening.
+- Added project **Open / Save** controls in the shared Web and Tauri interface with `.okad` export, compact editable project name, Core validation on load/save, and complete 3D regeneration after opening.
 - Native document loading refuses unsupported fields, geometry, unknown schemas or inconsistent dimensions instead of silently discarding information. Multi-part assemblies, actual 2D sketch documents and external STEP/STL import remain future work.
 - Added Python source-level and runtime validation tests, documentation and shared private Tauri API route. Implementation in PR #9, subject to CI and Windows acceptance.
 
