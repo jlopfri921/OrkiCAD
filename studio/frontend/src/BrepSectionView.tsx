@@ -41,7 +41,7 @@ function parseSection(value: unknown): SectionResponse {
       }
     }
   }
-  return response as SectionResponse
+  return response as unknown as SectionResponse
 }
 
 export default function BrepSectionView({
