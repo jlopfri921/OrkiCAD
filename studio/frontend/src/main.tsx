@@ -13,6 +13,7 @@ import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from '.
 import { fieldForSelectedFace, faceAxisLabel, type FaceSelection } from './selection'
 import FeatureOperationsEditor, { type Feature } from './FeatureOperationsEditor'
 import { initialLanguage, messages, type Language } from './i18n'
+import { readAIPreferences, writeAIPreferences, type AIProvider } from './aiPreferences'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
 
 type PartType = 'bevel_gear_straight' | 'solid_shaft' | 'hollow_tube' | 'angle_bracket' | 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model' | 'circular_plate'
@@ -78,7 +79,6 @@ const SCREW_OPTION_LABELS: Record<string, { es: string; en: string }> = {
   t40: { es: 'Torx T40', en: 'Torx T40' },
 }
 type ParamValue = number | string | Feature[]
-type AIProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini'
 type Definition = { label: string; params: Record<string, ParamValue> }
 const catalog: Record<PartType, Definition> = {
   bevel_gear_straight: { label: 'Straight bevel gear', params: { module: 2, teeth: 20, mate_teeth: 20, shaft_angle: 90, face_width: 8, pressure_angle: 20, bore_diameter: 8, backlash: 0.1 } },
@@ -115,13 +115,23 @@ function App() {
   const [catalogSearch, setCatalogSearch] = useState('')
   const [catalogData, setCatalogData] = useState<Record<string, { fields: { key: string; default: ParamValue; options?: string[] }[] }> | null>(null)
   const [prompt, setPrompt] = useState('')
-  const [aiModel, setAiModel] = useState('')
-  const [aiProvider, setAiProvider] = useState<AIProvider>('ollama')
+  const [storedAiPreferences] = useState(readAIPreferences)
+  const modelsByProvider = useRef({ ...storedAiPreferences.models })
+  const [aiProvider, setAiProvider] = useState<AIProvider>(storedAiPreferences.provider)
+  const [aiModel, setAiModel] = useState(storedAiPreferences.models[storedAiPreferences.provider] || '')
+  const aiProviderRef = useRef<AIProvider>(storedAiPreferences.provider)
   const [apiKey, setApiKey] = useState('')
   const [ollamaModels, setOllamaModels] = useState<string[]>([])
   const [modelsError, setModelsError] = useState('')
   const [aiNote, setAiNote] = useState('')
   const [providerInfo, setProviderInfo] = useState('')
+  // Non-secret choices persist within this browser/WebView profile only.
+  // Accounts, database profiles and per-user keys are a separate Studio task.
+  useEffect(() => {
+    aiProviderRef.current = aiProvider
+    modelsByProvider.current[aiProvider] = aiModel
+    writeAIPreferences({ provider: aiProvider, models: modelsByProvider.current })
+  }, [aiProvider, aiModel])
   const [params, setParams] = useState<Record<string, ParamValue>>(catalog.washer.params)
   const [scad, setScad] = useState('')
   const [stl, setStl] = useState<ArrayBuffer | null>(null)
@@ -176,7 +186,8 @@ function App() {
     apiFetch('/api/providers').then(r => r.json()).then(body => {
       const selected = body.providers?.[0]
       if (selected) {
-        setAiModel(selected.model || '')
+        setAiModel(current => aiProviderRef.current === 'ollama' && !current
+          ? (selected.model || '') : current)
         setProviderInfo(selected.endpoint || '')
       }
     }).catch(() => {})
@@ -192,7 +203,9 @@ function App() {
         ? body.models.filter((name: unknown): name is string => typeof name === 'string')
         : []
       setOllamaModels(names)
-      if (names.length) setAiModel(old => old && names.includes(old) ? old : names[0])
+      if (names.length && aiProviderRef.current === 'ollama') {
+        setAiModel(old => old || names[0])
+      }
       else setModelsError(language === 'es'
         ? 'No se han encontrado modelos instalados en el servidor Ollama activo.'
         : 'No installed models were found on the active Ollama server.')
@@ -627,12 +640,22 @@ function App() {
             maxLength={2000} onChange={e => setPrompt(e.target.value)} />
           <div className="text-counter">{prompt.length} / 2000</div>
           <PromptGuide language={language} onInsert={value => { setPrompt(value); setAiNote(''); setError(''); setReviewApproved(false) }} />
-          <div className="sidebar-section-title"><span>◉</span> {ui.settings}</div>
-          <label htmlFor="ai-provider">{t.aiProvider}</label>
+          <details className="ai-settings-accordion">
+            <summary className="ai-settings-summary">
+              <span className="ai-settings-heading"><span aria-hidden="true">◉</span> {ui.settings}</span>
+              <span className="ai-settings-provider-label">{aiProvider === 'ollama' ? 'Ollama' : aiProvider}</span>
+              <span aria-hidden="true" className="ai-settings-chevron">⌄</span>
+            </summary>
+            <div className="ai-settings-fields">
+              <p className="ai-settings-note">{language === 'es'
+                ? 'Se recuerdan el proveedor y el modelo en este perfil del navegador o de la aplicación. Las claves API nunca se guardan aquí.'
+                : 'Provider and model are remembered in this browser/app profile. API keys are never saved here.'}</p>
+              <label htmlFor="ai-provider">{t.aiProvider}</label>
           <select id="ai-provider" value={aiProvider} onChange={e => {
             const selected = e.target.value as AIProvider
             setAiProvider(selected)
-            setAiModel(selected === 'ollama' ? (ollamaModels[0] || '') : '')
+            aiProviderRef.current = selected
+            setAiModel(modelsByProvider.current[selected] || (selected === 'ollama' ? (ollamaModels[0] || '') : ''))
             setApiKey('')
             setAiNote('')
             setReviewApproved(false)
@@ -671,6 +694,8 @@ function App() {
               placeholder={t.apiKeyPlaceholder} onChange={e => setApiKey(e.target.value)} />
             <p className="muted-note">{t.cloudSecurityNotice}</p>
           </>}
+            </div>
+          </details>
           <button className="action-primary propose-button"
             disabled={working || prompt.trim().length < 3 || !aiModel.trim() || (aiProvider !== 'ollama' && apiKey.trim().length < 8)}
             onClick={interpretPrompt}><span aria-hidden="true">✧</span> {working ? t.working : t.aiInterpret}</button>
