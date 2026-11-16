@@ -36,6 +36,46 @@ class StudioServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(result["status"], "ok")
 
+    def test_native_okad_project_validation_over_http(self):
+        project = {
+            "schema": "orkicad.project/1",
+            "id": "project_http_test",
+            "name": "Placa circular",
+            "units": "mm",
+            "origin_mm": [0, 0, 0],
+            "revision": 1,
+            "active_part_id": "part_plate",
+            "parts": [{"id": "part_plate", "type": "circular_plate",
+                       "parameters": {
+                           "outer_radius": 50, "thickness": 4,
+                           "hole_count": 5, "hole_diameter": 3,
+                           "bolt_circle_radius": 20
+                       }}],
+        }
+        path = "/api/document/validate"
+        client = {"Content-Type": "application/json", "X-OrkiCAD-Client": "studio"}
+        status, result = self.request("POST", path, json.dumps(project), client)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["project"], project)
+
+        # Unknown geometry must fail rather than be silently discarded.
+        with self.subTest("incompatible future schema"):
+            invalid = {**project, "schema": "orkicad.project/99"}
+            status, result = self.request("POST", path, json.dumps(invalid), client)
+            self.assertEqual(status, 400)
+            self.assertIn("error", result)
+        with self.subTest("invalid hole location"):
+            invalid = json.loads(json.dumps(project))
+            invalid["parts"][0]["parameters"]["bolt_circle_radius"] = 90
+            status, result = self.request("POST", path, json.dumps(invalid), client)
+            self.assertEqual(status, 400)
+            self.assertIn("error", result)
+        with self.subTest("missing private app header"):
+            status, result = self.request("POST", path, json.dumps(project),
+                                          {"Content-Type": "application/json"})
+            self.assertEqual(status, 403)
+            self.assertIn("error", result)
+
     def test_generate_valid_washer(self):
         body = json.dumps({
             "type": "washer", "outer_diameter": 18,
