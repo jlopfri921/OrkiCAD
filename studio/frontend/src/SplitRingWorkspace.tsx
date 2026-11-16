@@ -11,6 +11,8 @@ type Props = {
   language: Language
   parameters: Record<string, unknown>
   onChangeParameter: (key: string, value: number) => void
+  showDimensions: boolean
+  onToggleDimensions: (value: boolean) => void
 }
 
 export function annularSectorSvg(outerDiameter: number, innerRadius: number, gapArc: number) {
@@ -46,7 +48,9 @@ export function annularSectorSvg(outerDiameter: number, innerRadius: number, gap
     outerRadius: ro, innerSvgRadius: ri, sweepDegrees: gap * 180 / Math.PI }
 }
 
-export default function SplitRingWorkspace({ mode, language, parameters, onChangeParameter }: Props) {
+export default function SplitRingWorkspace({
+  mode, language, parameters, onChangeParameter, showDimensions, onToggleDimensions,
+}: Props) {
   const [projection, setProjection] = useState<Projection>('top')
   const [selectedEdge, setSelectedEdge] = useState<'outer_diameter' | 'inner_radius' | 'outer_arc_gap' | null>(null)
   const [draft, setDraft] = useState<Record<string, string>>({})
@@ -91,6 +95,11 @@ export default function SplitRingWorkspace({ mode, language, parameters, onChang
           : (es ? 'Planimetría · Anillo abierto' : 'Drawing · Open ring')}</strong>
         <span>{es ? 'Plano XY · Cero absoluto (0,0,0)' : 'XY plane · Absolute datum (0,0,0)'}</span>
       </div>
+      <label className="cad-dimension-toggle">
+        <input type="checkbox" checked={showDimensions}
+          onChange={event => onToggleDimensions(event.target.checked)}/>
+        {es ? 'Mostrar cotas' : 'Show dimensions'}
+      </label>
     </header>
     {mode === 'drawings' && <div className="cad-projection-tabs" role="group">
       {(['top', 'front', 'side', 'section'] as const).map(item =>
@@ -140,12 +149,14 @@ export default function SplitRingWorkspace({ mode, language, parameters, onChang
           </g>)}
           <circle cx="200" cy="139" r="2" fill="#f9d99a"/>
           <text x="12" y="20" fill="#afdacf" fontSize="11">XY · (0,0,0) · mm</text>
-          <text x="200" y="271" fill="#a7e8db" textAnchor="middle" fontSize="11">
-            Ø{diameter} · Ri {innerRadius} · {outerGap} mm {es ? 'de arco exterior' : 'outer arc length'}
-          </text>
-          <text x="380" y="20" textAnchor="end" fill="#f9d99a" fontSize="10">
-            Δθ {geometry.sweepDegrees.toFixed(3)}°
-          </text>
+          {showDimensions && <>
+            <text x="200" y="271" fill="#a7e8db" textAnchor="middle" fontSize="11">
+              Ø{diameter} · Ri {innerRadius} · {outerGap} mm {es ? 'de arco exterior' : 'outer arc length'}
+            </text>
+            <text x="380" y="20" textAnchor="end" fill="#f9d99a" fontSize="10">
+              Δθ {geometry.sweepDegrees.toFixed(3)}°
+            </text>
+          </>}
         </svg> :
         <div className="cad-drawing-unsupported" role="status">
           <strong>{es ? 'Esta vista requiere proyección B-rep' : 'This view requires B-rep projection'}</strong>
