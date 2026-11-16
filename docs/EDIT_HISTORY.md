@@ -7,7 +7,7 @@
 - **Undo / Redo:** two compact actions in the shared Studio Web/Desktop topbar, available in CAD 2D, CAD 3D and technical drawings because all views consume the same live parametric state.
 - **Keyboard:** Ctrl+Z / Ctrl+Y or Ctrl+Shift+Z (Cmd on macOS), only when focus is outside an input, text field, select or contenteditable region; normal typing undo remains the browser's responsibility.
 - **History:** up to 50 committed design snapshots, containing the **part type** and complete editable **parameter set**. Snapshots are deep-copied to avoid later edits mutating earlier versions.
-- **Changes captured:** inspector dimension updates (including related screw-drive adjustments), switching part families, and AI prompt proposals after the service returns a recognized catalog part.
+- **Changes captured:** inspector dimension updates (including related screw-drive adjustments), switching part families, and AI prompt proposals after the service returns a recognized catalog part. Restoring a pending AI proposal via Redo requires human approval again.
 - **Redo branch:** a fresh CAD edit after an undo clears the previously available redo states, as in a conventional CAD editor.
 - **Safety:** undo/redo invalidate pending render requests, remove stale STL from the 3D viewport, clear face selection and regenerate from the restored parameters. Failed render must not make previous geometry appear current.
 - **File opening:** loading an existing validated .okad project resets the session's undo/redo stacks, so changes from a different project cannot accidentally be applied.
