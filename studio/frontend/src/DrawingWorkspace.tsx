@@ -253,7 +253,9 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
     <g stroke="#93e5e2" fill="#29455a" strokeWidth="1.7">
       {isTop && circle
         ? <circle cx={cx} cy={cy} r={rw / 2}/>
-        : <rect x={left} y={top} width={rw} height={rh}/>}
+        : !(cornerPlate && isTop) && !(angleBracket && projection === 'side')
+          ? <rect x={left} y={top} width={rw} height={rh}/>
+          : null}
       {angleBracket && !isTop && projection === 'side' && v.wall &&
         <path d={`M ${left} ${top} L ${left + v.wall * scale} ${top}
           L ${left + v.wall * scale} ${top + rh - v.wall * scale}
