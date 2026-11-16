@@ -46,7 +46,7 @@ class SaveDialogContractTests(unittest.TestCase):
         rust = (FRONT / "src-tauri/src/lib.rs").read_text(encoding="utf-8")
         for expected in (
             "async fn save_export_file(",
-            'matches!(format.as_str(), "stl" | "3mf" | "step" | "scad")',
+            'matches!(format.as_str(), "stl" | "3mf" | "step" | "scad" | "json")',
             'rfd::FileDialog::new()',
             ".set_file_name(&filename)",
             ".save_file()",
