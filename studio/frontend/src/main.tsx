@@ -853,7 +853,7 @@ function App() {
                               ? SCREW_DRIVES_BY_HEAD[String(params.head)] || ['none']
                               : catalogData?.[type]?.fields.find(field => field.key === name)?.options
                                 || CATEGORICAL_OPTIONS[name]).map(option =>
-                              <option key={option} value={option}>{SCREW_OPTION_LABELS[option]?.[language] || option}</option>)}
+                              <option key={option} value={option}>{option === 'hex' ? (name === 'head' ? (language === 'es' ? 'Hexagonal exterior' : 'External hex head') : (language === 'es' ? 'Allen hexagonal interior' : 'Hex socket')) : option === 'none' ? (name === 'head' ? (language === 'es' ? 'Sin cabeza (prisionero)' : 'Headless (set screw)') : (language === 'es' ? 'Sin huella' : 'No drive')) : SCREW_OPTION_LABELS[option]?.[language] || option}</option>)}
                           </select>
                         : <input id={name} type={typeof value === 'number' ? 'number' : 'text'}
                             step={name === 'teeth' || name === 'hole_count' || name === 'diameter' ? '1' : 'any'}
