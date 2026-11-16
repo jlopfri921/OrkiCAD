@@ -6,6 +6,11 @@ from __future__ import annotations
 
 CATALOG_VERSION = "0.7-parametric-families"
 PARTS = {
+    "bevel_gear_straight": {"category": "transmission", "subcategory": "bevel", "fields": {
+        "module": 2, "teeth": 20, "mate_teeth": 20, "shaft_angle": 90,
+        "face_width": 8, "pressure_angle": 20, "bore_diameter": 8,
+        "backlash": 0.1
+    }},
     "solid_shaft": {"category": "shafts", "fields": {"diameter": 12, "length": 80}},
     "hollow_tube": {"category": "pipes", "fields": {"outer_diameter": 30, "inner_diameter": 24, "length": 100}},
     "angle_bracket": {"category": "supports", "fields": {"width": 40, "depth": 50, "height": 35, "thickness": 4}},
@@ -57,6 +62,11 @@ FIELDS = {
     "outer_radius": {"min": 0.1},
     "bolt_circle_radius": {"min": 0.1},
     "hole_count": {"min": 1, "max": 64, "step": 1},
+    "mate_teeth": {"min": 12, "max": 200, "step": 1},
+    "shaft_angle": {"min": 10, "max": 179.9, "units": "deg"},
+    "face_width": {"min": 0.1},
+    "bore_diameter": {"min": 0.1},
+    "backlash": {"min": 0, "max": 20},
     "outer_diameter": {"min": 0.1}, "inner_diameter": {"min": 0.1},
     "width": {"min": 0.1}, "depth": {"min": 0.1},
     "height": {"min": 0.1}, "wall": {"min": 0.1},
@@ -78,7 +88,7 @@ FIELDS = {
 
 def catalog_public():
     return {"version": CATALOG_VERSION, "parts": {
-        key: {"category": desc.get("category", "other"), "fields": [
+        key: {"category": desc.get("category", "other"), **({"subcategory": desc["subcategory"]} if "subcategory" in desc else {}), "fields": [
             {"key": name, "default": value,
              **({"options": OPTIONS[name]} if name in OPTIONS else {}),
              **(FIELDS.get(name, {}))}
