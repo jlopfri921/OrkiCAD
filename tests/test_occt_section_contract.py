@@ -35,6 +35,11 @@ class OCCTSectionContractTests(unittest.TestCase):
         self.assertIn("<BrepSectionView", drawing)
         self.assertIn("fallback={<ProjectionView", drawing)
 
+    def test_windows_verifier_runs_native_section_acceptance(self):
+        verifier = (ROOT / "scripts/verify-studio.ps1").read_text(encoding="utf-8")
+        self.assertIn("test_occt_section_integration.py", verifier)
+        self.assertIn("native B-rep XZ section acceptance", verifier)
+
     def test_external_occt_subprocess_does_not_execute_untrusted_source(self):
         executor = (ROOT / "core/orkicad_core/occt_section.py").read_text(encoding="utf-8")
         self.assertIn("validated_spec(spec)", executor)
