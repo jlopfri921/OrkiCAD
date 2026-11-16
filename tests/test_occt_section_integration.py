@@ -56,8 +56,10 @@ class OCCTSectionIntegrationTests(unittest.TestCase):
 
     def test_unsupported_part_rejected_as_brep_section(self):
         from orkicad_core.occt_section_worker import section_catalog_part
+        # Washer has been supported since the four-family milestone.
+        # A machined block still requires its own genuine B-rep section.
         with self.assertRaisesRegex(ValueError, "circular_plate"):
-            section_catalog_part({"type": "washer"})
+            section_catalog_part({"type": "machined_block"})
 
 
 if __name__ == "__main__":
