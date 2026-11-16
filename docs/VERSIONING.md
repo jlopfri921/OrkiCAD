@@ -31,3 +31,9 @@
 - The Studio menu provides **Acerca de OrkiCAD AI / About OrkiCAD AI**, displaying the build version, project creator, Core technologies, engineering philosophy and current license status.
 - The project has **not chosen a LICENSE yet**. `docs/LICENSING_DECISION.md` compares Apache-2.0 and copyleft alternatives; no legal permission is granted merely by recommending one.
 - ComfyUI releases only source-verified **and runtime-accepted** headless nodes that compose naturally in a workflow. See `docs/COMFYUI_PARITY.md`.
+
+## Code license and dependency audit (2026-11-16)
+
+- The original OrkiCAD AI source is licensed under `Apache-2.0`, subject to merger of PR #5; `LICENSE` and `NOTICE` must accompany source distributions.
+- Separate rights apply to third-party geometry engines, runtimes, models, and official branding; consult `THIRD_PARTY_NOTICES.md`.
+- The roadmap for image/hand-sketch/multi-view technical-plan reconstruction is `docs/RECONSTRUCTION_MULTIVIEW_PLAN.md`. This is not an implemented feature or reason to increment the current `v0.0.1 · DEV` version.
