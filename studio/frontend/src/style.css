@@ -324,7 +324,14 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .parametric-catalog .catalog-no-results{font-size:11px;color:#f0c493;line-height:1.4}
 
 /* OrkiCAD visual identity. Do not stretch the official logo or load remote fonts. */
-.studio-brand-logo{display:block;object-fit:contain;object-position:left center;width:178px;height:48px;max-width:100%;flex:none}
+.studio-brand-logo{
+  display:block;object-fit:contain;object-position:center;
+  box-sizing:border-box;width:178px;height:48px;max-width:100%;flex:none;
+  padding:5px 9px;border-radius:13px;
+  background:linear-gradient(145deg,#183348,#0b1828);
+  border:1px solid #68899a;
+  box-shadow:0 2px 10px #02091488,inset 0 0 0 1px #d4e7f115;
+}
 .brand-version{font:650 10px/1 var(--font-code);letter-spacing:.15px;color:#8da9b9;
   border:1px solid #294459;padding:5px 7px;border-radius:5px;white-space:nowrap}
 .brand-studio{font-family:var(--font-technical);font-size:11px;letter-spacing:2px;margin-left:6px}
