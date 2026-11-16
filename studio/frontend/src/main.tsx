@@ -80,6 +80,10 @@ type ParamValue = number | string | Feature[]
 type AIProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini'
 type Definition = { label: string; params: Record<string, ParamValue> }
 const catalog: Record<PartType, Definition> = {
+  bevel_gear_straight: { label: 'Straight bevel gear', params: { module: 2, teeth: 20, mate_teeth: 20, shaft_angle: 90, face_width: 8, pressure_angle: 20, bore_diameter: 8, backlash: 0.1 } },
+  solid_shaft: { label: 'Solid shaft', params: { diameter: 12, length: 80 } },
+  hollow_tube: { label: 'Hollow tube', params: { outer_diameter: 30, inner_diameter: 24, length: 100 } },
+  angle_bracket: { label: 'Angle bracket', params: { width: 40, depth: 50, height: 35, thickness: 4 } },
   circular_plate: { label: 'Circular plate', params: { outer_radius: 50, thickness: 4, hole_count: 5, hole_diameter: 3, bolt_circle_radius: 20 } },
   washer: { label: 'Washer', params: { outer_diameter: 18, inner_diameter: 6.5, thickness: 2 } },
   mounting_plate: { label: 'Mounting plate', params: { width: 80, depth: 50, thickness: 5, hole_diameter: 5, hole_inset: 10 } },
