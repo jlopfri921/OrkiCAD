@@ -215,8 +215,30 @@ fn start_worker(app: &tauri::App) -> Result<StudioWorker, String> {
     command.env("ORKICAD_STUDIO_PORT", port.to_string());
     command.env("ORKICAD_STUDIO_TOKEN", &token);
     command.stdin(Stdio::null());
-    command.stdout(Stdio::null());
-    command.stderr(Stdio::null());
+    // The development interpreter may contain OCP without an editable
+    // installation of orkicad_core. Add the repository's source package path.
+    if let Some(ref project) = directory {
+        let core = project.join("core");
+        if !core.is_dir() {
+            return Err(format!("CAD Python Core is missing: {}", core.display()));
+        }
+        let mut paths = vec![core];
+        if let Some(previous) = std::env::var_os("PYTHONPATH") {
+            paths.extend(std::env::split_paths(&previous));
+        }
+        let value = std::env::join_paths(paths)
+            .map_err(|_| "Could not configure Python Core module search path")?;
+        command.env("PYTHONPATH", value);
+    }
+    command.stdin(Stdio::null());
+    if cfg!(debug_assertions) {
+        // Show worker Python tracebacks in the developer's terminal.
+        command.stdout(Stdio::inherit());
+        command.stderr(Stdio::inherit());
+    } else {
+        command.stdout(Stdio::null());
+        command.stderr(Stdio::null());
+    }
     if let Some(directory) = directory {
         command.current_dir(directory);
     }
