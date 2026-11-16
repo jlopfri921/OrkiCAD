@@ -4,7 +4,7 @@ All length dimensions are canonical millimetres. The UI may display inches.
 """
 from __future__ import annotations
 
-CATALOG_VERSION = "0.7-parametric-families"
+CATALOG_VERSION = "0.8-open-annular-sector"
 PARTS = {
     "bevel_gear_straight": {"category": "transmission", "subcategory": "bevel", "fields": {
         "module": 2, "teeth": 20, "mate_teeth": 20, "shaft_angle": 90,
