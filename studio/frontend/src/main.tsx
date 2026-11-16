@@ -433,7 +433,7 @@ function App() {
     try {
       const project = await validateProject(JSON.parse(await file.text()))
       const saved = project.parts[0]
-      if (!Object.hasOwn(activeCatalog, saved.type)) {
+      if (!Object.prototype.hasOwnProperty.call(activeCatalog, saved.type)) {
         throw new Error(language === 'es' ? 'Tipo de pieza no disponible en este CAD.'
           : 'Part type is unavailable in this CAD version.')
       }
