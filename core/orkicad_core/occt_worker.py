@@ -30,7 +30,22 @@ def make_shape(spec):
         ).Shape()
 
     kind = spec["type"]
-    if kind == "feature_model":
+    if kind == "solid_shaft":
+        shape = cylinder(spec["diameter"] / 2, spec["length"])
+    elif kind == "hollow_tube":
+        shape = BRepAlgoAPI_Cut(
+            cylinder(spec["outer_diameter"] / 2, spec["length"]),
+            cylinder(spec["inner_diameter"] / 2, spec["length"] + .2, z=-.1)
+        ).Shape()
+    elif kind == "angle_bracket":
+        width, depth, height, thickness = (
+            spec[k] for k in ("width", "depth", "height", "thickness")
+        )
+        shape = BRepAlgoAPI_Fuse(
+            box(width, depth, thickness),
+            box(width, thickness, height)
+        ).Shape()
+    elif kind == "feature_model":
         from OCP.BRepCheck import BRepCheck_Analyzer
         from OCP.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse
         shape = box(spec["width"], spec["depth"], spec["height"])
