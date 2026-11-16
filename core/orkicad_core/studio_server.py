@@ -31,7 +31,7 @@ class StudioHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self._check_private_token():
             return
-        if self.path not in ("/api/scad", "/api/stl", "/api/3mf", "/api/step", "/api/interpret"):
+        if self.path not in ("/api/validate", "/api/scad", "/api/stl", "/api/3mf", "/api/step", "/api/interpret"):
             self.send_error(404)
             return
         if self.headers.get("X-OrkiCAD-Client") != "studio":
@@ -47,7 +47,10 @@ class StudioHandler(BaseHTTPRequestHandler):
             return
         try:
             spec = json.loads(self.rfile.read(size))
-            if self.path == "/api/scad":
+            if self.path == "/api/validate":
+                # Cheap geometry/schema validation: no OpenSCAD process or STL export.
+                validated_spec(spec)
+            elif self.path == "/api/scad":
                 scad = generate_scad(validated_spec(spec))
             elif self.path == "/api/stl":
                 binary = render_stl(validated_spec(spec))
@@ -82,7 +85,9 @@ class StudioHandler(BaseHTTPRequestHandler):
         except (RenderError, OCCTExportError, AIError) as exc:
             self._json(422, {"error": str(exc)})
             return
-        if self.path == "/api/interpret":
+        if self.path == "/api/validate":
+            self._json(200, {"valid": True})
+        elif self.path == "/api/interpret":
             self._json(200, {"spec": proposal, "review_required": True,
                              "message": "Review ALL dimensions and assumptions before generating."})
         elif self.path == "/api/scad":
