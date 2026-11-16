@@ -86,7 +86,7 @@ export async function saveExport(
       handle = await webWindow.showSaveFilePicker({
         suggestedName: filename,
         types: [{
-          description: format.toUpperCase() + ' · OrkiCAD Studio',
+          description: format.toUpperCase() + ' · OrkiCAD AI Studio',
           accept: { [MIME[format]]: ['.' + format] },
         }],
         excludeAcceptAllOption: true,
