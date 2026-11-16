@@ -666,11 +666,11 @@ function App() {
                 ? previewPhase === 'pending' ? 'Preparando cambios…' : 'Actualizando geometría…'
                 : previewPhase === 'pending' ? 'Preparing changes…' : 'Updating geometry…'}
             </div>}
-          {stl && !previewReady && (previewPhase === 'error' || previewPhase === 'idle') &&
+          {stl && !previewReady &&
             <div className="preview-stale" role="status">
               {language === 'es'
-                ? previewPhase === 'error' ? 'Última vista válida · revisa las medidas' : 'Vista anterior · pulsa Actualizar'
-                : previewPhase === 'error' ? 'Last valid view · check dimensions' : 'Previous view · click Update'}
+                ? previewPhase === 'error' ? 'Última vista válida · revisa las medidas' : previewPhase === 'idle' ? 'Vista anterior · pulsa Actualizar' : 'Vista anterior · no corresponde a las cotas nuevas'
+                : previewPhase === 'error' ? 'Last valid view · check dimensions' : previewPhase === 'idle' ? 'Previous view · click Update' : 'Previous view · does not match current dimensions'}
             </div>}
           <div className="viewport-grid" aria-hidden="true"></div>
           {type === 'circular_plate' && showCircularPlan && <div className="circular-plan-overlay">
@@ -698,7 +698,7 @@ function App() {
               <button title={language === 'es' ? 'Alejar' : 'Zoom out'} disabled={!stl} onClick={() => moveCamera('zoom-out')}>−</button>
             </div>
           </div>
-          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} showReferencePlanes={showReferencePlanes} cameraCommand={cameraCommand} />
+          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} selectionEnabled={previewReady} showReferencePlanes={showReferencePlanes} cameraCommand={cameraCommand} />
           {!stl && <div className="viewport-empty" aria-hidden="true">
             <div className="viewport-empty-icon">⬡</div>
             <strong>{ui.empty}</strong><p>{ui.emptyHelp}</p>
@@ -711,14 +711,16 @@ function App() {
             <strong>⊙ (0,0,0)</strong>
           </div>
           <span className="viewport-caption">{stl
-            ? (language === 'es' ? 'Clic: seleccionar cara · Arrastrar: girar · Rueda: zoom' : 'Click: select face · Drag: orbit · Scroll: zoom')
+            ? previewReady
+              ? (language === 'es' ? 'Clic: seleccionar cara · Arrastrar: girar · Rueda: zoom' : 'Click: select face · Drag: orbit · Scroll: zoom')
+              : (language === 'es' ? 'Vista anterior, selección de caras pausada' : 'Previous preview; face selection paused')
             : ui.waiting}</span>
         </div>
         <div className="viewport-foot">
           <div className="current-part">
             <span className="part-icon">⬡</span><div><strong>{t.parts[type]}</strong><small>{ui.scene}</small></div>
           </div>
-          {selectedDimension && typeof params[selectedDimension] === 'number' &&
+          {selectedFace && previewReady && selectedDimension && typeof params[selectedDimension] === 'number' &&
             <div className="face-quick-adjust">
               <label htmlFor="selected-dimension-range">
                 {language === 'es' ? 'Ajuste rápido' : 'Quick adjust'} ·
