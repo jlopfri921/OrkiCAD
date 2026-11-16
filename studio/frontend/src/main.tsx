@@ -646,11 +646,11 @@ function App() {
                 ? previewPhase === 'pending' ? 'Preparando cambios…' : 'Actualizando geometría…'
                 : previewPhase === 'pending' ? 'Preparing changes…' : 'Updating geometry…'}
             </div>}
-          {stl && !previewReady && (previewPhase === 'error' || previewPhase === 'idle') &&
+          {stl && !previewReady &&
             <div className="preview-stale" role="status">
               {language === 'es'
-                ? previewPhase === 'error' ? 'Última vista válida · revisa las medidas' : 'Vista anterior · pulsa Actualizar'
-                : previewPhase === 'error' ? 'Last valid view · check dimensions' : 'Previous view · click Update'}
+                ? previewPhase === 'error' ? 'Última vista válida · revisa las medidas' : previewPhase === 'idle' ? 'Vista anterior · pulsa Actualizar' : 'Vista anterior · regenerando…'
+                : previewPhase === 'error' ? 'Last valid view · check dimensions' : previewPhase === 'idle' ? 'Previous view · click Update' : 'Previous view · regenerating…'}
             </div>}
           <div className="viewport-grid" aria-hidden="true"></div>
           <label className="cad-3d-dimension-toggle">
@@ -693,7 +693,7 @@ function App() {
               <button title={language === 'es' ? 'Alejar' : 'Zoom out'} disabled={!stl} onClick={() => moveCamera('zoom-out')}>−</button>
             </div>
           </div>
-          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} showReferencePlanes={showReferencePlanes} cameraCommand={cameraCommand} />
+          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} selectionEnabled={previewReady} showReferencePlanes={showReferencePlanes} cameraCommand={cameraCommand} />
           {!stl && <div className="viewport-empty" aria-hidden="true">
             <div className="viewport-empty-icon">⬡</div>
             <strong>{ui.empty}</strong><p>{ui.emptyHelp}</p>
@@ -713,7 +713,7 @@ function App() {
           <div className="current-part">
             <span className="part-icon">⬡</span><div><strong>{t.parts[type]}</strong><small>{ui.scene}</small></div>
           </div>
-          {selectedDimension && typeof params[selectedDimension] === 'number' &&
+          {selectedFace && previewReady && selectedDimension && typeof params[selectedDimension] === 'number' &&
             <div className="face-quick-adjust">
               <label htmlFor="selected-dimension-range">
                 {language === 'es' ? 'Ajuste rápido' : 'Quick adjust'} ·
