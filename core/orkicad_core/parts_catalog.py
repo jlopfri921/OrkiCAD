@@ -54,7 +54,7 @@ PARTS = {
 OPTIONS = {
     "corner_style": ["round", "chamfer"],
     "head": ["socket", "button", "hex", "pan", "flat", "none"],
-    "drive": ["hex", "torx", "none", "slot", "phillips"],
+    "drive": ["hex","torx","t10","t15","t20","t25","t30","t40","none","slot","phillips","ph0","ph1","ph2","ph3","ph4"],
     "shape": ["hex", "square"],
 }
 # Each item is UI metadata, not arbitrary CAD source.
