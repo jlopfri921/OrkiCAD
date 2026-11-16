@@ -130,7 +130,7 @@ async fn save_export_file(
     }
     tauri::async_runtime::spawn_blocking(move || {
         let choice = rfd::FileDialog::new()
-            .set_title("Guardar modelo CAD · OrkiCAD Studio")
+            .set_title("Guardar modelo CAD · OrkiCAD AI Studio")
             .set_file_name(&filename)
             .add_filter(format.to_uppercase(), &[format.as_str()])
             .save_file();
@@ -262,5 +262,5 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![studio_request, save_export_file])
         .run(tauri::generate_context!())
-        .expect("OrkiCAD Studio desktop launcher failed");
+        .expect("OrkiCAD AI Studio desktop launcher failed");
 }
