@@ -1,0 +1,16 @@
+OrkiCAD AI
+Copyright 2026 Jorge López Frías and OrkiCAD AI contributors.
+
+The original source code in this repository is licensed under the
+Apache License, Version 2.0; see the accompanying LICENSE file.
+
+The OrkiCAD AI name and official logo are project branding; Apache-2.0
+does not confer trademark rights. See docs/BRANDING.md for logo use.
+
+Third-party engines, libraries, and AI models are subject to their own
+licenses. See THIRD_PARTY_NOTICES.md. In particular, Open CASCADE
+Technology (OCCT) is Copyright (c) 1999–2026 OPEN CASCADE S.A.S.
+and is available under LGPL-2.1 with the OCCT exception.
+
+This NOTICE is for attribution and does not change the terms of the
+Apache License, Version 2.0.
