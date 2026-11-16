@@ -18,7 +18,12 @@ else:
     from occt_worker import make_shape
 
 
-def section_circular_plate(spec: dict) -> dict:
+SECTION_SUPPORTED_TYPES = frozenset({
+    "solid_shaft", "washer", "hollow_tube", "circular_plate",
+})
+
+
+def section_catalog_part(spec: dict) -> dict:
     from OCP.BRepAlgoAPI import BRepAlgoAPI_Section
     from OCP.BRepAdaptor import BRepAdaptor_Curve
     from OCP.GeomAbs import GeomAbs_Line
@@ -27,8 +32,8 @@ def section_circular_plate(spec: dict) -> dict:
     from OCP.TopoDS import TopoDS
     from OCP.gp import gp_Dir, gp_Pln, gp_Pnt
 
-    if spec["type"] != "circular_plate":
-        raise ValueError("OCCT section milestone supports circular_plate only")
+    if spec["type"] not in SECTION_SUPPORTED_TYPES:
+        raise ValueError("OCCT section milestone supports circular_plate, washer, hollow_tube and solid_shaft only")
     solid = make_shape(spec)
     # XZ plane, world Y=0; not a guessed projected silhouette.
     plane = gp_Pln(gp_Pnt(0, 0, 0), gp_Dir(0, 1, 0))
@@ -45,7 +50,7 @@ def section_circular_plate(spec: dict) -> dict:
     explorer = TopExp_Explorer(operation.Shape(), TopAbs_EDGE)
     while explorer.More():
         curve = BRepAdaptor_Curve(downcast(explorer.Current()))
-        # For an extruded circular plate cut by an axial plane, intersected
+        # For these supported cylinders/annular solids cut by their axial plane, intersected
         # surfaces have straight segments. Do not approximate curved B-rep
         # edges as straight lines without explicitly sampling them.
         if curve.GetType() != GeomAbs_Line:
@@ -79,7 +84,7 @@ def main() -> None:
     source = Path(os.environ["ORKICAD_OCCT_SPEC_PATH"])
     output = Path(os.environ["ORKICAD_OCCT_OUT_PATH"])
     spec = json.loads(source.read_text(encoding="utf-8"))
-    result = section_circular_plate(spec)
+    result = section_catalog_part(spec)
     output.write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
     print("ORKICAD_OCCT_SECTION_OK")
 
