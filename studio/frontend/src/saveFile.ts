@@ -1,14 +1,14 @@
 import { invoke } from '@tauri-apps/api/core'
 
-export type ExportFormat = 'stl' | 'scad' | '3mf' | 'step'
+export type ExportFormat = 'stl' | 'scad' | '3mf' | 'step' | 'json'
 
 const MIME: Record<ExportFormat, string> = {
   stl: 'model/stl', scad: 'text/plain', '3mf': 'model/3mf',
-  step: 'application/step',
+  step: 'application/step', json: 'application/json',
 }
 
 export function normalizeExportName(raw: string, format: ExportFormat): string {
-  const name = raw.trim().replace(/\.(stl|scad|3mf|step|stp)$/i, '')
+  const name = raw.trim().replace(/\.(stl|scad|3mf|step|stp|json)$/i, '')
   if (!name || name === '.' || name === '..' || name.length > 100 ||
       /[\\/:*?"<>|\u0000-\u001f]/.test(name) || /[. ]$/.test(name)) {
     throw new Error('Nombre no válido: escribe un nombre de archivo sin rutas.')
