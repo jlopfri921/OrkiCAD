@@ -9,7 +9,8 @@ class SplitRingUIContract(unittest.TestCase):
     def test_shared_studio_routes_circular_opening_to_specialized_sketch(self):
         app = (ROOT / "studio/frontend/src/main.tsx").read_text(encoding="utf-8")
         for token in ("import SplitRingWorkspace", "type === 'split_ring'",
-                      "onChangeParameter={updateParameter}", "setAiNote([t.reviewDimensions"):
+                      "onChangeParameter={updateParameter}", "setAiNote([t.reviewDimensions",
+                      "const localRingIntent =", "!localRingIntent"):
             self.assertIn(token, app)
 
     def test_two_concentric_arcs_and_radial_endpoints_not_rectangular_fallback(self):
