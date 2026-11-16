@@ -310,3 +310,12 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .circular-plan-facts small{font-size:10px;line-height:1.5;color:#a6b7c5}
 @media(max-width:650px){.circular-plan{flex-direction:column;gap:4px;padding:8px}
   .circular-plan svg{width:min(65%,185px)}.circular-plan-facts{gap:3px;text-align:center}}
+
+
+/* Extensible, searchable parametric component catalog. */
+.parametric-catalog{display:grid;gap:6px;align-content:start}
+.parametric-catalog>span{font-size:12px;font-weight:750;color:#c9e2f0}
+.parametric-catalog label{margin:4px 0 0}
+.parametric-catalog input,.parametric-catalog select{width:100%;min-height:35px;padding:7px 9px;font-size:12px}
+.parametric-catalog .catalog-result-count{font-size:10px;color:#8baac0}
+.parametric-catalog .catalog-no-results{font-size:11px;color:#f0c493;line-height:1.4}
