@@ -98,7 +98,8 @@ class OpenRingTests(unittest.TestCase):
         self.assertEqual(missing, ["missing_split_ring_dimensions"])
 
     def test_complete_explicit_dimensions_do_not_add_assumptions(self):
-        full = PROMPT + " El espesor es de 6 mm."
+        full = PROMPT.replace("pieza circular de 40 mm",
+                              "pieza circular de diámetro exterior 40 mm") + " El espesor es de 6 mm."
         spec, assumptions = parse_split_ring(full)
         self.assertEqual(spec["thickness"], 6)
         self.assertEqual(assumptions, [])
