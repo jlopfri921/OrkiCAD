@@ -107,7 +107,7 @@ export default function SplitRingWorkspace({ mode, language, parameters, onChang
         {es ? 'Geometría inválida: el radio interior debe ser menor que el exterior y el arco eliminado debe ser menor que la circunferencia.'
           : 'Invalid geometry: inner radius must be smaller than outer radius and gap must be shorter than the circumference.'}
       </div> : isTop ?
-        <svg className="cad-drawing-svg" viewBox="0 0 400 280" role="img"
+        <svg className="cad-drawing-svg" viewBox="0 0 400 280" role="group"
           aria-label={es ? 'Anillo circular abierto, dos arcos concéntricos y dos cortes radiales' : 'Open annular ring, concentric arcs and radial cuts'}>
           <rect width="400" height="280" fill="#0c1a29"/>
           <g stroke="#54768c" strokeWidth=".7" strokeDasharray="5 5">
