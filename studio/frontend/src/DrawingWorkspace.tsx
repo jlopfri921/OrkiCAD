@@ -269,13 +269,13 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
         const radius = v.cornerSize * scale
         if (v.cornerStyle === 'round') {
           return <path d={`M ${left + radius} ${top} H ${left + rw - radius}
-            Q ${left + rw} ${top} ${left + rw} ${top + radius}
+            A ${radius} ${radius} 0 0 1 ${left + rw} ${top + radius}
             V ${top + rh - radius}
-            Q ${left + rw} ${top + rh} ${left + rw - radius} ${top + rh}
+            A ${radius} ${radius} 0 0 1 ${left + rw - radius} ${top + rh}
             H ${left + radius}
-            Q ${left} ${top + rh} ${left} ${top + rh - radius}
+            A ${radius} ${radius} 0 0 1 ${left} ${top + rh - radius}
             V ${top + radius}
-            Q ${left} ${top} ${left + radius} ${top} Z`}
+            A ${radius} ${radius} 0 0 1 ${left + radius} ${top} Z`}
             stroke="#93e5e2" fill="#29455a" strokeWidth="1.7"/>
         }
         return <path d={`M ${left + radius} ${top} H ${left + rw - radius}
