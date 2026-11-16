@@ -5,6 +5,7 @@ The Python HTTP worker remains free of a mandatory OCCT dependency.
 from __future__ import annotations
 
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -64,4 +65,13 @@ def render_occt_section(
         edges = data.get("segments")
         if not isinstance(edges, list) or not 1 <= len(edges) <= 256:
             raise OCCTExportError("Invalid OCCT section edge collection")
+        for edge in edges:
+            if not isinstance(edge, list) or len(edge) != 2:
+                raise OCCTExportError("Invalid OCCT section edge format")
+            for point in edge:
+                if not isinstance(point, list) or len(point) != 2 or any(
+                    isinstance(v, bool) or not isinstance(v, (int, float))
+                    or not math.isfinite(v) or abs(v) > 10000 for v in point
+                ):
+                    raise OCCTExportError("Invalid OCCT section coordinate")
         return data
