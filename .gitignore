@@ -35,3 +35,6 @@ Thumbs.db
 models/
 outputs/
 output/
+
+# Generated copy of the canonical brand asset (created before Vite build)
+studio/frontend/public/logo_OrkiCAD-AI.png
