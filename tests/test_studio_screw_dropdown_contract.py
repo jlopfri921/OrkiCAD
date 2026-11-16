@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 
 from orkicad_core.mechanical import HEAD_DRIVES
-from orkicad_core.parts_catalog import OPTIONS, PARTS, catalog_public
+from orkicad_core.parts_catalog import OPTIONS, PARTS, catalog_public, validated_spec
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +35,32 @@ class ScrewDropdownContractTests(unittest.TestCase):
             self.assertIn(f"{head}: [", source)
             for drive in drives:
                 self.assertIn(f"'{drive}'", source)
+
+    def test_sized_torx_and_phillips_are_allowlisted(self):
+        from orkicad_core.geometry import generate_scad, ParameterError
+        sizes = ("ph0", "ph1", "ph2", "ph3", "ph4",
+                 "t10", "t15", "t20", "t25", "t30", "t40")
+        for drive in sizes:
+            head = "flat" if drive.startswith("ph") else "socket"
+            spec = {"type": "metric_screw", **PARTS["metric_screw"]["fields"],
+                    "head": head, "drive": drive}
+            with self.subTest(drive=drive):
+                self.assertEqual(validated_spec(spec), spec)
+                self.assertIn(f'drive="{drive}"', generate_scad(spec))
+        with self.assertRaises(ParameterError):
+            validated_spec({"type": "metric_screw", **PARTS["metric_screw"]["fields"],
+                            "drive": "pozidriv"})
+        with self.assertRaises(ParameterError):
+            validated_spec({"type": "metric_screw", **PARTS["metric_screw"]["fields"],
+                            "head": "hex", "drive": "t20"})
+
+    def test_frontend_size_labels_and_compatibility(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        for drive in ("ph0", "ph1", "ph2", "ph3", "ph4",
+                      "t10", "t15", "t20", "t25", "t30", "t40"):
+            self.assertIn(f"{drive}: {{ es:", source)
+            self.assertIn(f"'{drive}'", source)
+        self.assertIn("SCREW_DRIVES_BY_HEAD[String(params.head)]", source)
 
     def test_spanish_ui_distinguishes_head_and_drive(self):
         source = I18N.read_text(encoding="utf-8")
