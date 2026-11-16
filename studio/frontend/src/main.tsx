@@ -265,7 +265,7 @@ function App() {
       setSelectedDimension(null)
       if (nextType === 'circular_plate') setShowReferencePlanes(false)
       setShowCircularPlan(nextType === 'circular_plate')
-      setEditHistory(previous => commitEdit(previous, { type: nextType, params: next }))
+      setEditHistory(previous => commitEdit(previous, { type: nextType, params: next, reviewRequired: true }))
       setScad(''); setPreviewReady(false)
       setReviewApproved(false)
       setAiNote(t.reviewDimensions)
@@ -311,25 +311,28 @@ function App() {
         const compatible = SCREW_DRIVES_BY_HEAD[value] || ['none']
         if (!compatible.includes(String(updated.drive))) updated.drive = compatible[0]
       }
-      return commitEdit(previous, { type: previous.present.type, params: updated })
+      return commitEdit(previous, { type: previous.present.type, params: updated,
+        reviewRequired: previous.present.reviewRequired && !reviewApproved })
     })
     resetPreviewForEdit()
   }
 
   function undoChange() {
     if (working || saveBusy || !editHistory.past.length) return
+    const restored = editHistory.past[editHistory.past.length - 1]
     setEditHistory(previous => undoEdit(previous))
     resetPreviewForEdit(true)
-    setAiNote('')
+    setAiNote(restored.reviewRequired ? t.reviewDimensions : '')
     setReviewApproved(false)
     setError('')
   }
 
   function redoChange() {
     if (working || saveBusy || !editHistory.future.length) return
+    const restored = editHistory.future[0]
     setEditHistory(previous => redoEdit(previous))
     resetPreviewForEdit(true)
-    setAiNote('')
+    setAiNote(restored.reviewRequired ? t.reviewDimensions : '')
     setReviewApproved(false)
     setError('')
   }
