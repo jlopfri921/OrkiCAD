@@ -55,7 +55,7 @@ export const messages = {
       thickness: 'Espesor', width: 'Anchura', depth: 'Profundidad',
       hole_diameter: 'Diámetro del agujero', hole_inset: 'Margen del agujero',
       height: 'Altura', wall: 'Grosor de pared', diameter: 'Diámetro',
-      pitch: 'Paso de rosca', length: 'Longitud', head: 'Cabeza', drive: 'Accionamiento',
+      pitch: 'Paso de rosca', length: 'Longitud', head: 'Tipo de cabeza', drive: 'Huella / accionamiento',
       shape: 'Forma', module: 'Módulo', teeth: 'Dientes',
       shaft_diameter: 'Diámetro del eje', pressure_angle: 'Ángulo de presión',
       box_width: 'Ancho exterior de caja', box_depth: 'Fondo exterior de caja',
