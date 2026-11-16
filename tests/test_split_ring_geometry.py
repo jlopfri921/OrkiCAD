@@ -62,6 +62,26 @@ class OpenRingTests(unittest.TestCase):
         theta = 20 / 20
         self.assertAlmostEqual(math.atan2(outer_start[1], outer_start[0]), theta / 2, places=6)
 
+    def test_examples_in_spanish_and_english_keep_ring_topology(self):
+        examples = (
+            "Crea un anillo circular con diámetro exterior 40 mm, radio interior "
+            "10 mm y un corte completo de 20 mm de longitud sobre el arco exterior, "
+            "delimitado por dos líneas radiales. Espesor de 4 mm. "
+            "No quiero ninguna placa rectangular.",
+            "Create a circular open ring with outer diameter 40 mm, inner radius "
+            "10 mm and a radial sector cut of 20 mm outer arc length, bounded by "
+            "two radial edges. Thickness 4 mm. No rectangular plate.",
+        )
+        for prompt in examples:
+            with self.subTest(prompt=prompt):
+                spec, assumptions = parse_split_ring(prompt)
+                self.assertEqual(spec["type"], "split_ring")
+                self.assertEqual(spec["outer_diameter"], 40)
+                self.assertEqual(spec["inner_radius"], 10)
+                self.assertEqual(spec["outer_arc_gap"], 20)
+                self.assertEqual(spec["thickness"], 4)
+                self.assertFalse(assumptions)
+
     def test_invalid_ring_dimensions_rejected(self):
         base = dict(type="split_ring", outer_diameter=40, inner_radius=10,
                     outer_arc_gap=20, thickness=4)
