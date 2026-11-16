@@ -3,6 +3,7 @@ import appPackage from '../package.json'
 import PromptGuide from './PromptGuide'
 import AboutDialog from './AboutDialog'
 import { newProject, snapshotProject, validateProject } from './projectDocument'
+import { createEditHistory, commitEdit, undoEdit, redoEdit } from './editHistory'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
@@ -110,7 +111,10 @@ function App() {
     newProject('Diseño sin título', 'washer', catalog.washer.params))
   const projectFileInput = useRef<HTMLInputElement>(null)
   const t = messages[language]
-  const [type, setType] = useState<PartType>('washer')
+  const [editHistory, setEditHistory] = useState(() =>
+    createEditHistory<PartType, ParamValue>('washer', catalog.washer.params))
+  const type = editHistory.present.type
+  const params = editHistory.present.params
   const [catalogCategory, setCatalogCategory] = useState('all')
   const [catalogSearch, setCatalogSearch] = useState('')
   const [catalogData, setCatalogData] = useState<Record<string, { fields: { key: string; default: ParamValue; options?: string[] }[] }> | null>(null)
@@ -122,7 +126,6 @@ function App() {
   const [modelsError, setModelsError] = useState('')
   const [aiNote, setAiNote] = useState('')
   const [providerInfo, setProviderInfo] = useState('')
-  const [params, setParams] = useState<Record<string, ParamValue>>(catalog.washer.params)
   const [scad, setScad] = useState('')
   const [stl, setStl] = useState<ArrayBuffer | null>(null)
   const [error, setError] = useState('')
@@ -262,7 +265,8 @@ function App() {
       setSelectedDimension(null)
       if (nextType === 'circular_plate') setShowReferencePlanes(false)
       setShowCircularPlan(nextType === 'circular_plate')
-      setType(nextType); setParams(next); setScad(''); setPreviewReady(false)
+      setEditHistory(previous => commitEdit(previous, { type: nextType, params: next, reviewRequired: true }))
+      setScad(''); setPreviewReady(false)
       setReviewApproved(false)
       setAiNote(t.reviewDimensions)
     } catch (e) {
@@ -290,31 +294,78 @@ function App() {
       })
     }
   }
+  function resetPreviewForEdit(clearMesh = false) {
+    previewSerial.current += 1
+    previewAbort.current?.abort()
+    if (clearMesh) setStl(null)
+    setScad('')
+    setPreviewReady(false)
+    setSelectedFace(null)
+    setSelectedDimension(null)
+  }
+
   function updateParameter(name: string, value: ParamValue) {
-    setParams(previous => {
-      const updated = { ...previous, [name]: value }
-      if (type === 'metric_screw' && name === 'head' && typeof value === 'string') {
+    setEditHistory(previous => {
+      const updated = { ...previous.present.params, [name]: value }
+      if (previous.present.type === 'metric_screw' && name === 'head' && typeof value === 'string') {
         const compatible = SCREW_DRIVES_BY_HEAD[value] || ['none']
         if (!compatible.includes(String(updated.drive))) updated.drive = compatible[0]
       }
-      return updated
+      return commitEdit(previous, { type: previous.present.type, params: updated,
+        reviewRequired: previous.present.reviewRequired && !reviewApproved })
     })
-    setScad('')
-    previewSerial.current += 1
-    setPreviewReady(false)
-    // Once the user approved an AI proposal, subsequent direct edits are
-    // intentional user changes and keep live feedback enabled.
-    setSelectedFace(null)
+    resetPreviewForEdit()
   }
+
+  function undoChange() {
+    if (working || saveBusy || !editHistory.past.length) return
+    const restored = editHistory.past[editHistory.past.length - 1]
+    setEditHistory(previous => undoEdit(previous))
+    resetPreviewForEdit(true)
+    setAiNote(restored.reviewRequired ? t.reviewDimensions : '')
+    setReviewApproved(false)
+    setError('')
+  }
+
+  function redoChange() {
+    if (working || saveBusy || !editHistory.future.length) return
+    const restored = editHistory.future[0]
+    setEditHistory(previous => redoEdit(previous))
+    resetPreviewForEdit(true)
+    setAiNote(restored.reviewRequired ? t.reviewDimensions : '')
+    setReviewApproved(false)
+    setError('')
+  }
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.altKey || (!event.ctrlKey && !event.metaKey)) return
+      const element = event.target
+      if (element instanceof HTMLElement &&
+          (element.isContentEditable ||
+           element.closest('input, textarea, select, [contenteditable="true"]'))) return
+      const key = event.key.toLowerCase()
+      if (key === 'z' && !event.shiftKey && editHistory.past.length) {
+        event.preventDefault()
+        undoChange()
+      } else if ((key === 'y' || (key === 'z' && event.shiftKey)) && editHistory.future.length) {
+        event.preventDefault()
+        redoChange()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [editHistory.past.length, editHistory.future.length, working, saveBusy])
+
   function changeType(next: PartType) {
     setExpandedInspector('size')
-    previewSerial.current += 1
-    // Changing part family changes topology: the last mesh must be cleared.
-    // Keeping it visible made users mistake an old square for their new disk.
-    setStl(null)
+    resetPreviewForEdit(true)
     if (next === 'circular_plate') setShowReferencePlanes(false)
     setShowCircularPlan(next === 'circular_plate')
-    setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setPreviewReady(false); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
+    setEditHistory(previous => commitEdit(previous, { type: next, params: activeCatalog[next].params }))
+    setError('')
+    setReviewApproved(false)
+    setAiNote('')
   }
   async function generate() {
     if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
@@ -447,8 +498,7 @@ function App() {
       previewAbort.current?.abort()
       setProjectName(project.name)
       setProjectDocument(project)
-      setType(saved.type as PartType)
-      setParams(saved.parameters as Record<string, ParamValue>)
+      setEditHistory(createEditHistory(saved.type as PartType, saved.parameters as Record<string, ParamValue>))
       setExpandedInspector('size')
       setStl(null)
       setScad('')
@@ -594,6 +644,18 @@ function App() {
         <button type="button" className="studio-project-action"
           onClick={() => openSave('okad')}>
           {language === 'es' ? 'Guardar proyecto' : 'Save project'}
+        </button>
+        <button type="button" className="studio-history-action"
+          aria-label={language === 'es' ? 'Deshacer cambio CAD' : 'Undo CAD edit'}
+          title={language === 'es' ? 'Deshacer · Ctrl+Z (fuera de campos de texto)' : 'Undo · Ctrl+Z (outside text fields)'}
+          disabled={!editHistory.past.length || working || saveBusy} onClick={undoChange}>
+          ↶ <span>{language === 'es' ? 'Deshacer' : 'Undo'}</span>
+        </button>
+        <button type="button" className="studio-history-action"
+          aria-label={language === 'es' ? 'Rehacer cambio CAD' : 'Redo CAD edit'}
+          title={language === 'es' ? 'Rehacer · Ctrl+Y / Ctrl+Mayús+Z' : 'Redo · Ctrl+Y / Ctrl+Shift+Z'}
+          disabled={!editHistory.future.length || working || saveBusy} onClick={redoChange}>
+          ↷ <span>{language === 'es' ? 'Rehacer' : 'Redo'}</span>
         </button>
         <button type="button" className="studio-about-trigger"
           onClick={() => setAboutOpen(true)}
