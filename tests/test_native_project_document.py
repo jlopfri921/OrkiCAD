@@ -87,6 +87,14 @@ class ProjectDocumentTests(unittest.TestCase):
             self.assertIn("/api/document/validate", source)
         self.assertIn("openProjectFile", main)
         self.assertIn("openSave('okad')", main)
+        self.assertIn('accept=".okad,.orkicad.json,application/json"', main)
+        self.assertIn("if (format === 'okad')", main)
+        saving = (root / "studio/frontend/src/saveFile.ts").read_text(encoding="utf-8")
+        self.assertIn("'okad'", saving)
+        self.assertIn("return name + '.' + format", saving)
+        self.assertIn("application/json", saving)
+        self.assertIn('".okad"', (root / "docs/NATIVE_PROJECT_DOCUMENT.md").read_text(encoding="utf-8").replace("`", '"'))
+
         self.assertIn("snapshotProject(", main)
         self.assertIn("setStl(null)", main)
 
