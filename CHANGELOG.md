@@ -19,6 +19,12 @@ All notable changes will be recorded here, grouped by released version. The proj
 - Parametric components, straight bevel-gear prototype, screw head/drive dropdowns and explicit Torx/Phillips sizes.
 - Geometry parameter validation and regression tests; Windows runtime acceptance remains pending.
 
+### Licensing, reconstruction roadmap and ComfyUI scope (2026-11-16)
+
+- **Apache License 2.0 adopted** for original OrkiCAD AI source code; added the standard root `LICENSE`, `NOTICE`, package metadata, README and third-party attributions. The official logo/name and external engines retain separate rights. Changes remain in **PR #5 until merged**.
+- Added a staged **sketch / DXF technical drawings / multi-photo → validated editable CAD** plan in `docs/RECONSTRUCTION_MULTIVIEW_PLAN.md`; this is a design roadmap, not a working importer or reconstruction model.
+- Confirmed deliberately minimal ComfyUI automation: only tested headless, composable Core functionality becomes nodes. No clone of interactive Web/Desktop features.
+
 ### Changed — project identity
 
 - Official name is **OrkiCAD AI**, with `Studio` as the editor name, not the product name.
