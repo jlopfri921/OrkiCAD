@@ -883,7 +883,8 @@ function App() {
               showDimensions={showDimensions} onToggleDimensions={setShowDimensions}
               onChangeParameter={updateParameter}/>
           : <DrawingWorkspace mode={workspace} part={type} parameters={params} language={language}
-              showDimensions={showDimensions} onToggleDimensions={setShowDimensions} />}
+              showDimensions={showDimensions} onToggleDimensions={setShowDimensions}
+              onChangeParameter={updateParameter} />}
       </section>
 
       <aside className="studio-sidebar properties-sidebar" aria-label={ui.properties}>
