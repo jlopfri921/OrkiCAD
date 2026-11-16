@@ -4,6 +4,7 @@
  */
 import { useState } from 'react'
 import type { Language } from './i18n'
+import { radialRingSketch, type SketchArc } from './sketchEntities'
 
 type Projection = 'top' | 'front' | 'side' | 'section'
 type Props = {
@@ -16,12 +17,13 @@ type Props = {
 }
 
 export function annularSectorSvg(outerDiameter: number, innerRadius: number, gapArc: number) {
-  const outer = outerDiameter / 2
-  if (![outer, innerRadius, gapArc].every(x => Number.isFinite(x) && x > 0) ||
-      innerRadius >= outer || gapArc >= 2 * Math.PI * outer) return null
+  const model = radialRingSketch(outerDiameter, innerRadius, gapArc)
+  if (!model) return null
+  const outside = model.entities.find(entity => entity.id === 'ring-outer-arc') as SketchArc
+  const outer = outside.radius
   const gap = gapArc / outer // radians: s = R theta
-  const start = gap / 2
-  const end = 2 * Math.PI - start
+  const start = outside.startRad
+  const end = outside.endRad
   const longArc = end - start > Math.PI ? 1 : 0
   const factor = 115 / outer
   const ro = outer * factor
