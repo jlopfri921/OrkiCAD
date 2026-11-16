@@ -9,6 +9,9 @@ All notable changes will be recorded here, grouped by released version. The proj
 ### Added — Studio Web / Desktop development (2026-11-16)
 
 - Bilingual prompt example library grouped by difficulty and CAD prompt-writing tips — **PR #5 pending review**.
+- Bilingual **About OrkiCAD AI** dialog with creation/project credits, philosophy, technical stack, version, licensing status and third-party notices — **PR #5 pending review**.
+- Deliberately small ComfyUI integration policy: only verified headless, composable Core operations; interactive CAD editing, drawings and section gizmos remain Web/Desktop — **PR #5 pending review**.
+- `docs/LICENSING_DECISION.md` documents Apache-2.0 as a recommendation, **not an adopted license**, and records the dependency audit required before release.
 - Official OrkiCAD AI branding, technical typography and visible `v0.0.1 · DEV` in header/footer — **PR #5 pending review**.
 - Build-time version check for Python Core, Studio Web and Tauri Desktop — **PR #5 pending review**.
 - First three-workspace CAD 2D / CAD 3D / drawings prototype with nominal dimensions — **PR #6 pending review**.
