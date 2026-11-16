@@ -47,6 +47,11 @@ def parse_split_ring(prompt: str) -> tuple[dict | None, list[str]]:
     )
     if outer_radius is not None:
         outer_diameter = outer_radius * 2
+    diameter_unqualified = (
+        outer_diameter is not None and outer_radius is None and
+        not re.search(r"di[aá]metro\s+(?:exterior|externo|(?:de\s+)?(?:la\s+)?pieza)", s)
+        and not re.search(r"\d+(?:[.,]\d+)?\s*mm\s+(?:de\s+)?di[aá]metro", s)
+    )
     inner_radius = _match(s,
         rf"(?:oquedad|hueco|agujero|círculo|circulo|circunferencia|radio|di[aá]metro)\s+(?:intern[ao]|interior)\s+(?:circular\s+)?(?:de\s+)?{NUM}\s*mm\s+de\s+radio",
         rf"(?:radio\s+interior|radio\s+interno)\s*(?:de\s*)?{NUM}\s*mm",
@@ -65,6 +70,8 @@ def parse_split_ring(prompt: str) -> tuple[dict | None, list[str]]:
         rf"(?:grosor|espesor|thickness)\s*(?:de\s*)?{NUM}\s*mm",
         rf"{NUM}\s*mm\s+de\s+(?:grosor|espesor)")
     assumptions = []
+    if diameter_unqualified:
+        assumptions.append("Se ha interpretado 40 mm como diámetro exterior (no radio). Comprueba esta cota.")
     if thickness is None:
         thickness = 4.0
         assumptions.append("Espesor no indicado: se ha supuesto 4 mm; revísalo antes de generar.")
