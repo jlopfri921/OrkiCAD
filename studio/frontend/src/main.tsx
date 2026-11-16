@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
 import CircularPlatePlan from './CircularPlatePlan'
+import DrawingWorkspace, { describePrimitive } from './DrawingWorkspace'
 import { apiFetch } from './api'
 import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
 import { fieldForSelectedFace, faceAxisLabel, type FaceSelection } from './selection'
@@ -105,6 +106,8 @@ const catalog: Record<PartType, Definition> = {
 
 function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage)
+  const [workspace, setWorkspace] = useState<'2d' | '3d' | 'drawings'>('3d')
+  const [showDimensions, setShowDimensions] = useState(true)
   const [units, setUnits] = useState<UnitSystem>('metric')
   const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
@@ -637,6 +640,16 @@ function App() {
       </aside>
 
       <section className="studio-center" aria-label={ui.viewport}>
+        <nav className="cad-workspace-tabs" aria-label={language === 'es' ? 'Espacios de trabajo CAD' : 'CAD workspaces'}>
+          {(['2d', '3d', 'drawings'] as const).map(next =>
+            <button key={next} type="button" className={workspace === next ? 'active' : ''}
+              aria-current={workspace === next ? 'page' : undefined}
+              onClick={() => setWorkspace(next)}>
+              {next === '2d' ? '▤ CAD 2D' : next === '3d' ? '⬡ CAD 3D'
+                : language === 'es' ? '◫ Planimetría y secciones' : '◫ Drawings & sections'}
+            </button>)}
+        </nav>
+        {workspace === '3d' ? <>
         <div className="viewport-heading">
           <div><div className="section-overline">02 / MODEL</div><h2>{ui.viewport}</h2></div>
           <div className="viewport-badges">
@@ -673,6 +686,21 @@ function App() {
                 : previewPhase === 'error' ? 'Last valid view · check dimensions' : 'Previous view · click Update'}
             </div>}
           <div className="viewport-grid" aria-hidden="true"></div>
+          <label className="cad-3d-dimension-toggle">
+            <input type="checkbox" checked={showDimensions}
+              onChange={event => setShowDimensions(event.target.checked)} />
+            {language === 'es' ? 'Cotas nominales' : 'Nominal dimensions'}
+          </label>
+          {showDimensions && (() => {
+            const primitive = describePrimitive(type, params)
+            return primitive ? <div className="cad-3d-dimension-hud" role="note"
+              aria-label={language === 'es' ? 'Medidas nominales del parámetro, no medición STL' : 'Nominal parameter dimensions, not STL measurement'}>
+              <span>X: {primitive.width.toLocaleString()} mm</span>
+              <span>Y: {primitive.depth.toLocaleString()} mm</span>
+              <span>Z: {primitive.height.toLocaleString()} mm</span>
+              <small>{language === 'es' ? 'Valores del diseño, no medidos del STL' : 'Design values, not measured from STL'}</small>
+            </div> : null
+          })()}
           {type === 'circular_plate' && showCircularPlan && <div className="circular-plan-overlay">
             <CircularPlatePlan outerRadius={Number(params.outer_radius)}
               pitchRadius={Number(params.bolt_circle_radius)}
@@ -770,6 +798,8 @@ function App() {
           <pre>{scad || t.empty}</pre>
           <button className="secondary" disabled={!scad} onClick={download}>{t.downloadSCAD}</button>
         </details>
+        </> : <DrawingWorkspace mode={workspace} part={type} parameters={params} language={language}
+          showDimensions={showDimensions} onToggleDimensions={setShowDimensions} />}
       </section>
 
       <aside className="studio-sidebar properties-sidebar" aria-label={ui.properties}>
