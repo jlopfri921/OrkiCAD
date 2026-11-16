@@ -45,8 +45,9 @@ function parseSection(value: unknown): SectionResponse {
 }
 
 export default function BrepSectionView({
-  parameters, language, fallback,
+  part, parameters, language, fallback,
 }: {
+  part: 'circular_plate' | 'solid_shaft' | 'washer' | 'hollow_tube'
   parameters: Record<string, unknown>
   language: Language
   fallback: ReactNode
@@ -64,7 +65,7 @@ export default function BrepSectionView({
         const response = await apiFetch('/api/occt/section', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
-          body: JSON.stringify({ type: 'circular_plate', ...JSON.parse(specKey) }),
+          body: JSON.stringify({ type: part, ...JSON.parse(specKey) }),
         })
         const body: unknown = await response.json()
         if (!response.ok) {
@@ -81,12 +82,17 @@ export default function BrepSectionView({
       }
     })()
     return () => { sequence.current++ }
-  }, [specKey])
+  }, [specKey, part])
 
   const es = language === 'es'
   const result = state.result
-  const radius = typeof parameters.outer_radius === 'number' ? parameters.outer_radius : 50
-  const thickness = typeof parameters.thickness === 'number' ? parameters.thickness : 4
+  const radius = part === 'circular_plate'
+    ? Number(parameters.outer_radius)
+    : part === 'solid_shaft'
+      ? Number(parameters.diameter) / 2
+      : Number(parameters.outer_diameter) / 2
+  const thickness = (part === 'solid_shaft' || part === 'hollow_tube')
+    ? Number(parameters.length) : Number(parameters.thickness)
   const scale = Math.min(252 / (2 * radius), 154 / thickness)
   const cx = 200
   const cy = 139
