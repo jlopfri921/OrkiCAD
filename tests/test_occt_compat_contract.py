@@ -16,6 +16,12 @@ class OCCTCompatibilityContract(unittest.TestCase):
         self.assertIn('edge = downcast_edge(edges.Current())', worker)
         self.assertNotIn('edge = TopoDS.Edge_s(edges.Current())', worker)
 
+    def test_windows_occt_verifier_avoids_nested_python_quotes(self):
+        root = Path(__file__).resolve().parents[1]
+        powershell = (root / "scripts/verify-studio.ps1").read_text(encoding="utf-8")
+        self.assertIn("& $python -c 'import OCP'", powershell)
+        self.assertNotIn('print("OCCT/OCP Python module available")', powershell)
+
     def test_unavailable_binding_fails_explicitly(self):
         worker = (Path(__file__).resolve().parents[1]
                   / "core/orkicad_core/occt_worker.py").read_text(encoding="utf-8")
