@@ -4,6 +4,15 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Planning — CAD workspaces, photo references, reverse engineering (2026-11-16)
+
+- Consolidated the execution order for common CAD document, CAD 2D editor, B-rep modeling, drawing/sections, import/edit, multi-photo measurements, depth reconstruction and **reverse engineering**.
+- Added design contracts for photo IDs F01…Fnn, markers P/D/C/S, user-confirmed dimensions, plane-specific scale calibration and cross-image feature associations.
+- Defined partial/full-axis revolutions, extrusion, circle-to-rectangle loft and sweep operations with typed inputs, validation and independent measurement gates.
+- Defined inverse-modeling workflows for measured physical parts, STEP B-reps, STL/3MF meshes, dimensioned plans and scans, with original-vs-reconstructed deviation review.
+- All entries above describe **future architecture, not implemented or tested product features**.
+
+
 ### Added
 
 - BOSL2-backed M3–M12 screw/nut and involute spur gear SCAD source generation, validated JSON examples and unit-test source.
