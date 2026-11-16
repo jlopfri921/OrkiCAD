@@ -4,6 +4,18 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Testable Web / Tauri integration snapshot (2026-11-16)
+
+- Consolidated the OrkiCAD AI bilingual prompt library, About dialog, official branding/version, CAD 2D/3D/Planimetry tab shell and nominal drawing previews in a shared source branch.
+- Added stale STL editing guard and explicit on-canvas warning; current geometry selection and export are distinguished from old previews.
+- Added `studio/web_runner.py` and `Start-OrkiCAD-Web.ps1` to run the **built Web app with the Core API on a single localhost port**, no Vite proxy needed.
+- Added `Start-OrkiCAD-Desktop.ps1` for local Tauri development with automatic private Python worker startup.
+- Added an **experimental Windows Tauri installer CI job** that bundles a minimal local Python Core worker via PyInstaller and the approved OrkiCAD AI logo; it **does not bundle OpenSCAD, BOSL2 or OCCT**.
+- Added Web and Desktop GitHub Actions test artifact jobs, source tests, and `docs/TEST_SNAPSHOT.md` with test instructions and dependency limitations. **Actual installer availability requires successful CI**, not just source changes.
+- Integrated three-workspace and advanced roadmap documents; DXF import/edit, real B-rep planimetry and photo-to-CAD reconstruction remain planned and are not advertised as operational.
+
+
+
 **Development build v0.0.1 (2026-11-16)** — OrkiCAD AI source prototype; no published release, installer or Git tag. Version 0.0.1 is synchronized across Python Core, Studio Web and Desktop. Changes below are under development, not claims of completed Windows acceptance.
 
 ### Added — Studio Web / Desktop development (2026-11-16)
