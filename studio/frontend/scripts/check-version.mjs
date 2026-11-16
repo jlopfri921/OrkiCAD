@@ -13,14 +13,17 @@ const readJson = path => JSON.parse(readFileSync(path, 'utf8'))
 const frontendVersion = readJson(resolve(frontend, 'package.json')).version
 const tauri = readJson(resolve(frontend, 'src-tauri', 'tauri.conf.json'))
 const core = readFileSync(resolve(root, 'pyproject.toml'), 'utf8')
+const cargo = readFileSync(resolve(frontend, 'src-tauri', 'Cargo.toml'), 'utf8')
 const changelog = readFileSync(resolve(root, 'CHANGELOG.md'), 'utf8')
 
 const projectBlock = core.match(/\[project\]([\s\S]*?)(?=\n\[|$)/)?.[1] || ''
 const coreVersion = projectBlock.match(/^version\s*=\s*"([^"]+)"/m)?.[1]
-if (!frontendVersion || frontendVersion !== tauri.version || frontendVersion !== coreVersion) {
+const rustBlock = cargo.match(/\[package\]([\s\S]*?)(?=\n\[|$)/)?.[1] || ''
+const rustVersion = rustBlock.match(/^version\s*=\s*"([^"]+)"/m)?.[1]
+if (!frontendVersion || frontendVersion !== tauri.version || frontendVersion !== coreVersion || frontendVersion !== rustVersion) {
   throw new Error(
     'OrkiCAD AI version mismatch: Web=' + frontendVersion +
-    ', Desktop=' + tauri.version + ', Core=' + coreVersion +
+    ', Desktop=' + tauri.version + ', Core=' + coreVersion + ', Rust=' + rustVersion +
     '. Update all version metadata together.'
   )
 }
