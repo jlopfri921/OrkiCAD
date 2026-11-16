@@ -42,13 +42,14 @@ export const messages = {
     wrongSTL: 'El servidor no devolvió un archivo STL',
     emptySTL: 'El archivo STL está vacío o incompleto.',
     parts: {
-      solid_shaft: 'Eje macizo', hollow_tube: 'Tubo hueco', angle_bracket: 'Escuadra en L',
+      bevel_gear_straight: 'Engranaje cónico recto', solid_shaft: 'Eje macizo', hollow_tube: 'Tubo hueco', angle_bracket: 'Escuadra en L',
       circular_plate: 'Placa circular con taladros radiales', washer: 'Arandela', mounting_plate: 'Placa de montaje', open_box: 'Caja abierta',
       metric_screw: 'Tornillo métrico', metric_nut: 'Tuerca métrica', spur_gear: 'Engranaje recto',
       box_lid: 'Tapadera de caja', bottle_cap: 'Tapón de botella',
       corner_plate: 'Placa con esquinas', machined_block: 'Bloque mecanizado', feature_model: 'Modelo por operaciones'
     },
     fields: {
+      mate_teeth: 'Dientes de la pareja', shaft_angle: 'Ángulo entre ejes', face_width: 'Ancho de cara', bore_diameter: 'Diámetro del eje', backlash: 'Juego entre dientes',
       outer_radius: 'Radio exterior', hole_count: 'Número de taladros', bolt_circle_radius: 'Radio de distribución de taladros',
       outer_diameter: 'Diámetro exterior', inner_diameter: 'Diámetro interior',
       thickness: 'Espesor', width: 'Anchura', depth: 'Profundidad',
@@ -109,13 +110,14 @@ export const messages = {
     wrongSTL: 'The server did not return an STL file',
     emptySTL: 'The STL file is empty or incomplete.',
     parts: {
-      solid_shaft: 'Solid shaft', hollow_tube: 'Hollow tube', angle_bracket: 'L-angle bracket',
+      bevel_gear_straight: 'Straight bevel gear', solid_shaft: 'Solid shaft', hollow_tube: 'Hollow tube', angle_bracket: 'L-angle bracket',
       circular_plate: 'Circular plate with radial holes', washer: 'Washer', mounting_plate: 'Mounting plate', open_box: 'Open box',
       metric_screw: 'Metric screw', metric_nut: 'Metric nut', spur_gear: 'Spur gear',
       box_lid: 'Box lid', bottle_cap: 'Bottle cap',
       corner_plate: 'Corner plate', machined_block: 'Machined block', feature_model: 'Feature model'
     },
     fields: {
+      mate_teeth: 'Mating gear teeth', shaft_angle: 'Shaft intersection angle', face_width: 'Face width', bore_diameter: 'Bore diameter', backlash: 'Backlash',
       outer_radius: 'Outer radius', hole_count: 'Hole count', bolt_circle_radius: 'Hole pitch radius',
       outer_diameter: 'Outer diameter', inner_diameter: 'Inner diameter',
       thickness: 'Thickness', width: 'Width', depth: 'Depth',
