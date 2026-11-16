@@ -4,39 +4,42 @@ All length dimensions are canonical millimetres. The UI may display inches.
 """
 from __future__ import annotations
 
-CATALOG_VERSION = "0.6-circular-plate"
+CATALOG_VERSION = "0.7-parametric-families"
 PARTS = {
-    "circular_plate": {"fields": {"outer_radius": 50, "thickness": 4,
+    "solid_shaft": {"category": "shafts", "fields": {"diameter": 12, "length": 80}},
+    "hollow_tube": {"category": "pipes", "fields": {"outer_diameter": 30, "inner_diameter": 24, "length": 100}},
+    "angle_bracket": {"category": "supports", "fields": {"width": 40, "depth": 50, "height": 35, "thickness": 4}},
+    "circular_plate": {"category": "plates", "fields": {"outer_radius": 50, "thickness": 4,
                                     "hole_count": 5, "hole_diameter": 3,
                                     "bolt_circle_radius": 20}},
-    "feature_model": {"fields": {"width": 100, "depth": 60, "height": 12,
+    "feature_model": {"category": "machining", "fields": {"width": 100, "depth": 60, "height": 12,
                                   "operations": [
                                       {"op": "cut", "shape": "box", "position": [26, 15, 6], "size": [48, 30, 6.2]},
                                       {"op": "cut", "shape": "cylinder", "position": [12, 30, -0.1], "radius": 3, "height": 12.2},
                                       {"op": "cut", "shape": "cylinder", "position": [88, 30, -0.1], "radius": 3, "height": 12.2},
                                       {"op": "add", "shape": "cylinder", "position": [50, 50, 11.8], "radius": 7, "height": 8}
                                   ]}},
-    "corner_plate": {"fields": {"width": 90, "depth": 55, "thickness": 6,
+    "corner_plate": {"category": "plates", "fields": {"width": 90, "depth": 55, "thickness": 6,
                                   "corner_style": "round", "corner_size": 5,
                                   "hole_diameter": 6, "hole_inset": 17}},
-    "machined_block": {"fields": {"width": 100, "depth": 60, "height": 15,
+    "machined_block": {"category": "machining", "fields": {"width": 100, "depth": 60, "height": 15,
                                     "hole_diameter": 6, "hole_inset": 12,
                                     "pocket_width": 48, "pocket_depth": 30,
                                     "pocket_cut_depth": 6}},
-    "washer": {"fields": {"outer_diameter": 18, "inner_diameter": 6.5, "thickness": 2}},
-    "mounting_plate": {"fields": {"width": 80, "depth": 50, "thickness": 5,
+    "washer": {"category": "fasteners", "fields": {"outer_diameter": 18, "inner_diameter": 6.5, "thickness": 2}},
+    "mounting_plate": {"category": "plates", "fields": {"width": 80, "depth": 50, "thickness": 5,
                                    "hole_diameter": 5, "hole_inset": 10}},
-    "open_box": {"fields": {"width": 60, "depth": 40, "height": 25, "wall": 2}},
-    "metric_screw": {"fields": {"diameter": 6, "pitch": 1, "length": 30,
+    "open_box": {"category": "enclosures", "fields": {"width": 60, "depth": 40, "height": 25, "wall": 2}},
+    "metric_screw": {"category": "fasteners", "fields": {"diameter": 6, "pitch": 1, "length": 30,
                                 "head": "socket", "drive": "hex"}},
-    "metric_nut": {"fields": {"diameter": 6, "pitch": 1, "shape": "hex",
+    "metric_nut": {"category": "fasteners", "fields": {"diameter": 6, "pitch": 1, "shape": "hex",
                               "thickness": "normal"}},
-    "spur_gear": {"fields": {"module": 2, "teeth": 24, "thickness": 8,
+    "spur_gear": {"category": "transmission", "fields": {"module": 2, "teeth": 24, "thickness": 8,
                              "shaft_diameter": 8, "pressure_angle": 20}},
-    "box_lid": {"fields": {"box_width": 60, "box_depth": 40,
+    "box_lid": {"category": "enclosures", "fields": {"box_width": 60, "box_depth": 40,
                            "box_wall": 2, "thickness": 3, "overhang": 2,
                            "plug_depth": 5, "clearance": 0.3}},
-    "bottle_cap": {"fields": {"neck_outer_diameter": 28,
+    "bottle_cap": {"category": "printing", "fields": {"neck_outer_diameter": 28,
                               "height": 16, "wall": 3, "top_thickness": 3,
                               "pitch": 3, "clearance": 0.4,
                               "thread_depth": 1}},
@@ -75,7 +78,7 @@ FIELDS = {
 
 def catalog_public():
     return {"version": CATALOG_VERSION, "parts": {
-        key: {"fields": [
+        key: {"category": desc.get("category", "other"), "fields": [
             {"key": name, "default": value,
              **({"options": OPTIONS[name]} if name in OPTIONS else {}),
              **(FIELDS.get(name, {}))}
