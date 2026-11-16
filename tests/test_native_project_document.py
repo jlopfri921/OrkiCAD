@@ -86,7 +86,7 @@ class ProjectDocumentTests(unittest.TestCase):
         for source in (studio, rust):
             self.assertIn("/api/document/validate", source)
         self.assertIn("openProjectFile", main)
-        self.assertIn("openSave('json')", main)
+        self.assertIn("openSave('okad')", main)
         self.assertIn("snapshotProject(", main)
         self.assertIn("setStl(null)", main)
 
