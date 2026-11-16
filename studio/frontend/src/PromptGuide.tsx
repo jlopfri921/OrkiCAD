@@ -36,6 +36,14 @@ const EXAMPLES: Example[] = [
     },
   },
   {
+    id: 'split_ring', level: 'intermediate',
+    title: { es: 'Anillo abierto con cortes radiales', en: 'Open ring with radial cuts' },
+    prompt: {
+      es: 'Crea un anillo circular con diámetro exterior 40 mm, radio interior 10 mm y un corte completo de 20 mm de longitud sobre el arco exterior, delimitado por dos líneas radiales. Espesor de 4 mm. No quiero ninguna placa rectangular.',
+      en: 'Create a circular open ring with outer diameter 40 mm, inner radius 10 mm and a radial sector cut of 20 mm outer arc length, bounded by two radial edges. Thickness 4 mm. No rectangular plate.',
+    },
+  },
+  {
     id: 'mount', level: 'intermediate',
     title: { es: 'Placa de montaje con 4 taladros', en: 'Mounting plate with four holes' },
     prompt: {

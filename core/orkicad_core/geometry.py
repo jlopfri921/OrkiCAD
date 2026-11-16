@@ -41,6 +41,36 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
     if kind == "bevel_gear_straight":
         from .bevel_gears import generate_straight_bevel_scad
         return generate_straight_bevel_scad(spec)
+    if kind == "split_ring":
+        outer_diameter = _number(spec, "outer_diameter")
+        inner_radius = _number(spec, "inner_radius")
+        arc_gap = _number(spec, "outer_arc_gap")
+        height = _number(spec, "thickness")
+        radius = outer_diameter / 2
+        if inner_radius >= radius:
+            raise ParameterError("Inner radius must be smaller than outside radius")
+        if arc_gap >= 2 * math.pi * radius:
+            raise ParameterError("Removed arc must be shorter than outer circumference")
+        # Arc length s=R*theta, NOT a 20 mm chord or angular 20 degrees.
+        # All points are on concentric circles; both free ends follow radii.
+        half_angle = arc_gap / (2 * radius)
+        retained_sweep = 2 * math.pi - 2 * half_angle
+        segments = max(96, math.ceil(384 * retained_sweep / (2 * math.pi)))
+        outer_points = [
+            (radius * math.cos(half_angle + retained_sweep * i / segments),
+             radius * math.sin(half_angle + retained_sweep * i / segments))
+            for i in range(segments + 1)
+        ]
+        inner_points = [
+            (inner_radius * math.cos(half_angle + retained_sweep * i / segments),
+             inner_radius * math.sin(half_angle + retained_sweep * i / segments))
+            for i in range(segments, -1, -1)
+        ]
+        points = ",".join(f"[{_fmt(x)},{_fmt(y)}]" for x, y in
+                          outer_points + inner_points)
+        return ("// Open ring: true concentric arcs and radial cut boundaries. Units mm.\n"
+                f"linear_extrude(height={_fmt(height)}) "
+                f"polygon(points=[{points}]);\n")
     if kind == "solid_shaft":
         diameter = _number(spec, "diameter")
         length = _number(spec, "length")

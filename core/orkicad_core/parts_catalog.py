@@ -4,7 +4,7 @@ All length dimensions are canonical millimetres. The UI may display inches.
 """
 from __future__ import annotations
 
-CATALOG_VERSION = "0.7-parametric-families"
+CATALOG_VERSION = "0.8-open-annular-sector"
 PARTS = {
     "bevel_gear_straight": {"category": "transmission", "subcategory": "bevel", "fields": {
         "module": 2, "teeth": 20, "mate_teeth": 20, "shaft_angle": 90,
@@ -14,6 +14,10 @@ PARTS = {
     "solid_shaft": {"category": "shafts", "fields": {"diameter": 12, "length": 80}},
     "hollow_tube": {"category": "pipes", "fields": {"outer_diameter": 30, "inner_diameter": 24, "length": 100}},
     "angle_bracket": {"category": "supports", "fields": {"width": 40, "depth": 50, "height": 35, "thickness": 4}},
+    "split_ring": {"category": "plates", "fields": {
+        "outer_diameter": 40, "inner_radius": 10, "outer_arc_gap": 20,
+        "thickness": 4,
+    }},
     "circular_plate": {"category": "plates", "fields": {"outer_radius": 50, "thickness": 4,
                                     "hole_count": 5, "hole_diameter": 3,
                                     "bolt_circle_radius": 20}},
@@ -68,6 +72,7 @@ FIELDS = {
     "bore_diameter": {"min": 0.1},
     "backlash": {"min": 0, "max": 20},
     "outer_diameter": {"min": 0.1}, "inner_diameter": {"min": 0.1},
+    "inner_radius": {"min": 0.1}, "outer_arc_gap": {"min": 0.1},
     "width": {"min": 0.1}, "depth": {"min": 0.1},
     "height": {"min": 0.1}, "wall": {"min": 0.1},
     "thickness": {"min": 0.1}, "hole_diameter": {"min": 0.1},

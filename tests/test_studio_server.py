@@ -203,6 +203,40 @@ class StudioServerTests(unittest.TestCase):
             self.assertEqual(result["spec"], example)
             local.assert_called_once_with("Diseña una arandela", model="local-coder")
 
+    def test_open_ring_prompt_is_not_replaced_by_rectangle(self):
+        prompt = (
+            "haz una pieza circular de 40 mm y una oquedad interna circular "
+            "de 10 mm de radio. Además debe tener el aro resultante un corte "
+            "completo de 20 mm de distancia en el arco exterior o circunferencia "
+            "exterior y las líneas de corte transversales de la sección son "
+            "radios de la circunferencia."
+        )
+        with patch("orkicad_core.studio_server.interpret") as model:
+            status, data = self.request("POST", "/api/interpret",
+                                        json.dumps({"provider": "ollama", "prompt": prompt}),
+                                        {"Content-Type": "application/json",
+                                         "X-OrkiCAD-Client": "studio"})
+            self.assertEqual(status, 200, data)
+            self.assertEqual(data["spec"]["type"], "split_ring")
+            self.assertEqual(data["spec"]["outer_diameter"], 40)
+            self.assertEqual(data["spec"]["inner_radius"], 10)
+            self.assertEqual(data["spec"]["outer_arc_gap"], 20)
+            self.assertEqual(data["spec"]["thickness"], 4)
+            self.assertTrue(data["review_required"])
+            self.assertTrue(data["assumptions"])
+            model.assert_not_called()
+
+    def test_partial_radial_ring_request_rejects_llm_rectangular_fallback(self):
+        prompt = "Haz un anillo circular con hueco interior y corte radial en el arco"
+        with patch("orkicad_core.studio_server.interpret") as model:
+            status, data = self.request("POST", "/api/interpret",
+                                        json.dumps({"provider": "ollama", "prompt": prompt}),
+                                        {"Content-Type": "application/json",
+                                         "X-OrkiCAD-Client": "studio"})
+            self.assertEqual(status, 400, data)
+            self.assertIn("Open ring", data["error"])
+            model.assert_not_called()
+
     def test_exact_circular_plate_prompt_bypasses_rectangular_ai_templates(self):
         prompt = ("diseña una placa circular y por tanto sin esquinas, no quiero "
                   "una pieza cuadrada, tiene que ser un circulo de 50 mm de radio "

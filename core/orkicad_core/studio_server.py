@@ -14,6 +14,7 @@ from .parts_catalog import catalog_public, CATALOG_VERSION
 from .ai_interpreter import AIError, interpret
 from .cloud_interpreter import interpret_cloud
 from .circular_prompt import parse_explicit_circular_plate
+from .split_ring_prompt import parse_split_ring, requests_radial_ring_cut
 import os
 import secrets
 
@@ -67,7 +68,10 @@ class StudioHandler(BaseHTTPRequestHandler):
                 provider = spec.get("provider", "ollama")
                 # A fully dimensioned simple disk needs no probabilistic
                 # template choice: preserve the user's actual circular shape.
-                exact = parse_explicit_circular_plate(spec.get("prompt", ""))
+                ring_spec, ring_assumptions = parse_split_ring(spec.get("prompt", ""))
+                if requests_radial_ring_cut(spec.get("prompt", "")) and ring_spec is None:
+                    raise ValueError("Open ring: specify exterior diameter, interior radius and outer cut arc length in mm. No rectangle will be substituted.")
+                exact = ring_spec or parse_explicit_circular_plate(spec.get("prompt", ""))
                 if exact is not None:
                     proposal = exact
                 elif provider == "ollama":
@@ -94,7 +98,8 @@ class StudioHandler(BaseHTTPRequestHandler):
             self._json(200, section)
         elif self.path == "/api/interpret":
             self._json(200, {"spec": proposal, "review_required": True,
-                             "message": "Review ALL dimensions and assumptions before generating."})
+                             "message": "Review ALL dimensions and assumptions before generating.",
+                             "assumptions": ring_assumptions if self.path == "/api/interpret" else []})
         elif self.path == "/api/scad":
             self._json(200, {"scad": scad})
         else:

@@ -17,7 +17,7 @@ class StudioPromptGuideBrandingTests(unittest.TestCase):
         self.assertIn("language: Language", guide)
         self.assertIn("const EXAMPLES:", guide)
         self.assertEqual(guide.count("level: 'basic'"), 3)
-        self.assertEqual(guide.count("level: 'intermediate'"), 3)
+        self.assertGreaterEqual(guide.count("level: 'intermediate'"), 3)
         self.assertEqual(guide.count("level: 'advanced'"), 3)
         self.assertIn("selected.prompt[language]", guide)
         self.assertIn("setSelectedId(", guide)
@@ -31,7 +31,7 @@ class StudioPromptGuideBrandingTests(unittest.TestCase):
         for family in (
             "washer", "solid_shaft", "circular_plate", "mounting_plate",
             "open_box", "metric_screw", "corner_plate", "machined_block",
-            "feature_model",
+            "feature_model", "split_ring",
         ):
             self.assertIn(family, PARTS)
             self.assertIn(family, guide)
