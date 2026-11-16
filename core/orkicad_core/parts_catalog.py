@@ -14,6 +14,10 @@ PARTS = {
     "solid_shaft": {"category": "shafts", "fields": {"diameter": 12, "length": 80}},
     "hollow_tube": {"category": "pipes", "fields": {"outer_diameter": 30, "inner_diameter": 24, "length": 100}},
     "angle_bracket": {"category": "supports", "fields": {"width": 40, "depth": 50, "height": 35, "thickness": 4}},
+    "split_ring": {"category": "plates", "fields": {
+        "outer_diameter": 40, "inner_radius": 10, "outer_arc_gap": 20,
+        "thickness": 4,
+    }},
     "circular_plate": {"category": "plates", "fields": {"outer_radius": 50, "thickness": 4,
                                     "hole_count": 5, "hole_diameter": 3,
                                     "bolt_circle_radius": 20}},
