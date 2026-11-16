@@ -10,14 +10,19 @@ from typing import Any, Mapping
 
 # Tested against the BOSL2 API names documented in its wiki (2026-11-15).
 # Geometry still requires verification with the chosen BOSL2 revision.
+# Only BOSL2 screws.scad supported drives. Additional phN/tNN are
+# explicit-size variants; the generic names retain legacy automatic sizing.
+PHILLIPS_SIZES = ("ph0", "ph1", "ph2", "ph3", "ph4")
+TORX_SIZES = ("t10", "t15", "t20", "t25", "t30", "t40")
 HEAD_DRIVES = {
-    "socket": {"hex", "torx"},
-    "button": {"hex", "torx"},
+    "socket": {"hex", "torx", "t10", "t15", "t20", "t25", "t30", "t40"},
+    "button": {"hex", "torx", "t10", "t15", "t20", "t25", "t30", "t40"},
     "hex": {"none"},
-    "pan": {"slot", "phillips"},
-    "flat": {"hex", "slot", "phillips", "torx"},
-    "none": {"none"},
+    "pan": {"slot", "phillips", "ph0", "ph1", "ph2", "ph3", "ph4", "torx", "t10", "t15", "t20", "t25", "t30", "t40"},
+    "flat": {"hex", "torx", "t10", "t15", "t20", "t25", "t30", "t40", "slot", "phillips", "ph0", "ph1", "ph2", "ph3", "ph4"},
+    "none": {"none", "hex", "torx", "t10", "t15", "t20", "t25", "t30", "t40", "slot"},
 }
+
 METRIC_DIAMETERS = (3, 4, 5, 6, 8, 10, 12)
 
 
