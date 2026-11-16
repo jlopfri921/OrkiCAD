@@ -584,9 +584,9 @@ function App() {
   }
   // Only the server validates deterministic topology; this client-side hint
   // keeps geometry-only ring commands usable even if no AI API is configured.
-  const localRingIntent = /\\b(?:anillo|aro|arandela|ring|circular)\\b/i.test(prompt) &&
-    /\\b(?:corte|abierto|abertura|cut|gap|opening)\\b/i.test(prompt) &&
-    /\\b(?:radio|radial|radiales|radios|arco|arc|sector|circunferencia)\\b/i.test(prompt)
+  const localRingIntent = /\b(?:anillo|aro|arandela|ring|circular)\b/i.test(prompt) &&
+    /\b(?:corte|abierto|abertura|cut|gap|opening)\b/i.test(prompt) &&
+    /\b(?:radio|radial|radiales|radios|arco|arc|sector|circunferencia)\b/i.test(prompt)
   const exportBlocked = working || saveBusy || (!!aiNote && !reviewApproved)
   return <div className="studio-shell">
     <header className="studio-topbar">
