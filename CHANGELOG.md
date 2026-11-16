@@ -6,6 +6,8 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ### Stabilization & verification (2026-11-16)
 
+- Fixed Windows OCCT verification script quoting: native Python `import OCP` now runs without nested quotes that PowerShell could strip, and added a regression contract. User's local report passed 171 tests (one optional skip) and production Web build; optional `-VerifyOCCT` check was previously blocked by this script-only syntax error.
+
 - Identified an OCCT/cadquery-ocp binding incompatibility causing actual STEP corner finishing tests to fail: older supported bindings expose `TopoDS.Edge` instead of `TopoDS.Edge_s`. Added a compatibility conversion and source-level regression checks; **native B-rep STEP tests are not yet reverified**.
 - Added a repeatable local Windows verification entry point `scripts/verify-studio.ps1`: Python Core tests, version guard and Web build, with opt-in actual OCCT integration and localhost preview.
 - GitHub Actions provisioner issues may terminate jobs without a runner or any executed steps. CI must be rerun successfully, and Windows GUI acceptance performed, before integrating unverified changes into `main`.
