@@ -72,6 +72,7 @@ FIELDS = {
     "bore_diameter": {"min": 0.1},
     "backlash": {"min": 0, "max": 20},
     "outer_diameter": {"min": 0.1}, "inner_diameter": {"min": 0.1},
+    "inner_radius": {"min": 0.1}, "outer_arc_gap": {"min": 0.1},
     "width": {"min": 0.1}, "depth": {"min": 0.1},
     "height": {"min": 0.1}, "wall": {"min": 0.1},
     "thickness": {"min": 0.1}, "hole_diameter": {"min": 0.1},
