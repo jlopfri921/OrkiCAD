@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import appPackage from '../package.json'
 import PromptGuide from './PromptGuide'
+import AboutDialog from './AboutDialog'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
@@ -94,6 +95,7 @@ const catalog: Record<PartType, Definition> = {
 
 function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [units, setUnits] = useState<UnitSystem>('metric')
   const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
@@ -516,6 +518,12 @@ function App() {
         <span className="document-dot" aria-hidden="true"></span>
       </div>
       <div className="studio-top-actions">
+        <button type="button" className="studio-about-trigger"
+          onClick={() => setAboutOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={language === 'es' ? 'Acerca de OrkiCAD AI' : 'About OrkiCAD AI'}>
+          <span aria-hidden="true">ⓘ</span> {language === 'es' ? 'Acerca de' : 'About'}
+        </button>
         <span className="connection-status"><i></i>{working ? t.working : ui.status}</span>
         <select aria-label={t.language} value={language}
           onChange={e => setLanguage(e.target.value as Language)}>
@@ -839,6 +847,8 @@ function App() {
         </div>
       </aside>
     </main>
+    {aboutOpen && <AboutDialog language={language} version={appPackage.version}
+      onClose={() => setAboutOpen(false)} />}
     {savePending && <div className="save-overlay">
       <section className="save-dialog" role="dialog" aria-modal="true" aria-labelledby="save-dialog-title">
         <div className="section-overline">ORKICAD STUDIO / EXPORT</div>
@@ -874,7 +884,7 @@ function App() {
     <footer className="studio-statusbar">
       <span><span className="status-indicator"></span> {ui.status}</span>
       <span role="status">{saveStatus || 'OrkiCAD Core · STL / 3MF / STEP'}</span>
-      <span className="studio-footer-version">OrkiCAD Studio v{appPackage.version} · {language === 'es' ? 'Desarrollo' : 'Development'}</span>
+      <span className="studio-footer-version">OrkiCAD AI Studio v{appPackage.version} · {language === 'es' ? 'Desarrollo' : 'Development'}</span>
       <span>{units === 'metric' ? 'Metric · mm' : 'Imperial · in'}</span>
     </footer>
   </div>
