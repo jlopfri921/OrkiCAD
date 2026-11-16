@@ -11,6 +11,25 @@ import { initialLanguage, messages, type Language } from './i18n'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
 
 type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model' | 'circular_plate'
+type CatalogCategory = 'plates' | 'fasteners' | 'transmission' | 'shafts' | 'supports' | 'enclosures' | 'printing' | 'pipes' | 'machining'
+const CATEGORY_ORDER: CatalogCategory[] = ['plates', 'fasteners', 'transmission', 'shafts', 'supports', 'enclosures', 'printing', 'pipes', 'machining']
+const CATEGORY_LABELS: Record<CatalogCategory, { es: string; en: string }> = {
+  plates: { es: 'Placas y bridas', en: 'Plates and flanges' },
+  fasteners: { es: 'Tornillería y fijaciones', en: 'Fasteners' },
+  transmission: { es: 'Engranajes y transmisión', en: 'Gears and transmission' },
+  shafts: { es: 'Ejes y casquillos', en: 'Shafts and bushings' },
+  supports: { es: 'Soportes y perfiles', en: 'Supports and profiles' },
+  enclosures: { es: 'Cajas y envolventes', en: 'Boxes and enclosures' },
+  printing: { es: 'Impresión 3D', en: '3D printing' },
+  pipes: { es: 'Tuberías y conexiones', en: 'Pipes and fittings' },
+  machining: { es: 'Mecanizado y operaciones', en: 'Machining and features' }
+}
+const PART_CATEGORY: Record<string, CatalogCategory> = {
+  circular_plate: 'plates', washer: 'fasteners', mounting_plate: 'plates',
+  open_box: 'enclosures', metric_screw: 'fasteners', metric_nut: 'fasteners',
+  spur_gear: 'transmission', box_lid: 'enclosures', bottle_cap: 'printing',
+  corner_plate: 'plates', machined_block: 'machining', feature_model: 'machining'
+}
 type ParamValue = number | string | Feature[]
 type AIProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini'
 type Definition = { label: string; params: Record<string, ParamValue> }
@@ -47,6 +66,8 @@ function App() {
   const [units, setUnits] = useState<UnitSystem>('metric')
   const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
+  const [catalogCategory, setCatalogCategory] = useState('all')
+  const [catalogSearch, setCatalogSearch] = useState('')
   const [catalogData, setCatalogData] = useState<Record<string, { fields: { key: string; default: ParamValue; options?: string[] }[] }> | null>(null)
   const [prompt, setPrompt] = useState('')
   const [aiModel, setAiModel] = useState('')
@@ -144,6 +165,30 @@ function App() {
       ])) as Record<string, Definition>
     : catalog
   const partIds = Object.keys(activeCatalog) as PartType[]
+  const catalogCategoryFor = (id: string): string => {
+    const backendCategory = (catalogData?.[id] as { category?: unknown } | undefined)?.category
+    return typeof backendCategory === 'string' && backendCategory.trim()
+      ? backendCategory.trim() : (PART_CATEGORY[id] || 'other')
+  }
+  const categoryLabel = (category: string): string =>
+    category in CATEGORY_LABELS
+      ? CATEGORY_LABELS[category as CatalogCategory][language]
+      : category === 'other' ? (language === 'es' ? 'Otras piezas' : 'Other parts')
+      : category.replace(/[_-]/g, ' ')
+  const catalogGroups = [...new Set(partIds.map(catalogCategoryFor))]
+    .sort((a, b) => {
+      const ai = CATEGORY_ORDER.indexOf(a as CatalogCategory)
+      const bi = CATEGORY_ORDER.indexOf(b as CatalogCategory)
+      return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || a.localeCompare(b)
+    })
+  const normalizedCatalogSearch = catalogSearch.trim().toLocaleLowerCase(language)
+  const filteredCatalogIds = partIds.filter(id => {
+    const category = catalogCategoryFor(id)
+    const visible = catalogCategory === 'all' || catalogCategory === category
+    const label = (t.parts as Record<string, string>)[id] || activeCatalog[id]?.label || id
+    return visible && (!normalizedCatalogSearch ||
+      [id, label, categoryLabel(category)].some(value => value.toLocaleLowerCase(language).includes(normalizedCatalogSearch)))
+  })
   async function interpretPrompt() {
     setWorking(true); setError(''); setAiNote('')
     try {
@@ -681,12 +726,34 @@ function App() {
           <p>{ui.library}</p>
         </div>
         <div className="sidebar-content">
-          <div className="inspector-compact-header">
-            <span>{language === 'es' ? 'Selección de pieza' : 'Part selection'}</span>
-            <select id="type" aria-label={t.partType} value={type}
-              onChange={e => changeType(e.target.value as PartType)}>
-              {partIds.map(id => <option key={id} value={id}>{t.parts[id]}</option>)}
+          <div className="inspector-compact-header parametric-catalog">
+            <span>{language === 'es' ? 'Catálogo paramétrico' : 'Parametric catalog'}</span>
+            <label htmlFor="catalog-search">{language === 'es' ? 'Buscar piezas o categorías' : 'Search parts or categories'}</label>
+            <input id="catalog-search" type="search" value={catalogSearch}
+              placeholder={language === 'es' ? 'Buscar por nombre…' : 'Search by name…'}
+              onChange={e => setCatalogSearch(e.target.value)} />
+            <label htmlFor="catalog-category">{language === 'es' ? 'Categoría' : 'Category'}</label>
+            <select id="catalog-category" value={catalogCategory}
+              onChange={e => setCatalogCategory(e.target.value)}>
+              <option value="all">{language === 'es' ? 'Todas las categorías' : 'All categories'}</option>
+              {catalogGroups.map(category =>
+                <option key={category} value={category}>{categoryLabel(category)} ({partIds.filter(id => catalogCategoryFor(id) === category).length})</option>)}
             </select>
+            <label htmlFor="type">{t.partType}</label>
+            <select id="type" aria-label={t.partType} value={filteredCatalogIds.includes(type) ? type : ''}
+              onChange={e => { if (e.target.value) changeType(e.target.value as PartType) }}>
+              {!filteredCatalogIds.includes(type) && <option value="">{language === 'es' ? 'Selecciona una pieza' : 'Select a part'}</option>}
+              {catalogGroups.map(category => {
+                const items = filteredCatalogIds.filter(id => catalogCategoryFor(id) === category)
+                return items.length ? <optgroup key={category} label={categoryLabel(category)}>
+                  {items.map(id => <option key={id} value={id}>{(t.parts as Record<string, string>)[id] || activeCatalog[id]?.label || id}</option>)}
+                </optgroup> : null
+              })}
+            </select>
+            <small className="catalog-result-count">{filteredCatalogIds.length} / {partIds.length} {language === 'es' ? 'piezas disponibles' : 'available parts'}</small>
+            {filteredCatalogIds.length === 0 && <small className="catalog-no-results">
+              {language === 'es' ? 'No hay piezas que coincidan con la búsqueda.' : 'No matching parts found.'}
+            </small>}
           </div>
           {aiNote && <label className="review-checkbox"><input type="checkbox"
             checked={reviewApproved} onChange={e => setReviewApproved(e.target.checked)} />
