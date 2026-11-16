@@ -7,6 +7,84 @@
 
 > This is the canonical long-term product vision. The 140 items below are target capabilities, **not** a statement that all are implemented or guaranteed stable in v1.0.0. Every milestone is evidence-based and has no promised calendar date.
 
+## 2026-11-16: Agreed integrated delivery plan (current priority)
+
+**Project name: OrkiCAD AI.** The app is OrkiCAD AI Studio. This section supersedes older milestone **priorities**, but does not retroactively certify features or published versions. Track review-branch features as **under review**, not shipped. See [project status](docs/STATUS.md), [versioning](docs/VERSIONING.md), [feature operation design](docs/FEATURE_OPERATIONS_SPEC.md), [photo references](docs/MULTIVIEW_PHOTO_REFERENCES.md) and [depth reconstruction](docs/DEPTH_RECONSTRUCTION_PLAN.md).
+
+### Product workspaces and common engine
+
+1. **CAD 2D:** real editable vector entities, layer/blocks, constraints, dimension input, local prompt-to-typed commands and DXF import/export.
+2. **CAD 3D:** native/parametric solids, reliable regeneration, STEP/STP as the first exact CAD import; STL/3MF as mesh workflows; SCAD and FCStd using suitably restricted/optional adapters; extrude, revolve, loft, sweep and a persistent feature history.
+3. **Drawings, views and sections:** top/front/side, arbitrary planar cuts, hatching, isometric cutaways, technical templates and automatic associative dimensions from exact geometry.
+
+The three modes share one document, units, absolute coordinates, named sketch planes, selected entities, history, undo/redo, error state and a single **Core** CAD backend. The AI proposes typed operations requiring validation and approval; it never executes arbitrary model-generated Python/SCAD/shell scripts.
+
+### Implementation order — practical vertical slices
+
+| Slice | Main work | Deliverable and acceptance gate | Status |
+| --- | --- | --- | --- |
+| **A0. Stabilize & audit** | Restore/compile latest Web + Desktop, test geometry regeneration, stale model guards, localized invalid-parameter errors, version display and changelog | Same valid part updates after a parameter edit in Web/Desktop; invalid dimensions produce an actionable warning; no stale STL export | Mixed local prototype; follow-up PRs #4/#5 under review |
+| **A1. Shared CAD document** | Versioned IDs for sketches, faces/features, dimensions, source files, coordinate frames, operation history, dependency revisions, undo/redo | Save/reopen a sample, preserve IDs and mm units, reject bad references and conflicting dimensions | Planned |
+| **A2. CAD 2D foundation** | Editable lines, arcs, circles, polyline loops, 2D blocks and dimension constraints; DXF import/export | Simple drawing round-trips to DXF preserving scale, arcs, layers and parametric constraints where representable | Planned; initial nominal SVG preview in PR #6 under review |
+| **A3. Native 3D modeling** | OCCT sketches→extrude (add/cut), axis-angle revolve, loft between profiles (circle→rectangle), sweep along path | Genuine B-rep solid validity, STEP/STL exports, measured dimensions, reproducible invalid-input errors, editable operation history | Planned |
+| **A4. Technical drawings** | B-rep top/front/side projection, hidden lines, section planes/isometric sections, associative measurements | A verified solid produces accurate, nonduplicated dimensions and consistent views; updated solid regenerates drawing | Planned; partial nominal orthographic prototype in PR #6 |
+| **A5. CAD import and edit** | STEP/STP geometric import first, then STL/3MF mesh editing, controlled SCAD/FCStd adapters | Open a real supplied part, apply reviewed operation, save and independently reimport result; preserve source/provenance | Planned |
+| **A6. Dimensioned photo/sketch ingestion** | Number F01…Fnn photos, tag P/D/C/S markers and associate measures to photo and feature; input ruler/two-point calibration; OCR provisional annotations | No ambiguity about which image/element a measurement belongs to; conflicts surfaced; calibration restricted to the correct plane | Design contract documented; implementation pending |
+| **A7. Multiview depth and reconstruction** | Camera/view alignment, relative depth/triangulation where possible, dimensional constraints, feature fitting and reprojection | Known 10 mm thickness overrides monocular estimate; uncertainty labeled; underconstrained solids not claimed as exact STEP | Design contract documented; implementation pending |
+| **A8. Reverse engineering** | Accurate editable CAD reconstruction from measured original parts/STEP/STL/3MF and drawings, analytic feature fitting and deviation reports | Reconstructed geometry is independently dimension-checked against source and user measurements | Planned; dedicated R0–R5 track |\n| **A9. Broader design/assemblies** | Mechanical parts, mates, interferences, parametric linked drawings and sensible AI changes | Interoperable assembly geometry, dependency rebuild and tests | Planned |
+
+Slices can overlap when one **validated Core interface** allows progress in Web/Desktop and a relevant ComfyUI headless adapter, but no UI-only mock shall be represented as a completed CAD feature. Prioritize A0 → A1 → A2/A3 → A4/A5 → A6/A7, with validation at each gate rather than shipping many unverified features.
+
+### Reverse engineering — independent core product capability
+
+The reverse-engineering track recreates **editable, dimensionally validated CAD** from existing physical parts, imported STEP/STP B-reps, STL/3MF meshes, DXF plans, scans and photo sets. It is **not synonymous with image-to-mesh**, and it is not optional ComfyUI functionality.
+
+- **R0:** preserve provenance, calibration, units, stable entity references and measured-vs-estimated dimensions in the shared project.
+- **R1:** import STEP analytic B-reps, classify faces/holes and reconstruct simple editable features. Verify export and round-trip dimensions.
+- **R2:** import STL/3MF, measure/fit planar and cylindrical primitives, report mesh approximation errors and rebuild editable geometry only where supported.
+- **R3:** extend to annotated photos, OCR and 3-view DXF drawings; align source data via F01 and P/D/C/S markers, depth constraints and user review.
+- **R4:** infer a *proposed* feature tree (extrusion, axis-angle revolution, loft, sweep, cut) with explicit verification and manual editing.
+- **R5:** fit inspection, deviations, assemblies and functional redesign.
+- Show side-by-side original/reconstruction, actual dimension checks, unknown areas, deviations and source-linked measurement evidence. Never call a reverse engineered part production-ready solely because it looks similar.
+
+See [dedicated reverse-engineering plan](docs/REVERSE_ENGINEERING_PLAN.md).
+
+### Constrained photo measurements: mandatory UX
+
+- Auto-assign immutable image IDs **F01, F02, F03...**, view labels (planta/alzado/perfil/isométrica) and cross-photo feature identities; user can reorder images without breaking references.
+- User clicks points `P01`, segments `D01`, circles `C01`, faces/planes `S01`; prompts refer to **image + marker + dimension** (e.g. `F02.D03 = 12 mm`).
+- User-supplied confirmed lengths are constraints; OCR readings and depth estimates are **provisional**. Use reference rulers only when their plane and perspective are properly calibrated.
+- The reconstruction engine may use **multiview feature matching and camera poses for depth**, or monocular depth for a rough *hypothesis*. None justifies unlabeled micron/millimeter claims without measurements.
+- All missing, conflicting or inferred values remain visible; inspect the reconstructed silhouette projected onto each original image before approval.
+
+### Modeling operations: mandatory UX
+
+- Extrude named planar sketches using an explicit direction, signed distance and additive/subtractive mode.
+- Revolve a selected profile about **a line defined by a point and axis direction** through an explicit signed angular span (including non-360° rotations).
+- Loft between two or more identified profiles/planes, such as **circle→rectangle**, with controlled correspondences and verified solid validity.
+- Sweep a profile along a chosen path, controlling orientation/twist when the engine supports it.
+- Keep operation order, parameter changes, reference geometry, invalid-operation diagnostics and live preview in the **same saved design**.
+
+### ComfyUI is intentionally small
+
+**Not a third full CAD editor.** Offer only independently useful, **headless, testable** Core actions (e.g. prompt→validated spec→review→STL/STEP, bounded batch variants, an accepted geometry/dimension report). No interactive drawing canvas, arbitrary section gizmos or photo-marker editor as ComfyUI nodes. See [ComfyUI parity policy](docs/COMFYUI_PARITY.md) in the separate PR #5.
+
+### Versioning and current evidence
+
+- **Internal development** `v0.0.1 · DEV` with `CHANGELOG.md` entries under `[Unreleased]`; do not treat PRs or untested source as tagged releases.
+- PR #4: stale mesh safeguards. PR #5: brand/version/license/About/prompt guidance/ComfyUI scope. PR #6: three workspace early preview. Each awaits source compilation and Windows interaction tests before merge.
+- A future `0.1.0-alpha.1` requires an intentional accepted snapshot with Python, frontend, Tauri and (for declared ComfyUI nodes) runtime workflow evidence. Do not increment versions by calendar date or feature count.
+- **Source license:** Apache-2.0 adopted in the integrated development branch (not yet on `main`); third-party CAD engines and branding have separate terms.
+
+### Immediate verification checklist
+
+1. Run Core Python tests and `npm run build` from the selected integrated branch; resolve broken contracts rather than merge overlapping branches blindly.
+2. In Web and Desktop, modify a circular plate hole pattern and a screw drive; verify regeneration, save validity, and clear messages for impossible geometry.
+3. Confirm 2D/3D/drawings tabs share dimensions and language and never fabricate unsupported projections.
+4. Verify accurate version, official logo, About modal and bilingual prompting guide.
+5. Establish versioned shared-document schema and implement a first standalone CAD 2D sketch→OCCT extrusion→dimensioned 2D projection, with real measurements.
+6. Then implement photo identifier/marker/calibration MVP and multi-photo depth only after trustworthy feature correspondence exists.
+
 ## Mission
 
 OrkiCAD AI is a local-first, multilingual **parametric CAD, 2D/3D, AI and manufacturing ecosystem**. Its interfaces share a Python core:
