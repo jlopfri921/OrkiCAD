@@ -12,6 +12,7 @@ type Props = {
   emptyMessage?: string
   onFaceSelect?: (selection: FaceSelection | null) => void
   showReferencePlanes?: boolean
+  selectionEnabled?: boolean
   cameraCommand?: CameraCommand
 }
 
@@ -26,10 +27,16 @@ function principalAxis(normal: THREE.Vector3): PrincipalAxis | null {
  * coplanar triangles as one face when possible. Selection is intentionally
  * not presented as stable OCCT topology/feature identity.
  */
-export default function STLViewer({ data, emptyMessage, onFaceSelect, showReferencePlanes = true, cameraCommand }: Props) {
+export default function STLViewer({ data, emptyMessage, onFaceSelect, showReferencePlanes = true, selectionEnabled = true, cameraCommand }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const onSelect = useRef(onFaceSelect)
   onSelect.current = onFaceSelect
+  const allowSelect = useRef(selectionEnabled)
+  allowSelect.current = selectionEnabled
+  const clearCurrentHighlight = useRef<(() => void) | null>(null)
+  useEffect(() => {
+    if (!selectionEnabled) clearCurrentHighlight.current?.()
+  }, [selectionEnabled])
   const references = useRef<THREE.Group | null>(null)
   const cameraController = useRef<((action: CameraAction) => void) | null>(null)
   const lastCamera = useRef<{ direction: [number, number, number]; distanceRatio: number; target: [number, number, number]; zoom: number } | null>(null)
@@ -208,6 +215,7 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
         highlight = null
       }
     }
+    clearCurrentHighlight.current = clearHighlight
     function showSelectedFace(point: THREE.Vector3, normal: THREE.Vector3, clickedIndex: number) {
       clearHighlight()
       const positions = geometry.getAttribute('position')
@@ -251,6 +259,10 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
       if (event.button === 0) down = { x: event.clientX, y: event.clientY }
     }
     function onPointerUp(event: PointerEvent) {
+      if (!allowSelect.current) {
+        down = null
+        return
+      }
       if (!down || event.button !== 0) return
       const dragged = Math.hypot(event.clientX - down.x, event.clientY - down.y) > 5
       down = null
@@ -306,6 +318,7 @@ export default function STLViewer({ data, emptyMessage, onFaceSelect, showRefere
       renderer.domElement.removeEventListener('pointerdown', onPointerDown)
       renderer.domElement.removeEventListener('pointerup', onPointerUp)
       clearHighlight()
+      clearCurrentHighlight.current = null
       const cameraOffset = camera.position.clone().sub(controls.target)
       lastCamera.current = {
         direction: cameraOffset.clone().normalize().toArray() as [number, number, number],
