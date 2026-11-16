@@ -324,7 +324,14 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .parametric-catalog .catalog-no-results{font-size:11px;color:#f0c493;line-height:1.4}
 
 /* OrkiCAD visual identity. Do not stretch the official logo or load remote fonts. */
-.studio-brand-logo{display:block;object-fit:contain;object-position:left center;width:178px;height:48px;max-width:100%;flex:none}
+.studio-brand-logo{
+  display:block;object-fit:contain;object-position:center;
+  box-sizing:border-box;width:178px;height:48px;max-width:100%;flex:none;
+  padding:5px 9px;border-radius:13px;
+  background:linear-gradient(145deg,#183348,#0b1828);
+  border:1px solid #68899a;
+  box-shadow:0 2px 10px #02091488,inset 0 0 0 1px #d4e7f115;
+}
 .brand-version{font:650 10px/1 var(--font-code);letter-spacing:.15px;color:#8da9b9;
   border:1px solid #294459;padding:5px 7px;border-radius:5px;white-space:nowrap}
 .brand-studio{font-family:var(--font-technical);font-size:11px;letter-spacing:2px;margin-left:6px}
@@ -469,3 +476,19 @@ code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
   .studio-project-action{font-size:10px;padding:6px}
   .studio-project-name{width:110px}
 }
+
+/* IA panel is collapsed by default; it must not consume drawing workspace height. */
+.ai-settings-accordion{min-width:0;margin-top:10px;border:1px solid #2d4055;border-radius:9px;background:#142537}
+.ai-settings-summary{display:flex;align-items:center;gap:8px;cursor:pointer;padding:11px 12px;
+  color:#c5dce9;font-size:12px;font-weight:740;list-style:none}
+.ai-settings-summary::-webkit-details-marker{display:none}
+.ai-settings-summary:focus-visible{outline:2px solid #79d7cd;outline-offset:2px}
+.ai-settings-heading{display:inline-flex;align-items:center;gap:7px;flex:1}
+.ai-settings-heading>span{color:var(--accent)}
+.ai-settings-provider-label{font-size:10px;font-weight:650;color:#8da9bf;
+  overflow:hidden;text-overflow:ellipsis;max-width:100px}
+.ai-settings-chevron{font-size:17px;transition:transform .16s ease}
+.ai-settings-accordion[open] .ai-settings-chevron{transform:rotate(180deg)}
+.ai-settings-fields{display:flex;flex-direction:column;gap:10px;padding:12px;
+  border-top:1px solid #2d4055;min-width:0}
+.ai-settings-note{font-size:11px;line-height:1.5;color:#99afbf;margin:0}
