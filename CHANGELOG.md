@@ -4,6 +4,15 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Extended 2D views and nominal XZ sections (2026-11-16)
+
+- Expanded drawing previews for angle brackets, finished rounded/chamfered corner plates and machined blocks, including holes/pockets and profile outlines where their catalog geometry is known.
+- Replaced several unsupported section notices with **catalog-parameter-derived XZ cross sections** for supported plain and hollow shafts, plates, boxes, brackets and machined blocks, including cavities and bores intersecting the defined section plane.
+- The section plane is explicit (round parts: central axis Y=0; rectangular parts: central Y=depth/2); this remains a **nominal SVG preview** rather than an independently verified OCCT cutting or hidden-line result. Complex profiles, full imported CAD and arbitrary cuts remain future work.
+- Added regression contracts and updated user-facing help instead of fabricating generic rectangular silhouettes.
+
+
+
 ### Studio AI settings, branding and editorial scope (2026-11-16)
 
 - Collapsed the **AI configuration** section by default in the Studio Web/Tauri sidebar; prompt, examples and generation action stay visible.

@@ -19,7 +19,7 @@ type Props = {
 }
 
 type Primitive = {
-  shape: 'rectangle' | 'disk' | 'washer' | 'box' | 'mounting' | 'circular_plate'
+  shape: 'rectangle' | 'disk' | 'washer' | 'box' | 'mounting' | 'circular_plate' | 'angle_bracket' | 'machined_block' | 'corner_plate'
   width: number
   depth: number
   height: number
@@ -30,6 +30,12 @@ type Primitive = {
   boltCircleRadius?: number
   innerWidth?: number
   innerDepth?: number
+  wall?: number
+  cornerSize?: number
+  cornerStyle?: 'round' | 'chamfer'
+  pocketWidth?: number
+  pocketDepth?: number
+  pocketCutDepth?: number
 }
 
 const positive = (value: unknown): number | null =>
@@ -71,6 +77,35 @@ export function explainPrimitiveIssue(part: string, p: Record<string, unknown>, 
         (inset <= diameter / 2 || 2 * inset + diameter >= Math.min(width, depth))) {
       return es ? 'Los taladros salen del contorno o se solapan: revisa el margen y el diámetro.'
         : 'Hole bores cross the outline or overlap: revise inset and diameter.'
+    }
+  }
+  if (part === 'angle_bracket') {
+    const depth = n('depth'), height = n('height'), thickness = n('thickness')
+    if (depth !== null && height !== null && thickness !== null && thickness >= Math.min(depth, height)) {
+      return es ? 'El espesor debe ser menor que las dos alas del angular.'
+        : 'Thickness must be smaller than both bracket legs.'
+    }
+  }
+  if (part === 'corner_plate') {
+    const width = n('width'), depth = n('depth'), corner = n('corner_size')
+    const hole = n('hole_diameter'), inset = n('hole_inset')
+    if (width !== null && depth !== null && corner !== null && hole !== null && inset !== null &&
+        (corner >= Math.min(width, depth) / 2 ||
+         inset <= corner + hole / 2 || inset >= width / 2 || hole >= depth)) {
+      return es ? 'Los redondeos, chaflanes o taladros no caben en la placa.'
+        : 'Corner treatment or holes do not fit inside the plate.'
+    }
+  }
+  if (part === 'machined_block') {
+    const width = n('width'), depth = n('depth'), height = n('height')
+    const pocketW = n('pocket_width'), pocketD = n('pocket_depth'), cut = n('pocket_cut_depth')
+    const hole = n('hole_diameter'), inset = n('hole_inset')
+    if (width !== null && depth !== null && height !== null && pocketW !== null &&
+        pocketD !== null && cut !== null && hole !== null && inset !== null &&
+        (pocketW >= width || pocketD >= depth || cut >= height ||
+         inset <= hole / 2 || inset + hole / 2 >= (width - pocketW) / 2 || hole >= depth)) {
+      return es ? 'La cavidad o los taladros sobrepasan o se solapan con el bloque.'
+        : 'Pocket or holes extend outside or intersect the solid block.'
     }
   }
   if (part === 'open_box') {
@@ -128,6 +163,36 @@ export function describePrimitive(part: string, p: Record<string, unknown>): Pri
       2 * holeInset + holeDiameter < dims.width && 2 * holeInset + holeDiameter < dims.depth
       ? { ...dims, shape: 'mounting', holeDiameter, holeInset } : null
   }
+  if (part === 'angle_bracket') {
+    const dims = size(number('width'), number('depth'), number('height'))
+    const wall = number('thickness')
+    return dims && wall !== null && wall < dims.depth && wall < dims.height
+      ? { ...dims, shape: 'angle_bracket', wall } : null
+  }
+  if (part === 'corner_plate') {
+    const dims = size(number('width'), number('depth'), number('thickness'))
+    const cornerSize = number('corner_size'), holeDiameter = number('hole_diameter')
+    const holeInset = number('hole_inset'), cornerStyle = p.corner_style
+    return dims && cornerSize !== null && holeDiameter !== null && holeInset !== null &&
+      (cornerStyle === 'round' || cornerStyle === 'chamfer') &&
+      cornerSize < Math.min(dims.width, dims.depth) / 2 &&
+      holeInset > cornerSize + holeDiameter / 2 && holeInset < dims.width / 2 &&
+      holeDiameter < dims.depth
+      ? { ...dims, shape: 'corner_plate', cornerSize, cornerStyle, holeDiameter, holeInset } : null
+  }
+  if (part === 'machined_block') {
+    const dims = size(number('width'), number('depth'), number('height'))
+    const holeDiameter = number('hole_diameter'), holeInset = number('hole_inset')
+    const pocketWidth = number('pocket_width'), pocketDepth = number('pocket_depth')
+    const pocketCutDepth = number('pocket_cut_depth')
+    return dims && holeDiameter !== null && holeInset !== null &&
+      pocketWidth !== null && pocketDepth !== null && pocketCutDepth !== null &&
+      pocketWidth < dims.width && pocketDepth < dims.depth && pocketCutDepth < dims.height &&
+      holeInset > holeDiameter / 2 && holeInset + holeDiameter / 2 < (dims.width - pocketWidth) / 2 &&
+      holeDiameter < dims.depth
+      ? { ...dims, shape: 'machined_block', holeDiameter, holeInset,
+          pocketWidth, pocketDepth, pocketCutDepth } : null
+  }
   if (part === 'open_box') {
     const dims = size(number('width'), number('depth'), number('height'))
     const wall = number('wall')
@@ -158,9 +223,31 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
   const cy = 139
   const circle = v.shape === 'disk' || v.shape === 'washer' || v.shape === 'circular_plate'
   const annular = v.shape === 'washer'
-  if (isSection && !annular) return <div className="cad-drawing-unsupported">
+  const angleBracket = v.shape === 'angle_bracket'
+  const cornerPlate = v.shape === 'corner_plate'
+  const machinedBlock = v.shape === 'machined_block'
+  // Nominal XZ section: axial for round bodies (Y=0), central plane
+  // Y=depth/2 for rectangular catalog parts. Never use STL triangles as B-rep.
+  const supportedSection = annular || v.shape === 'disk' ||
+    v.shape === 'circular_plate' || v.shape === 'mounting' ||
+    v.shape === 'corner_plate' || v.shape === 'machined_block' ||
+    v.shape === 'box' || v.shape === 'angle_bracket'
+  const radialHoleSlices = v.shape === 'circular_plate' && v.holeCount &&
+      v.holeDiameter && v.boltCircleRadius
+    ? Array.from({ length: v.holeCount }, (_, i) => {
+        const angle = 2 * Math.PI * i / v.holeCount!
+        const yOffset = v.boltCircleRadius! * Math.sin(angle)
+        const r = v.holeDiameter! / 2
+        if (Math.abs(yOffset) >= r) return null
+        const halfChord = Math.sqrt(r * r - yOffset * yOffset)
+        return { x: v.boltCircleRadius! * Math.cos(angle), width: 2 * halfChord }
+      }).filter((slice): slice is { x: number; width: number } => slice !== null)
+    : []
+  const sectionSolidHeight = angleBracket && v.wall && v.depth / 2 > v.wall
+    ? v.wall * scale : rh
+  if (isSection && !supportedSection) return <div className="cad-drawing-unsupported">
     {language === 'es'
-      ? 'La sección geométrica de esta pieza requiere el motor de cortes B-rep (pendiente). No se inventará un corte.'
+      ? 'Esta sección necesita un corte geométrico real del motor OCCT (pendiente); no se mostrará una sección inventada.'
       : 'This part needs the B-rep section engine (not yet implemented). No approximate section is presented.'}
   </div>
   return <svg className="cad-drawing-svg" viewBox="0 0 400 280" role="img"
@@ -185,7 +272,67 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
     <g stroke="#93e5e2" fill="#29455a" strokeWidth="1.7">
       {isTop && circle
         ? <circle cx={cx} cy={cy} r={rw / 2}/>
-        : <rect x={left} y={top} width={rw} height={rh}/>}
+        : !(cornerPlate && isTop) && !(angleBracket && projection === 'side')
+          ? <rect x={left} y={isSection && angleBracket ? top + rh - sectionSolidHeight : top}
+            width={rw} height={isSection && angleBracket ? sectionSolidHeight : rh}/>
+          : null}
+      {angleBracket && !isTop && projection === 'side' && v.wall &&
+        <path d={`M ${left} ${top} L ${left + v.wall * scale} ${top}
+          L ${left + v.wall * scale} ${top + rh - v.wall * scale}
+          L ${left + rw} ${top + rh - v.wall * scale}
+          L ${left + rw} ${top + rh} L ${left} ${top + rh} Z`}
+          fill="#29455a" stroke="#93e5e2"/>}
+      {angleBracket && isTop && v.wall &&
+        <line x1={left} x2={left + rw} y1={top + v.wall * scale}
+          y2={top + v.wall * scale} stroke="#93e5e2" strokeWidth="1"/>}
+      {cornerPlate && isTop && v.cornerSize && (() => {
+        const radius = v.cornerSize * scale
+        if (v.cornerStyle === 'round') {
+          return <path d={`M ${left + radius} ${top} H ${left + rw - radius}
+            A ${radius} ${radius} 0 0 1 ${left + rw} ${top + radius}
+            V ${top + rh - radius}
+            A ${radius} ${radius} 0 0 1 ${left + rw - radius} ${top + rh}
+            H ${left + radius}
+            A ${radius} ${radius} 0 0 1 ${left} ${top + rh - radius}
+            V ${top + radius}
+            A ${radius} ${radius} 0 0 1 ${left + radius} ${top} Z`}
+            stroke="#93e5e2" fill="#29455a" strokeWidth="1.7"/>
+        }
+        return <path d={`M ${left + radius} ${top} H ${left + rw - radius}
+          L ${left + rw} ${top + radius} V ${top + rh - radius}
+          L ${left + rw - radius} ${top + rh}
+          H ${left + radius} L ${left} ${top + rh - radius}
+          V ${top + radius} Z`}
+          stroke="#93e5e2" fill="#29455a" strokeWidth="1.7"/>
+      })()}
+      {isTop && cornerPlate && v.holeDiameter && v.holeInset &&
+        [v.holeInset, v.width - v.holeInset].map((x, i) =>
+          <circle key={i} cx={left + x * scale} cy={cy}
+            r={v.holeDiameter! * scale / 2} fill="#0c1a29"/>)}
+      {isTop && machinedBlock && v.pocketWidth && v.pocketDepth &&
+        <rect x={cx - v.pocketWidth * scale / 2} y={cy - v.pocketDepth * scale / 2}
+          width={v.pocketWidth * scale} height={v.pocketDepth * scale}
+          stroke="#93e5e2" strokeWidth="1.3" fill="#142b3b"/>}
+      {isTop && machinedBlock && v.holeDiameter && v.holeInset &&
+        [v.holeInset, v.width - v.holeInset].map((x, i) =>
+          <circle key={i} cx={left + x * scale} cy={cy}
+            r={v.holeDiameter! * scale / 2} fill="#0c1a29"/>)}
+      {machinedBlock && !isTop && !isSection && v.pocketWidth && v.pocketDepth && v.pocketCutDepth &&
+        <g stroke="#d7b886" strokeDasharray="4 3" strokeWidth=".9" fill="none">
+          {projection === 'front' ?
+            <>
+              <line x1={cx - v.pocketWidth * scale / 2} x2={cx - v.pocketWidth * scale / 2}
+                y1={top} y2={top + v.pocketCutDepth * scale}/>
+              <line x1={cx + v.pocketWidth * scale / 2} x2={cx + v.pocketWidth * scale / 2}
+                y1={top} y2={top + v.pocketCutDepth * scale}/>
+            </> :
+            <>
+              <line x1={cx - v.pocketDepth * scale / 2} x2={cx - v.pocketDepth * scale / 2}
+                y1={top} y2={top + v.pocketCutDepth * scale}/>
+              <line x1={cx + v.pocketDepth * scale / 2} x2={cx + v.pocketDepth * scale / 2}
+                y1={top} y2={top + v.pocketCutDepth * scale}/>
+            </>}
+        </g>}
       {isTop && annular && v.bore &&
         <circle cx={cx} cy={cy} r={v.bore * scale / 2} fill="#0c1a29"/>}
       {isTop && v.shape === 'circular_plate' &&
@@ -204,6 +351,31 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
       {isTop && v.shape === 'box' && v.innerWidth && v.innerDepth &&
         <rect x={cx - v.innerWidth * scale / 2} y={cy - v.innerDepth * scale / 2}
           width={v.innerWidth * scale} height={v.innerDepth * scale} fill="#0c1a29"/>}
+      {isSection && supportedSection && !annular &&
+        <rect x={left} y={angleBracket ? top + rh - sectionSolidHeight : top}
+          width={rw} height={angleBracket ? sectionSolidHeight : rh}
+          fill="url(#cad-section-hatch)" stroke="#93e5e2" />}
+      {isSection && v.shape === 'box' && v.wall && (
+        <rect x={left + v.wall * scale} y={top}
+          width={(v.width - 2 * v.wall) * scale} height={(v.height - v.wall) * scale}
+          fill="#0c1a29" stroke="#93e5e2" />
+      )}
+      {isSection && v.shape === 'machined_block' && v.pocketWidth && v.pocketCutDepth && (
+        <rect x={cx - v.pocketWidth * scale / 2} y={top}
+          width={v.pocketWidth * scale} height={v.pocketCutDepth * scale}
+          fill="#0c1a29" stroke="#93e5e2" />
+      )}
+      {isSection && (v.shape === 'corner_plate' || v.shape === 'machined_block') &&
+        v.holeInset && v.holeDiameter &&
+        [v.holeInset, v.width - v.holeInset].map((x, i) =>
+          <rect key={i} x={left + (x - v.holeDiameter! / 2) * scale} y={top}
+            width={v.holeDiameter! * scale} height={rh}
+            fill="#0c1a29" stroke="#93e5e2" />)}
+      {isSection && v.shape === 'circular_plate' &&
+        radialHoleSlices.map((hole, i) =>
+          <rect key={i} x={cx + (hole.x - hole.width / 2) * scale} y={top}
+            width={hole.width * scale} height={rh}
+            fill="#0c1a29" stroke="#93e5e2" />)}
       {isSection && annular && v.bore &&
         <>
           <rect x={left} y={top} width={(w - v.bore) * scale / 2} height={rh} fill="url(#cad-section-hatch)"/>
@@ -233,6 +405,11 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
       {isTop && annular && v.bore && <text x={cx + 10} y={cy - 7} fill="#f5c889" stroke="none" fontSize="10">
         Ø{fmt(v.bore)}
       </text>}
+      {isTop && v.pocketWidth && v.pocketDepth &&
+        <text x={cx} y={cy - v.pocketDepth * scale / 2 - 8}
+          fill="#f5c889" stroke="none" fontSize="9" textAnchor="middle">
+          {fmt(v.pocketWidth)} × {fmt(v.pocketDepth)} mm · {fmt(v.pocketCutDepth ?? 0)} mm
+        </text>}
       {isTop && v.holeDiameter && <text x={cx + rw / 2 + 7} y={cy - rh / 2 - 9}
         fill="#f5c889" stroke="none" fontSize="10">Ø{fmt(v.holeDiameter)} {v.holeCount ? '×' + v.holeCount : '×4'}</text>}
     </g>}
@@ -268,7 +445,7 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
           {item === 'top' ? (isEs ? 'Planta XY' : 'Top XY')
             : item === 'front' ? (isEs ? 'Alzado XZ' : 'Front XZ')
               : item === 'side' ? (isEs ? 'Perfil YZ' : 'Side YZ')
-                : (isEs ? 'Sección axial' : 'Axial section')}
+                : (isEs ? 'Sección XZ' : 'XZ section')}
         </button>)}
     </div>}
     <div className="cad-drawing-canvas">
@@ -276,8 +453,8 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
         dimensions={showDimensions} language={language}/> :
         <div className="cad-drawing-unsupported" role="status">
           <strong>{issue || (isEs ? 'Vista técnica aún no disponible para esta pieza' : 'Technical view not yet available for this part')}</strong>
-          {!issue && <p>{isEs ? 'Utiliza el espacio CAD 3D. La proyección exacta de sólidos complejos necesitará el motor B-rep y un importador CAD.'
-            : 'Use the 3D CAD workspace. Exact projections of complex solids will require the B-rep engine and CAD import.'}</p>}
+          {!issue && <p>{isEs ? 'Esta familia todavía no tiene proyección técnica nominal. La futura proyección OCCT B-rep permitirá representar sus contornos, taladros y líneas ocultas sin inventar geometría.'
+            : 'This family does not yet have a nominal technical projection. The future OCCT B-rep projection will derive outlines, bores and hidden edges from actual geometry.'}</p>}
         </div>}
     </div>
     <div className="cad-drawing-details">
@@ -285,6 +462,10 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
       <span>{isEs
         ? 'Edita las cotas en el panel derecho. Esta vista vectorial se regenera al cambiar los parámetros.'
         : 'Edit dimensions in the right inspector. This vector preview updates whenever parameters change.'}</span>
+      {mode === 'drawings' && projection === 'section' && primitive &&
+        <span className="cad-drawing-scope">{isEs
+          ? 'Sección nominal XZ: plano central Y=0 para piezas circulares y Y=fondo/2 para piezas prismáticas. No sustituye a una sección B-rep verificada.'
+          : 'Nominal XZ section: Y=0 axis for round parts, Y=depth/2 center for prismatic parts. Not an independently verified B-rep cut.'}</span>}
       <span className="cad-drawing-scope">{isEs
         ? 'Primera fase: vistas nominales de piezas simples. DXF, importación STEP y cortes arbitrarios aún no disponibles.'
         : 'Initial scope: nominal views of simple parts. DXF, STEP import and arbitrary sections are not yet available.'}</span>

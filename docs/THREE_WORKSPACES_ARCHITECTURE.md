@@ -16,9 +16,9 @@ All three modes must share document identity, coordinate reference, units, parts
 ## Current MVP on the branch
 
 - Three selectable Studio workspaces, synchronized with the existing part catalog and parameter inspector and AI prompt.
-- CAD 2D **nominal SVG top outlines** for washer, solid shaft, hollow tube, circular plate, mounting plate and open-top box.
+- CAD 2D **nominal SVG top outlines** for washer, solid shaft, hollow tube, circular plate, mounting plate, open-top box, angle bracket, finished corner plate and machined block (new expanded preview pending Web/Desktop acceptance).
 - Drawings MVP **top XY, front XZ and right-side YZ silhouette** projections for those analytic shapes.
-- Axial section preview **only for annular washer/hollow tube**. For other parts a clear unsupported message is shown, never a fabricated section.
+- Nominal XZ section for supported analytic catalog families: annular washer/hollow tube; solid shaft; circular plate (only holes intersecting the defined cutting plane); center-cut mounting/corner plates and machined block; open-top box and angle bracket. Sections are **parameter-derived previews, not independent OCCT B-rep section results**. For complex parts outside the recognized schema a clear unsupported message remains.
 - A toggle shared across workspaces showing/hiding nominal parameter dimensions. CAD 3D has a compact nominal-dimension HUD; drawing views have dimension arrows and numeric labels.
 - Early geometry consistency checks for annular bores, circular bolt-pattern interference, mounting-plate hole offsets and box walls.
 - Candid UI text distinguishing nominal calculated parameters from independently measured CAD mesh geometry.
