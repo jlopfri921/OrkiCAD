@@ -510,3 +510,22 @@ code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
 .split-ring-dimension.selected{color:#fbe1a8}
 .split-ring-dimension.selected input{border-color:#f2c675;box-shadow:0 0 0 2px #f2c67522}
 .split-ring-edge-hit:hover,.split-ring-edge-hit:focus{stroke:#f2c67555;outline:none}
+
+/* The CAD XY sketch uses exact analytic SVG circles and reference lines.
+   Keep dimension editing in the drawing region instead of growing the sidebar. */
+.cad-circle-sketch{display:flex;flex-direction:column;align-items:stretch;
+  min-width:0;max-width:100%;width:100%;gap:8px;padding-bottom:8px}
+.cad-circle-sketch .cad-drawing-svg{display:block;width:100%;height:auto;
+  max-height:min(63vh,540px);min-height:210px;flex-shrink:1}
+.cad-circle-sketch-toolbar{display:flex;flex-wrap:wrap;align-items:center;
+  gap:8px 16px;margin:0 12px;color:#b3ccdd;font-size:11px}
+.cad-circle-sketch-toolbar strong{color:#d5f6ed;font-size:12px}
+.sketch-dimension-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
+  gap:8px;width:100%;margin-top:5px}
+.sketch-dimension-entry{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:11px;
+  color:#bcd8e4;padding:7px;border:1px solid #345568;border-radius:7px;background:#12263b}
+.sketch-dimension-entry.selected{border-color:#f0d39b;color:#ffdfa3}
+.sketch-dimension-entry input{width:100%;min-width:0;box-sizing:border-box;
+  padding:7px 8px;font-variant-numeric:tabular-nums}
+.sketch-entity [role="button"]:focus-visible{stroke:#ffe1a6;stroke-width:15px;outline:none}
+@media(max-width:650px){.sketch-dimension-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

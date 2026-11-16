@@ -4,6 +4,16 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Modelo compartido de croquis circulares (rama en desarrollo)
+
+- Nueva representación geométrica 2D de círculos, arcos, segmentos y coordenadas absolutas con parámetros conductores, base para evolucionar hacia restricciones de croquis.
+- El **mismo croquis XY** alimenta CAD 2D y Planta XY de Planimetría para ejes, arandelas, tubos huecos y placas circulares; selección de contornos y edición contextual de diámetros/radios/distribución de taladros sin menú lateral adicional.
+- El anillo abierto reutiliza arcos analíticos y segmentos radiales del modelo de croquis; no cambia su interpretación de la longitud de arco exterior.
+- La geometría inválida no se convierte silenciosamente en un rectángulo. Esta etapa no constituye todavía un croquis libre ni proyecciones OCCT HLR universales.
+- Contratos Python de interfaz y guía `docs/SHARED_CIRCULAR_SKETCH_V1.md`; compilación y aceptación Windows/Tauri todavía pendientes.
+
+
+
 ### Corrección de diseño circular y croquis 2D editable (2026-11-16)
 
 - Añadida familia paramétrica `split_ring` de anillo abierto con radio interior, diámetro exterior y sector radial eliminado. El hueco se mide como **longitud del arco exterior** y el perfil tiene dos bordes radiales, no una cuerda o rectángulo.

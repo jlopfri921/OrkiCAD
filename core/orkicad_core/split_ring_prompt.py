@@ -75,7 +75,8 @@ def parse_split_ring(prompt: str) -> tuple[dict | None, list[str]]:
         rf"(?:grosor|espesor|thickness)\s*(?:(?:es|is)\s+)?(?:(?:de|of)\s*)?{NUM}\s*mm",
         rf"{NUM}\s*mm\s+de\s+(?:grosor|espesor)",
         rf"thickness\s*(?:of\s*)?{NUM}\s*mm",
-        rf"{NUM}\s*mm\s+thick"
+        rf"{NUM}\s*mm\s+thick",
+    )
     assumptions = []
     if diameter_unqualified:
         assumptions.append(f"Se ha interpretado {outer_diameter:g} mm como diámetro exterior (no radio). Comprueba esta cota.")

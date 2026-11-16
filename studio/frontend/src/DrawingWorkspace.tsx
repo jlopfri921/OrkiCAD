@@ -6,6 +6,7 @@
  */
 import { useState } from 'react'
 import BrepSectionView from './BrepSectionView'
+import CircularSketchWorkspace from './CircularSketchWorkspace'
 import type { Language } from './i18n'
 
 type Mode = '2d' | 'drawings'
@@ -17,6 +18,7 @@ type Props = {
   language: Language
   showDimensions: boolean
   onToggleDimensions: (value: boolean) => void
+  onChangeParameter: (field: string, value: number) => void
 }
 
 type Primitive = {
@@ -421,12 +423,17 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
   </svg>
 }
 
-export default function DrawingWorkspace({ mode, part, parameters, language, showDimensions, onToggleDimensions }: Props) {
+export default function DrawingWorkspace({
+  mode, part, parameters, language, showDimensions, onToggleDimensions, onChangeParameter,
+}: Props) {
   const [projection, setProjection] = useState<Projection>('top')
   const isEs = language === 'es'
   const primitive = describePrimitive(part, parameters)
   const issue = explainPrimitiveIssue(part, parameters, language)
   const view = mode === '2d' ? 'top' : projection
+  const useCircularSketch = view === 'top' &&
+    (part === 'washer' || part === 'hollow_tube' ||
+     part === 'solid_shaft' || part === 'circular_plate')
   return <div className="cad-workspace-body">
     <header className="cad-workspace-tools">
       <div className="cad-workspace-label">
@@ -450,7 +457,11 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
         </button>)}
     </div>}
     <div className="cad-drawing-canvas">
-      {primitive
+      {useCircularSketch
+        ? <CircularSketchWorkspace key={part} part={part} parameters={parameters}
+            language={language} showDimensions={showDimensions}
+            onChangeParameter={onChangeParameter} editable={mode === '2d'}/>
+        : primitive
         ? mode === 'drawings' && view === 'section' &&
           (part === 'circular_plate' || part === 'washer' ||
            part === 'hollow_tube' || part === 'solid_shaft')
