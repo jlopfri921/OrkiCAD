@@ -500,3 +500,9 @@ code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
   margin:6px 14px 12px;padding:8px 10px;border-radius:6px;overflow-wrap:anywhere}
 .cad-brep-source{color:#98e8dc;background:#153c42;border:1px solid #326b68}
 .cad-brep-warning{color:#edd1a1;background:#322c23;border:1px solid #66513a}
+
+/* Explicit radial-cut annular sketch; accessible inline dimensions. */
+.split-ring-dimensions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.split-ring-dimension{display:flex;flex-direction:column;gap:6px;color:#b7d8e7;font-size:11px;min-width:0}
+.split-ring-dimension input{width:100%;min-width:0;padding:9px;font-variant-numeric:tabular-nums}
+@media(max-width:650px){.split-ring-dimensions{grid-template-columns:1fr}}
