@@ -711,7 +711,11 @@ function App() {
           <div className="output-actions">
             <button disabled={exportBlocked} onClick={generate}>SCAD</button>
             <button disabled={exportBlocked} onClick={() => exportFormat('3mf')}>3MF</button>
-            <button disabled={exportBlocked} onClick={() => exportFormat('step')}>STEP</button>
+            <button disabled={exportBlocked || type === 'bevel_gear_straight'}
+              title={type === 'bevel_gear_straight'
+                ? (language === 'es' ? 'STEP pendiente: este engranaje utiliza BOSL2 y aún no tiene generador OCCT' : 'STEP pending: this gear uses BOSL2 and has no OCCT generator yet')
+                : undefined}
+              onClick={() => exportFormat('step')}>STEP</button>
           </div>
         </div>
         <details className="source-panel">
