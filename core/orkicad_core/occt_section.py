@@ -23,8 +23,8 @@ def render_occt_section(
     spec: Mapping[str, Any], *, python_path: str = "Auto", timeout: int = SECTION_TIMEOUT
 ) -> dict:
     safe = validated_spec(spec)
-    if safe["type"] != "circular_plate":
-        raise ValueError("First OCCT section supports circular_plate only")
+    if safe["type"] not in {"circular_plate", "solid_shaft", "washer", "hollow_tube"}:
+        raise ValueError("First OCCT section supports circular_plate, solid_shaft, washer, hollow_tube only")
     if isinstance(timeout, bool) or not isinstance(timeout, int) or not 5 <= timeout <= 180:
         raise ValueError("OCCT section timeout must be 5..180 seconds")
     worker = Path(__file__).with_name("occt_section_worker.py")
