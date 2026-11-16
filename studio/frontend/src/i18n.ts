@@ -42,6 +42,9 @@ export const messages = {
     wrongSTL: 'El servidor no devolvió un archivo STL',
     emptySTL: 'El archivo STL está vacío o incompleto.',
     parts: {
+      split_ring: 'Anillo abierto con corte radial',
+      split_ring: 'Open ring with radial cut',
+      split_ring: 'Open ring with radial cut',
       bevel_gear_straight: 'Engranaje cónico recto', solid_shaft: 'Eje macizo', hollow_tube: 'Tubo hueco', angle_bracket: 'Escuadra en L',
       circular_plate: 'Placa circular con taladros radiales', washer: 'Arandela', mounting_plate: 'Placa de montaje', open_box: 'Caja abierta',
       metric_screw: 'Tornillo métrico', metric_nut: 'Tuerca métrica', spur_gear: 'Engranaje recto',
