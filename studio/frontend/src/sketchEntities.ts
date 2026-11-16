@@ -95,6 +95,45 @@ export function circularSketchFor(part: string, params: Record<string, unknown>)
   return { entities, radius, editableParameters }
 }
 
+/** Open concentric ring, where removed arc length is measured on the outer radius.
+ * Outer/inner arcs retain full analytic geometry in mm; both cut edges
+ * are true radial segments (not parallel chords). 
+ */
+export function radialRingSketch(outerDiameter: number, innerRadius: number,
+  removedOuterArc: number): SketchModel | null {
+  const radius = outerDiameter / 2
+  if (![radius, innerRadius, removedOuterArc].every(v => Number.isFinite(v) && v > 0) ||
+      innerRadius >= radius || removedOuterArc >= 2 * Math.PI * radius) return null
+  const halfAngle = removedOuterArc / (2 * radius)
+  const start = halfAngle
+  const end = 2 * Math.PI - halfAngle
+  const radial = (r: number, angle: number): SketchPoint =>
+    [r * Math.cos(angle), r * Math.sin(angle)]
+  const entities: SketchEntity[] = [
+    {
+      kind: 'arc', id: 'ring-outer-arc', center: [0, 0], radius,
+      startRad: start, endRad: end, parameter: 'outer_diameter',
+    },
+    {
+      kind: 'arc', id: 'ring-inner-arc', center: [0, 0], radius: innerRadius,
+      startRad: start, endRad: end, parameter: 'inner_radius',
+    },
+    {
+      kind: 'line', id: 'ring-cut-start',
+      a: radial(innerRadius, start), b: radial(radius, start), reference: true,
+    },
+    {
+      kind: 'line', id: 'ring-cut-end',
+      a: radial(innerRadius, end), b: radial(radius, end), reference: true,
+    },
+  ]
+  return {
+    entities, radius, editableParameters: [
+      'outer_diameter', 'inner_radius', 'outer_arc_gap',
+    ],
+  }
+}
+
 /** User-editable driving dimension from a picked curve, never inferred from STL. */
 export function drivingDimension(entity: SketchEntity): string | null {
   return entity.kind === 'line' ? null : entity.parameter
