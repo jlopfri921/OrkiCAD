@@ -5,7 +5,7 @@ export const MM_PER_INCH = 25.4
 // These fields are discrete/angle/standard designations, not free lengths.
 // An M6 screw remains M6 in either display system; involute gear module is
 // specified by the standardized metric module, not an imperial inch dimension.
-const FIXED_FIELDS = new Set(['teeth', 'hole_count', 'pressure_angle', 'module'])
+const FIXED_FIELDS = new Set(['teeth', 'mate_teeth', 'hole_count', 'pressure_angle', 'shaft_angle', 'module'])
 export function usesLinearUnits(type: string, field: string): boolean {
   if (FIXED_FIELDS.has(field)) return false
   if ((type === 'metric_screw' || type === 'metric_nut') && field === 'diameter') {
@@ -25,8 +25,8 @@ export function canonicalNumber(displayValue: number, system: UnitSystem, linear
 }
 
 export function fieldUnit(type: string, field: string, system: UnitSystem): string {
-  if (field === 'pressure_angle') return '°'
-  if (field === 'teeth' || field === 'hole_count') return ''
+  if (field === 'pressure_angle' || field === 'shaft_angle') return '°'
+  if (field === 'teeth' || field === 'mate_teeth' || field === 'hole_count') return ''
   if (field === 'module') return 'mm'
   if ((type === 'metric_screw' || type === 'metric_nut') && field === 'diameter') return 'M (mm)'
   return system === 'metric' ? 'mm' : 'in'
