@@ -38,7 +38,7 @@ try {
 
     if ($VerifyOCCT) {
         Write-Host 'OrkiCAD AI: checking actual OCCT B-rep and STEP support...' -ForegroundColor Cyan
-        & $python -c 'import OCP; print("OCCT/OCP Python module available")'
+        & $python -c 'import OCP'
         Assert-CommandSuccess 'OCP import (install cadquery-ocp into the chosen Python environment)'
         & $python -m unittest discover -s tests -p test_occt_integration.py -v
         Assert-CommandSuccess 'native STEP round-trip acceptance'
