@@ -54,6 +54,9 @@ class CadEditHistoryTests(unittest.TestCase):
                        "setSelectedFace(null)", "setSelectedDimension(null)"):
             self.assertIn(marker, self.main)
         self.assertIn("resetPreviewForEdit(true)", self.main)
+        self.assertIn("reviewRequired: true", self.main)
+        self.assertIn("restored.reviewRequired ? t.reviewDimensions", self.main)
+        self.assertIn("reviewRequired?: boolean", self.history)
         self.assertIn("setAiNote('')", self.main)
         self.assertIn("setReviewApproved(false)", self.main)
 
