@@ -469,3 +469,19 @@ code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
   .studio-project-action{font-size:10px;padding:6px}
   .studio-project-name{width:110px}
 }
+
+/* IA panel is collapsed by default; it must not consume drawing workspace height. */
+.ai-settings-accordion{min-width:0;margin-top:10px;border:1px solid #2d4055;border-radius:9px;background:#142537}
+.ai-settings-summary{display:flex;align-items:center;gap:8px;cursor:pointer;padding:11px 12px;
+  color:#c5dce9;font-size:12px;font-weight:740;list-style:none}
+.ai-settings-summary::-webkit-details-marker{display:none}
+.ai-settings-summary:focus-visible{outline:2px solid #79d7cd;outline-offset:2px}
+.ai-settings-heading{display:inline-flex;align-items:center;gap:7px;flex:1}
+.ai-settings-heading>span{color:var(--accent)}
+.ai-settings-provider-label{font-size:10px;font-weight:650;color:#8da9bf;
+  overflow:hidden;text-overflow:ellipsis;max-width:100px}
+.ai-settings-chevron{font-size:17px;transition:transform .16s ease}
+.ai-settings-accordion[open] .ai-settings-chevron{transform:rotate(180deg)}
+.ai-settings-fields{display:flex;flex-direction:column;gap:10px;padding:12px;
+  border-top:1px solid #2d4055;min-width:0}
+.ai-settings-note{font-size:11px;line-height:1.5;color:#99afbf;margin:0}
