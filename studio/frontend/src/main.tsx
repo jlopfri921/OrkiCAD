@@ -10,7 +10,7 @@ import FeatureOperationsEditor, { type Feature } from './FeatureOperationsEditor
 import { initialLanguage, messages, type Language } from './i18n'
 import { canonicalNumber, displayNumber, fieldUnit, usesLinearUnits, type UnitSystem } from './units'
 
-type PartType = 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model' | 'circular_plate'
+type PartType = 'solid_shaft' | 'hollow_tube' | 'angle_bracket' | 'washer' | 'mounting_plate' | 'open_box' | 'metric_screw' | 'metric_nut' | 'spur_gear' | 'box_lid' | 'bottle_cap' | 'corner_plate' | 'machined_block' | 'feature_model' | 'circular_plate'
 type CatalogCategory = 'plates' | 'fasteners' | 'transmission' | 'shafts' | 'supports' | 'enclosures' | 'printing' | 'pipes' | 'machining'
 const CATEGORY_ORDER: CatalogCategory[] = ['plates', 'fasteners', 'transmission', 'shafts', 'supports', 'enclosures', 'printing', 'pipes', 'machining']
 const CATEGORY_LABELS: Record<CatalogCategory, { es: string; en: string }> = {
@@ -25,6 +25,7 @@ const CATEGORY_LABELS: Record<CatalogCategory, { es: string; en: string }> = {
   machining: { es: 'Mecanizado y operaciones', en: 'Machining and features' }
 }
 const PART_CATEGORY: Record<string, CatalogCategory> = {
+  solid_shaft: 'shafts', hollow_tube: 'pipes', angle_bracket: 'supports',
   circular_plate: 'plates', washer: 'fasteners', mounting_plate: 'plates',
   open_box: 'enclosures', metric_screw: 'fasteners', metric_nut: 'fasteners',
   spur_gear: 'transmission', box_lid: 'enclosures', bottle_cap: 'printing',
