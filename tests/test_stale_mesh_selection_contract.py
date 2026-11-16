@@ -17,7 +17,7 @@ class StaleMeshSafetyTests(unittest.TestCase):
         self.assertIn("if (!allowSelect.current)", viewer)
         self.assertIn("clearCurrentHighlight.current?.()", viewer)
         self.assertIn("selectionEnabled={previewReady}", app)
-        self.assertIn("selection of faces paused", app.replace("face selection paused", "selection of faces paused"))
+        self.assertIn("face selection paused", app)
 
     def test_previous_geometry_is_explicitly_labeled_during_rebuild(self):
         app = (ROOT / "main.tsx").read_text(encoding="utf-8")
