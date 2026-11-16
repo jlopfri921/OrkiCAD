@@ -469,3 +469,13 @@ code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
   .studio-project-action{font-size:10px;padding:6px}
   .studio-project-name{width:110px}
 }
+
+
+/* Compact, keyboard-accessible undo/redo actions shared across CAD workspaces. */
+.studio-history-action{display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  min-height:32px;padding:6px 9px;border-radius:6px;border:1px solid #426479;
+  background:#152d3d;color:#ccece8;font:600 11px/1.2 var(--font-technical);
+  white-space:nowrap}
+.studio-history-action:hover:not(:disabled){background:#22485b;border-color:#70d4ca}
+.studio-history-action:disabled{opacity:.42;cursor:not-allowed}
+@media(max-width:1270px){.studio-history-action span{display:none}}
