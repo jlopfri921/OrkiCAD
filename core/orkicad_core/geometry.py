@@ -38,6 +38,34 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
     if not isinstance(spec, Mapping):
         raise ParameterError("spec must be an object")
     kind = spec.get("type")
+    if kind == "solid_shaft":
+        diameter = _number(spec, "diameter")
+        length = _number(spec, "length")
+        return ("// OrkiCAD AI. Units: mm.\n"
+                f"cylinder(h={_fmt(length)},d={_fmt(diameter)},$fn=128);\n")
+    if kind == "hollow_tube":
+        outer = _number(spec, "outer_diameter")
+        inner = _number(spec, "inner_diameter")
+        length = _number(spec, "length")
+        if inner >= outer:
+            raise ParameterError("inner_diameter must be smaller than outer_diameter")
+        return ("// OrkiCAD AI. Units: mm.\n"
+                "difference() {\n"
+                f"  cylinder(h={_fmt(length)},d={_fmt(outer)},$fn=128);\n"
+                f"  translate([0,0,-0.1]) cylinder(h={_fmt(length + .2)},d={_fmt(inner)},$fn=128);\n"
+                "}\n")
+    if kind == "angle_bracket":
+        width = _number(spec, "width")
+        depth = _number(spec, "depth")
+        height = _number(spec, "height")
+        thickness = _number(spec, "thickness")
+        if thickness >= min(depth, height):
+            raise ParameterError("thickness must be smaller than both bracket legs")
+        return ("// OrkiCAD AI. Units: mm.\n"
+                "union() {\n"
+                f"  cube([{_fmt(width)},{_fmt(depth)},{_fmt(thickness)}]);\n"
+                f"  cube([{_fmt(width)},{_fmt(thickness)},{_fmt(height)}]);\n"
+                "}\n")
     if kind == "feature_model":
         from .feature_program import generate_feature_scad
         return generate_feature_scad(spec)
