@@ -9,6 +9,8 @@ export const MAX_UNDO_STEPS = 50
 export type CadEditSnapshot<T extends string, P> = {
   type: T
   params: Record<string, P>
+  /** AI-generated geometry requires renewed human approval when revisited. */
+  reviewRequired?: boolean
 }
 export type CadEditHistory<T extends string, P> = {
   past: Array<CadEditSnapshot<T, P>>
@@ -17,7 +19,7 @@ export type CadEditHistory<T extends string, P> = {
 }
 
 function copySnapshot<T extends string, P>(value: CadEditSnapshot<T, P>): CadEditSnapshot<T, P> {
-  return { type: value.type, params: structuredClone(value.params) }
+  return { type: value.type, params: structuredClone(value.params), reviewRequired: !!value.reviewRequired }
 }
 
 export function createEditHistory<T extends string, P>(
@@ -31,7 +33,8 @@ export function commitEdit<T extends string, P>(
 ): CadEditHistory<T, P> {
   const copied = copySnapshot(next)
   if (copied.type === history.present.type &&
-      JSON.stringify(copied.params) === JSON.stringify(history.present.params)) {
+      JSON.stringify(copied.params) === JSON.stringify(history.present.params) &&
+      copied.reviewRequired === !!history.present.reviewRequired) {
     return history
   }
   return {
