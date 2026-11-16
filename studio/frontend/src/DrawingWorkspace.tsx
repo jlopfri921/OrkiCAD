@@ -8,7 +8,7 @@ import { useState } from 'react'
 import type { Language } from './i18n'
 
 type Mode = '2d' | 'drawings'
-type Projection = 'top' | 'front' | 'section'
+type Projection = 'top' | 'front' | 'side' | 'section'
 type Props = {
   mode: Mode
   part: string
@@ -97,7 +97,7 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
 }) {
   const isTop = projection === 'top'
   const isSection = projection === 'section'
-  const w = v.width
+  const w = projection === 'side' ? v.depth : v.width
   const h = isTop ? v.depth : v.height
   const scale = Math.min(252 / w, 154 / h)
   const rw = w * scale
@@ -186,7 +186,7 @@ function ProjectionView({ primitive: v, projection, dimensions, language }: {
       {isTop && v.holeDiameter && <text x={cx + rw / 2 + 7} y={cy - rh / 2 - 9}
         fill="#f5c889" stroke="none" fontSize="10">Ø{fmt(v.holeDiameter)} {v.holeCount ? '×' + v.holeCount : '×4'}</text>}
     </g>}
-    <text x="12" y="17" fontSize="9" fill="#91aabc">{isTop ? 'XY · Z↑' : 'XZ · Y→'} · (0,0,0)</text>
+    <text x="12" y="17" fontSize="9" fill="#91aabc">{isTop ? 'XY · Z↑' : projection === 'side' ? 'YZ · X→' : 'XZ · Y→'} · (0,0,0)</text>
     <text x="388" y="267" textAnchor="end" fontSize="9" fill="#8ba3b6">
       {language === 'es' ? 'Cotas nominales (mm)' : 'Nominal dimensions (mm)'}
     </text>
@@ -211,12 +211,13 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
     </header>
     {mode === 'drawings' && <div className="cad-projection-tabs" role="group"
       aria-label={isEs ? 'Seleccionar vista' : 'Select drawing view'}>
-      {(['top', 'front', 'section'] as const).map(item =>
+      {(['top', 'front', 'side', 'section'] as const).map(item =>
         <button key={item} type="button" className={projection === item ? 'active' : ''}
           aria-pressed={projection === item} onClick={() => setProjection(item)}>
           {item === 'top' ? (isEs ? 'Planta XY' : 'Top XY')
             : item === 'front' ? (isEs ? 'Alzado XZ' : 'Front XZ')
-              : (isEs ? 'Sección axial' : 'Axial section')}
+              : item === 'side' ? (isEs ? 'Perfil YZ' : 'Side YZ')
+                : (isEs ? 'Sección axial' : 'Axial section')}
         </button>)}
     </div>}
     <div className="cad-drawing-canvas">
