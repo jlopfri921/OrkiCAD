@@ -451,8 +451,11 @@ export default function DrawingWorkspace({ mode, part, parameters, language, sho
     </div>}
     <div className="cad-drawing-canvas">
       {primitive
-        ? mode === 'drawings' && view === 'section' && part === 'circular_plate'
-          ? <BrepSectionView key={JSON.stringify(parameters)} parameters={parameters} language={language}
+        ? mode === 'drawings' && view === 'section' &&
+          (part === 'circular_plate' || part === 'washer' ||
+           part === 'hollow_tube' || part === 'solid_shaft')
+          ? <BrepSectionView key={part + JSON.stringify(parameters)}
+              part={part} parameters={parameters} language={language}
               fallback={<ProjectionView primitive={primitive} projection={view}
                 dimensions={showDimensions} language={language}/>}/>
           : <ProjectionView primitive={primitive} projection={view}
