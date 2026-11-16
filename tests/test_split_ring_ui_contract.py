@@ -20,6 +20,10 @@ class SplitRingUIContract(unittest.TestCase):
                       "L ${p(ri, end)}", "Δθ", "outer_arc_gap"):
             self.assertIn(token, sketch)
         self.assertNotIn("rect x={left}", sketch)
+        self.assertIn("onClick={() => focusDimension(field)}", sketch)
+        self.assertIn("onKeyDown={event =>", sketch)
+        self.assertIn("setSelectedEdge(field)", sketch)
+        self.assertIn("onToggleDimensions(event.target.checked)", sketch)
 
     def test_drawing_is_parameter_editable_and_unsupported_views_honest(self):
         sketch = (ROOT / "studio/frontend/src/SplitRingWorkspace.tsx").read_text(encoding="utf-8")
