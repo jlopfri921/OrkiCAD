@@ -49,6 +49,7 @@ const ALLOWED_ROUTES: &[&str] = &[
     "/api/3mf",
     "/api/step",
     "/api/interpret",
+    "/api/document/validate",
 ];
 
 #[tauri::command]
@@ -106,7 +107,7 @@ async fn save_export_file(
     format: String,
     data_base64: String,
 ) -> Result<Option<String>, String> {
-    if !matches!(format.as_str(), "stl" | "3mf" | "step" | "scad") {
+    if !matches!(format.as_str(), "stl" | "3mf" | "step" | "scad" | "okad") {
         return Err("Unsupported export format".into());
     }
     let expected = format!(".{format}");

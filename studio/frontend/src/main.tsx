@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import appPackage from '../package.json'
 import PromptGuide from './PromptGuide'
 import AboutDialog from './AboutDialog'
+import { newProject, snapshotProject, validateProject } from './projectDocument'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
@@ -104,6 +105,10 @@ function App() {
   const [showDimensions, setShowDimensions] = useState(true)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [units, setUnits] = useState<UnitSystem>('metric')
+  const [projectName, setProjectName] = useState('Diseño sin título')
+  const [projectDocument, setProjectDocument] = useState(() =>
+    newProject('Diseño sin título', 'washer', catalog.washer.params))
+  const projectFileInput = useRef<HTMLInputElement>(null)
   const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
   const [catalogCategory, setCatalogCategory] = useState('all')
@@ -417,13 +422,60 @@ function App() {
     if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
     setManualRender(count => count + 1)
   }
+  async function openProjectFile(file: File | undefined) {
+    if (!file) return
+    if (!/\.(okad|orkicad\.json)$/i.test(file.name)) {
+      setError(language === 'es'
+        ? 'Selecciona un proyecto .okad (también se aceptan archivos antiguos .orkicad.json).'
+        : 'Select an .okad project (legacy .orkicad.json files are also supported).')
+      return
+    }
+    if (file.size <= 0 || file.size > 16384) {
+      setError(language === 'es'
+        ? 'El proyecto debe ser un archivo .okad válido de hasta 16 KiB.'
+        : 'Project must be a valid .okad file up to 16 KiB.')
+      return
+    }
+    try {
+      const project = await validateProject(JSON.parse(await file.text()))
+      const saved = project.parts[0]
+      if (!Object.prototype.hasOwnProperty.call(activeCatalog, saved.type)) {
+        throw new Error(language === 'es' ? 'Tipo de pieza no disponible en este CAD.'
+          : 'Part type is unavailable in this CAD version.')
+      }
+      previewSerial.current += 1
+      previewAbort.current?.abort()
+      setProjectName(project.name)
+      setProjectDocument(project)
+      setType(saved.type as PartType)
+      setParams(saved.parameters as Record<string, ParamValue>)
+      setExpandedInspector('size')
+      setStl(null)
+      setScad('')
+      setPreviewReady(false)
+      setError('')
+      setAiNote('')
+      setReviewApproved(false)
+      setSelectedFace(null)
+      setSelectedDimension(null)
+      setSaveStatus(language === 'es' ? 'Proyecto abierto y validado por OrkiCAD Core.'
+        : 'Project opened and validated by OrkiCAD Core.')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason))
+    }
+  }
+
   function openSave(format: ExportFormat) {
     setSaveStatus('')
-    setSaveStem('orkicad_' + type)
+    setSaveStem(format === 'okad' ? projectName : 'orkicad_' + type)
     setSavePending(format)
   }
 
   async function produceExport(format: ExportFormat): Promise<Blob> {
+    if (format === 'okad') {
+      const value = await validateProject(snapshotProject(projectDocument, type, params, projectName))
+      return new Blob([JSON.stringify(value, null, 2) + '\n'], { type: 'application/json' })
+    }
     if (format === 'stl') {
       if (!stl || !previewReady) throw new Error(language === 'es'
         ? 'Primero genera la vista 3D para obtener el STL.'
@@ -464,6 +516,9 @@ function App() {
       // This call is triggered by a click, preserving web picker activation.
       const result = await saveExport(format, saveStem, () => produceExport(format))
       setSavePending(null)
+      if (format === 'okad' && result !== 'cancelled') {
+        setProjectDocument(previous => snapshotProject(previous, type, params, projectName))
+      }
       if (result === 'saved') {
         setSaveStatus(language === 'es' ? 'Archivo guardado correctamente.' : 'File saved successfully.')
       } else if (result === 'browser-download') {
@@ -521,10 +576,25 @@ function App() {
         <span className="brand-version" title={language === 'es' ? 'Versión de desarrollo' : 'Development version'}>v{appPackage.version} · DEV</span>
       </div>
       <div className="studio-document">
-        <span>{ui.workspace}</span><span aria-hidden="true">/</span><strong>{ui.project}</strong>
+        <span>{ui.workspace}</span><span aria-hidden="true">/</span>
+        <input className="studio-project-name" aria-label={language === 'es' ? 'Nombre del proyecto' : 'Project name'}
+          maxLength={100} value={projectName} onChange={event => setProjectName(event.target.value)} />
         <span className="document-dot" aria-hidden="true"></span>
       </div>
       <div className="studio-top-actions">
+        <input ref={projectFileInput} className="studio-project-file" type="file"
+          accept=".okad,.orkicad.json,application/json" aria-label={language === 'es' ? 'Archivo de proyecto' : 'Project file'}
+          onChange={event => {
+            void openProjectFile(event.target.files?.[0])
+            event.currentTarget.value = ''
+          }} />
+        <button type="button" className="studio-project-action" onClick={() => projectFileInput.current?.click()}>
+          {language === 'es' ? 'Abrir proyecto' : 'Open project'}
+        </button>
+        <button type="button" className="studio-project-action"
+          onClick={() => openSave('okad')}>
+          {language === 'es' ? 'Guardar proyecto' : 'Save project'}
+        </button>
         <button type="button" className="studio-about-trigger"
           onClick={() => setAboutOpen(true)}
           aria-haspopup="dialog"

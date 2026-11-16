@@ -107,7 +107,15 @@ def make_shape(spec):
         edges = TopExp_Explorer(base, TopAbs_EDGE)
         selected = set()
         while edges.More():
-            edge = TopoDS.Edge_s(edges.Current())
+            # cadquery-ocp bindings expose TopoDS downcasts as Edge_s in
+            # newer versions and Edge in older supported builds.
+            # Resolve the actual bound method instead of assuming either API.
+            downcast_edge = getattr(TopoDS, "Edge_s", None)
+            if downcast_edge is None:
+                downcast_edge = getattr(TopoDS, "Edge", None)
+            if downcast_edge is None:
+                raise RuntimeError("OCP TopoDS edge conversion is unavailable")
+            edge = downcast_edge(edges.Current())
             curve = BRepAdaptor_Curve(edge)
             first = curve.Value(curve.FirstParameter())
             last = curve.Value(curve.LastParameter())

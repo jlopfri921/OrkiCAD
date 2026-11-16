@@ -453,3 +453,19 @@ code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
   .cad-workspace-tabs button{font-size:11px;padding:7px 5px;flex-basis:85px}
   .cad-3d-dimension-toggle{top:107px;left:8px}
 }
+
+
+/* Native project controls share one editable design across 2D, 3D and drawings. */
+.studio-project-name{background:transparent;border:1px solid transparent;border-radius:5px;
+  color:#e2f5f6;font-size:12px;font-weight:650;padding:4px 6px;
+  width:clamp(105px,13vw,190px);max-width:100%;min-width:90px;text-overflow:ellipsis}
+.studio-project-name:hover,.studio-project-name:focus-visible{border-color:#518c9b;background:#1a3341}
+.studio-project-file{display:none}
+.studio-project-action{font-family:var(--font-technical);font-size:11px;
+  white-space:nowrap;padding:7px 9px;background:#163345;border:1px solid #426479;
+  color:#d5f2f3;border-radius:6px}
+.studio-project-action:hover{border-color:#78dcd5;background:#204758}
+@media(max-width:1120px){
+  .studio-project-action{font-size:10px;padding:6px}
+  .studio-project-name{width:110px}
+}
