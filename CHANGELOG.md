@@ -4,6 +4,17 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Corrección de diseño circular y croquis 2D editable (2026-11-16)
+
+- Añadida familia paramétrica `split_ring` de anillo abierto con radio interior, diámetro exterior y sector radial eliminado. El hueco se mide como **longitud del arco exterior** y el perfil tiene dos bordes radiales, no una cuerda o rectángulo.
+- En CAD 2D y Planta XY de Planimetría, dibujo SVG específico con dos arcos concéntricos abiertos, aristas exteriores/interiores/radiales seleccionables y edición contextual de sus cotas; los parámetros se comparten con el sólido extruido 3D.
+- El intérprete reconoce peticiones de anillos abiertos en español o inglés sin pasar por una plantilla rectangular; si faltan dimensiones críticas rechaza la propuesta en lugar de inventar geometría. Comunica supuestos de diámetro y espesor.
+- Ejemplo reproducible en la biblioteca bilingüe; pruebas de fórmulas de arco, extremos radiales, geometría inválida, API y contratos de interfaz. Estado: **pendiente de ejecutar en Windows y de aceptación visual Web/Tauri**.
+- No son todavía un croquis 2D genérico ni proyecciones B-rep de alzado/perfil/sección de esta familia; no se anuncia STEP analítico para el nuevo perfil.
+- Véase `docs/OPEN_RING_2D.md`.
+
+
+
 ### Primera sección real OCCT B-rep — desarrollo
 
 - Nuevo cálculo geométrico de sección XZ en el plano Y=0 a partir de sólidos OCCT B-rep verdaderos, comenzando por placas circulares, arandelas, tubos huecos y ejes macizos.
