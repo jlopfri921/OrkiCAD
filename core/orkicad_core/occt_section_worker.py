@@ -10,7 +10,12 @@ import math
 import os
 from pathlib import Path
 
-from occt_worker import make_shape
+# Both python -m orkicad_core.occt_section_worker and direct execution from
+# the subprocess launcher must resolve the same authoritative CAD B-rep maker.
+if __package__:
+    from .occt_worker import make_shape
+else:
+    from occt_worker import make_shape
 
 
 def section_circular_plate(spec: dict) -> dict:
