@@ -72,7 +72,7 @@ def parse_split_ring(prompt: str) -> tuple[dict | None, list[str]]:
         # being silently converted to a rectangle by a language model.
         return None, ["missing_split_ring_dimensions"]
     thickness = _match(s,
-        rf"(?:grosor|espesor|thickness)\s*(?:de\s*)?{NUM}\s*mm",
+        rf"(?:grosor|espesor|thickness)\s*(?:(?:es|is)\s+)?(?:(?:de|of)\s*)?{NUM}\s*mm",
         rf"{NUM}\s*mm\s+de\s+(?:grosor|espesor)",
         rf"thickness\s*(?:of\s*)?{NUM}\s*mm",
         rf"{NUM}\s*mm\s+thick"
