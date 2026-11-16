@@ -20,12 +20,12 @@ from orkicad_core.parts_catalog import validated_spec
 @unittest.skipUnless(HAS_OCCT, "cadquery-ocp is not installed in this interpreter")
 class OCCTSectionIntegrationTests(unittest.TestCase):
     def test_circular_plate_actual_section_has_outer_and_inner_boundaries(self):
-        from orkicad_core.occt_section_worker import section_circular_plate
+        from orkicad_core.occt_section_worker import section_catalog_part
         spec = validated_spec({
             "type": "circular_plate", "outer_radius": 50, "thickness": 4,
             "hole_count": 5, "hole_diameter": 3, "bolt_circle_radius": 20,
         })
-        result = section_circular_plate(spec)
+        result = section_catalog_part(spec)
         self.assertEqual(result["source"], "occt-brep")
         self.assertEqual(result["plane"]["name"], "XZ")
         self.assertEqual(result["plane"]["normal"], [0, 1, 0])
@@ -42,10 +42,22 @@ class OCCTSectionIntegrationTests(unittest.TestCase):
         # other pattern holes are off-plane and must not be fabricated.
         self.assertEqual(len(vertices), 8)
 
+    def test_actual_analytic_annulus_and_shaft_sections(self):
+        from orkicad_core.occt_section_worker import section_catalog_part
+        for spec, expected_count in (
+            ({"type": "solid_shaft", "diameter": 12, "length": 80}, 4),
+            ({"type": "washer", "outer_diameter": 18, "inner_diameter": 6.5, "thickness": 2}, 8),
+            ({"type": "hollow_tube", "outer_diameter": 30, "inner_diameter": 24, "length": 100}, 8),
+        ):
+            with self.subTest(part=spec["type"]):
+                result = section_catalog_part(validated_spec(spec))
+                self.assertEqual(result["plane"]["name"], "XZ")
+                self.assertEqual(len(result["segments"]), expected_count)
+
     def test_unsupported_part_rejected_as_brep_section(self):
-        from orkicad_core.occt_section_worker import section_circular_plate
+        from orkicad_core.occt_section_worker import section_catalog_part
         with self.assertRaisesRegex(ValueError, "circular_plate"):
-            section_circular_plate({"type": "washer"})
+            section_catalog_part({"type": "washer"})
 
 
 if __name__ == "__main__":
