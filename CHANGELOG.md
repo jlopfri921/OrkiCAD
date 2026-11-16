@@ -4,6 +4,17 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Studio AI settings, branding and editorial scope (2026-11-16)
+
+- Collapsed the **AI configuration** section by default in the Studio Web/Tauri sidebar; prompt, examples and generation action stay visible.
+- Added versioned **per-browser/WebView storage** for allowlisted AI provider and model choices, including remembering a different model per provider. **Cloud API keys are never persisted.**
+- Registered a separate authenticated **per-user** profile/database/credentials roadmap (issue #12) for multiuser Web and optional Tauri; same-browser localStorage is not account isolation.
+- Clarified ComfyUI is **out of scope** for Studio user profiles, settings databases and secret vaults.
+- Styled the official logo with a bordered rounded-rectangle treatment in the shared Web/Tauri header and the generated Windows application icon.
+- Recorded feature request for actual geometric **edge/vertex/circular contour selection** and linked diameter/radius edits (issue #13); this is not implemented by the current mesh-face selector.
+
+
+
 ### Stabilization & verification (2026-11-16)
 
 - Fixed Windows OCCT verification script quoting: native Python `import OCP` now runs without nested quotes that PowerShell could strip, and added a regression contract. User's local report passed 171 tests (one optional skip) and production Web build; optional `-VerifyOCCT` check was previously blocked by this script-only syntax error.
