@@ -424,10 +424,16 @@ function App() {
   }
   async function openProjectFile(file: File | undefined) {
     if (!file) return
+    if (!/\.(okad|orkicad\.json)$/i.test(file.name)) {
+      setError(language === 'es'
+        ? 'Selecciona un proyecto .okad (también se aceptan archivos antiguos .orkicad.json).'
+        : 'Select an .okad project (legacy .orkicad.json files are also supported).')
+      return
+    }
     if (file.size <= 0 || file.size > 16384) {
       setError(language === 'es'
-        ? 'El proyecto debe ser un archivo JSON válido de hasta 16 KiB.'
-        : 'Project must be valid JSON up to 16 KiB.')
+        ? 'El proyecto debe ser un archivo .okad válido de hasta 16 KiB.'
+        : 'Project must be a valid .okad file up to 16 KiB.')
       return
     }
     try {
@@ -461,12 +467,12 @@ function App() {
 
   function openSave(format: ExportFormat) {
     setSaveStatus('')
-    setSaveStem(format === 'json' ? projectName + '.orkicad' : 'orkicad_' + type)
+    setSaveStem(format === 'okad' ? projectName : 'orkicad_' + type)
     setSavePending(format)
   }
 
   async function produceExport(format: ExportFormat): Promise<Blob> {
-    if (format === 'json') {
+    if (format === 'okad') {
       const value = await validateProject(snapshotProject(projectDocument, type, params, projectName))
       return new Blob([JSON.stringify(value, null, 2) + '\n'], { type: 'application/json' })
     }
@@ -510,7 +516,7 @@ function App() {
       // This call is triggered by a click, preserving web picker activation.
       const result = await saveExport(format, saveStem, () => produceExport(format))
       setSavePending(null)
-      if (format === 'json' && result !== 'cancelled') {
+      if (format === 'okad' && result !== 'cancelled') {
         setProjectDocument(previous => snapshotProject(previous, type, params, projectName))
       }
       if (result === 'saved') {
@@ -577,7 +583,7 @@ function App() {
       </div>
       <div className="studio-top-actions">
         <input ref={projectFileInput} className="studio-project-file" type="file"
-          accept=".orkicad.json,.json,application/json" aria-label={language === 'es' ? 'Archivo de proyecto' : 'Project file'}
+          accept=".okad,.orkicad.json,application/json" aria-label={language === 'es' ? 'Archivo de proyecto' : 'Project file'}
           onChange={event => {
             void openProjectFile(event.target.files?.[0])
             event.currentTarget.value = ''
@@ -586,7 +592,7 @@ function App() {
           {language === 'es' ? 'Abrir proyecto' : 'Open project'}
         </button>
         <button type="button" className="studio-project-action"
-          onClick={() => openSave('json')}>
+          onClick={() => openSave('okad')}>
           {language === 'es' ? 'Guardar proyecto' : 'Save project'}
         </button>
         <button type="button" className="studio-about-trigger"
