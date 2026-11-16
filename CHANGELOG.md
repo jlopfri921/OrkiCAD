@@ -4,6 +4,16 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Shared CAD edit history — 2026-11-16
+
+- Added bounded, immutable **Undo / Redo** for the current parametric part in the shared CAD 2D, 3D and Planimetry Studio interface.
+- Added toolbar controls and Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z shortcuts without interfering with typing in input fields.
+- Undo/redo invalidates stale STL and cancels older render requests; part family switches, dimension edits and accepted-format AI proposals participate in the same history.
+- Opening a validated `.okad` project resets the previous session history. **The .okad v1 file stores the current design only; persistent feature history is future work.**
+- Added regression contracts and `docs/EDIT_HISTORY.md`. Work is in a review branch, not yet an accepted production release.
+
+
+
 ### First native project document slice — 2026-11-16
 
 - Adopted **`.okad`** as the official OrkiCAD AI project extension, retaining JSON inside and legacy `.orkicad.json` import support.
