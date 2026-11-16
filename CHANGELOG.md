@@ -4,6 +4,16 @@ All notable changes will be recorded here, grouped by released version. The proj
 
 ## [Unreleased]
 
+### Primera sección real OCCT B-rep — desarrollo
+
+- Nuevo cálculo geométrico de sección XZ en el plano Y=0 a partir de un sólido OCCT B-rep verdadero, inicialmente para placas circulares paramétricas.
+- Exposición mediante la API validada `/api/occt/section`, compartida por Web y el puente privado Tauri.
+- Vista de contornos de intersección OCCT en Planimetría con identificación explícita de origen. Si OCCT falla o no está instalado se utiliza una vista nominal provisional señalada como no verificada.
+- Pruebas para geometría nativa opcional, ruta HTTP y contratos de interfaz. **Sin validación final de instalación Web/Tauri ni motor OCCT incluido en el instalador.**
+- Documentado en `docs/OCCT_BREP_SECTION_V1.md`.
+
+
+
 ### Extended 2D views and nominal XZ sections (2026-11-16)
 
 - Expanded drawing previews for angle brackets, finished rounded/chamfered corner plates and machined blocks, including holes/pockets and profile outlines where their catalog geometry is known.
