@@ -4,11 +4,13 @@
 
 ## Alcance implementado
 
-El sólido de prueba es una **placa circular paramétrica** de radio 50 mm, grosor 4 mm, cinco taladros Ø3 mm, radio de distribución 20 mm. El mismo generador OCCT/OCP de sólidos usado por la exportación STEP construye el B-rep. El motor calcula la intersección con el **plano XZ absoluto (Y = 0)** mediante `BRepAlgoAPI_Section` y devuelve los extremos de las aristas de intersección en milímetros.
+La pieza principal de prueba es una **placa circular paramétrica** de radio 50 mm, grosor 4 mm, cinco taladros Ø3 mm, radio de distribución 20 mm. El mismo generador OCCT/OCP de sólidos usado por la exportación STEP construye el B-rep. El motor calcula la intersección con el **plano XZ absoluto (Y = 0)** mediante `BRepAlgoAPI_Section` y devuelve los extremos de las aristas de intersección en milímetros.
 
 La petición se valida en el Core de Python; `POST /api/occt/section` se incorpora también a la lista privada de rutas de Tauri. No se ejecuta código arbitrario suministrado por el usuario.
 
-En **Planimetría → Sección XZ**, al seleccionar una placa circular, Web/Tauri solicita las aristas geométricas reales y las muestra con la indicación **«OCCT B-rep»**. Si el motor OCCT no está instalado, tarda demasiado o devuelve un error, se muestra una **vista nominal provisional explícitamente identificada**, sin confundirla con una sección verificada. Una respuesta antigua no sustituye a un modelo cuyas dimensiones se hayan modificado.
+En **Planimetría → Sección XZ**, al seleccionar una placa circular, arandela, tubo hueco o eje macizo, Web/Tauri solicita las aristas geométricas reales y las muestra con la indicación **«OCCT B-rep»**. Si el motor OCCT no está instalado, tarda demasiado o devuelve un error, se muestra una **vista nominal provisional explícitamente identificada**, sin confundirla con una sección verificada. Una respuesta antigua no sustituye a un modelo cuyas dimensiones se hayan modificado.
+
+Las cuatro familias usan el mismo cálculo real OCCT. En pruebas locales del motor OCCT, los sólidos cilíndricos macizos generan cuatro aristas de sección y los anulares ocho; la placa perforada de ejemplo también genera ocho cuando el plano atraviesa un único taladro.
 
 La sección es **de contornos**, no una lámina técnica acabada: todavía no tiene sombreado certificado de material, anotaciones asociativas, representación de todas las líneas ocultas ni cortes arbitrarios. Las demás familias de piezas siguen utilizando vistas nominales o indicando que no existe sección disponible.
 
