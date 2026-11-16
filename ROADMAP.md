@@ -31,9 +31,23 @@ The three modes share one document, units, absolute coordinates, named sketch pl
 | **A5. CAD import and edit** | STEP/STP geometric import first, then STL/3MF mesh editing, controlled SCAD/FCStd adapters | Open a real supplied part, apply reviewed operation, save and independently reimport result; preserve source/provenance | Planned |
 | **A6. Dimensioned photo/sketch ingestion** | Number F01…Fnn photos, tag P/D/C/S markers and associate measures to photo and feature; input ruler/two-point calibration; OCR provisional annotations | No ambiguity about which image/element a measurement belongs to; conflicts surfaced; calibration restricted to the correct plane | Design contract documented; implementation pending |
 | **A7. Multiview depth and reconstruction** | Camera/view alignment, relative depth/triangulation where possible, dimensional constraints, feature fitting and reprojection | Known 10 mm thickness overrides monocular estimate; uncertainty labeled; underconstrained solids not claimed as exact STEP | Design contract documented; implementation pending |
-| **A8. Broader design/assemblies** | Mechanical parts, mates, interferences, parametric linked drawings and sensible AI changes | Interoperable assembly geometry, dependency rebuild and tests | Planned |
+| **A8. Reverse engineering** | Accurate editable CAD reconstruction from measured original parts/STEP/STL/3MF and drawings, analytic feature fitting and deviation reports | Reconstructed geometry is independently dimension-checked against source and user measurements | Planned; dedicated R0–R5 track |\n| **A9. Broader design/assemblies** | Mechanical parts, mates, interferences, parametric linked drawings and sensible AI changes | Interoperable assembly geometry, dependency rebuild and tests | Planned |
 
 Slices can overlap when one **validated Core interface** allows progress in Web/Desktop and a relevant ComfyUI headless adapter, but no UI-only mock shall be represented as a completed CAD feature. Prioritize A0 → A1 → A2/A3 → A4/A5 → A6/A7, with validation at each gate rather than shipping many unverified features.
+
+### Reverse engineering — independent core product capability
+
+The reverse-engineering track recreates **editable, dimensionally validated CAD** from existing physical parts, imported STEP/STP B-reps, STL/3MF meshes, DXF plans, scans and photo sets. It is **not synonymous with image-to-mesh**, and it is not optional ComfyUI functionality.
+
+- **R0:** preserve provenance, calibration, units, stable entity references and measured-vs-estimated dimensions in the shared project.
+- **R1:** import STEP analytic B-reps, classify faces/holes and reconstruct simple editable features. Verify export and round-trip dimensions.
+- **R2:** import STL/3MF, measure/fit planar and cylindrical primitives, report mesh approximation errors and rebuild editable geometry only where supported.
+- **R3:** extend to annotated photos, OCR and 3-view DXF drawings; align source data via F01 and P/D/C/S markers, depth constraints and user review.
+- **R4:** infer a *proposed* feature tree (extrusion, axis-angle revolution, loft, sweep, cut) with explicit verification and manual editing.
+- **R5:** fit inspection, deviations, assemblies and functional redesign.
+- Show side-by-side original/reconstruction, actual dimension checks, unknown areas, deviations and source-linked measurement evidence. Never call a reverse engineered part production-ready solely because it looks similar.
+
+See [dedicated reverse-engineering plan](docs/REVERSE_ENGINEERING_PLAN.md).
 
 ### Constrained photo measurements: mandatory UX
 
