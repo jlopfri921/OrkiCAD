@@ -25,3 +25,9 @@
 - Update the `[Unreleased]` section of `CHANGELOG.md` with each substantial merged change and its test/acceptance status. Do not label an unmerged PR as released.
 - Starting or building Studio runs `studio/frontend/scripts/check-version.mjs`; mismatches are errors, not warnings.
 - Do not increment numbers for each commit. For a genuine tagged release, update all metadata, move shipped changes into a dated version heading, run CI/native build acceptance, and publish the tag and release notes.
+
+## About dialog, license and ComfyUI scope (2026-11-16)
+
+- The Studio menu provides **Acerca de OrkiCAD AI / About OrkiCAD AI**, displaying the build version, project creator, Core technologies, engineering philosophy and current license status.
+- The project has **not chosen a LICENSE yet**. `docs/LICENSING_DECISION.md` compares Apache-2.0 and copyleft alternatives; no legal permission is granted merely by recommending one.
+- ComfyUI releases only source-verified **and runtime-accepted** headless nodes that compose naturally in a workflow. See `docs/COMFYUI_PARITY.md`.
