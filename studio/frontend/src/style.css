@@ -506,3 +506,7 @@ code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
 .split-ring-dimension{display:flex;flex-direction:column;gap:6px;color:#b7d8e7;font-size:11px;min-width:0}
 .split-ring-dimension input{width:100%;min-width:0;padding:9px;font-variant-numeric:tabular-nums}
 @media(max-width:650px){.split-ring-dimensions{grid-template-columns:1fr}}
+
+.split-ring-dimension.selected{color:#fbe1a8}
+.split-ring-dimension.selected input{border-color:#f2c675;box-shadow:0 0 0 2px #f2c67522}
+.split-ring-edge-hit:hover,.split-ring-edge-hit:focus{stroke:#f2c67555;outline:none}
