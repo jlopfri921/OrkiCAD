@@ -38,6 +38,9 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
     if not isinstance(spec, Mapping):
         raise ParameterError("spec must be an object")
     kind = spec.get("type")
+    if kind == "bevel_gear_straight":
+        from .bevel_gears import generate_straight_bevel_scad
+        return generate_straight_bevel_scad(spec)
     if kind == "solid_shaft":
         diameter = _number(spec, "diameter")
         length = _number(spec, "length")
