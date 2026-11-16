@@ -706,7 +706,11 @@ function App() {
             <strong>⊙ (0,0,0)</strong>
           </div>
           <span className="viewport-caption">{stl
-            ? (language === 'es' ? 'Clic: seleccionar cara · Arrastrar: girar · Rueda: zoom' : 'Click: select face · Drag: orbit · Scroll: zoom')
+            ? !previewReady
+              ? (language === 'es'
+                ? 'Vista anterior: las medidas no coinciden con el diseño actual. Selección de caras suspendida.'
+                : 'Previous preview does not match current dimensions; face selection paused.')
+              : (language === 'es' ? 'Clic: seleccionar cara · Arrastrar: girar · Rueda: zoom' : 'Click: select face · Drag: orbit · Scroll: zoom')
             : ui.waiting}</span>
         </div>
         <div className="viewport-foot">
