@@ -582,6 +582,11 @@ function App() {
     waiting: 'No model generated', status: 'Ready to design', intro: 'Intelligent CAD · local workspace',
     formats: 'Export', inspector: 'Inspector', scene: 'CAD model',
   }
+  // Only the server validates deterministic topology; this client-side hint
+  // keeps geometry-only ring commands usable even if no AI API is configured.
+  const localRingIntent = /\\b(?:anillo|aro|arandela|ring|circular)\\b/i.test(prompt) &&
+    /\\b(?:corte|abierto|abertura|cut|gap|opening)\\b/i.test(prompt) &&
+    /\\b(?:radio|radial|radiales|radios|arco|arc|sector|circunferencia)\\b/i.test(prompt)
   const exportBlocked = working || saveBusy || (!!aiNote && !reviewApproved)
   return <div className="studio-shell">
     <header className="studio-topbar">
@@ -699,7 +704,8 @@ function App() {
             </div>
           </details>
           <button className="action-primary propose-button"
-            disabled={working || prompt.trim().length < 3 || !aiModel.trim() || (aiProvider !== 'ollama' && apiKey.trim().length < 8)}
+            disabled={working || prompt.trim().length < 3 || (!localRingIntent &&
+              (!aiModel.trim() || (aiProvider !== 'ollama' && apiKey.trim().length < 8)))}
             onClick={interpretPrompt}><span aria-hidden="true">✧</span> {working ? t.working : t.aiInterpret}</button>
           {aiNote && <p className="ai-review" role="status">{aiNote}</p>}
           {error && <p className="error" role="alert">{error}</p>}
