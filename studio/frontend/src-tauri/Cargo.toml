@@ -1,7 +1,7 @@
 [package]
 name = "orkicad-studio"
 version = "0.0.1"
-description = "OrkiCAD Studio desktop shell"
+description = "OrkiCAD AI Studio desktop shell"
 authors = ["OrkiCAD AI contributors"]
 edition = "2021"
 

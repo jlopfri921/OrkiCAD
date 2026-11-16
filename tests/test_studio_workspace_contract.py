@@ -12,9 +12,9 @@ class StudioWorkspaceContractTests(unittest.TestCase):
         src = (WEB / "src/main.tsx").read_text(encoding="utf-8")
         for marker in (
             'className="studio-topbar"',
-            'className="assistant-sidebar',
+            'className="studio-sidebar assistant-sidebar"',
             'className="studio-center"',
-            'className="properties-sidebar',
+            'className="studio-sidebar properties-sidebar"',
             'className="viewport-frame"',
             'className="output-bar"',
             'className="studio-statusbar"',

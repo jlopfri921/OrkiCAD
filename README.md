@@ -34,6 +34,14 @@ The initial Python package generates validated OpenSCAD source for **washers, mo
 
 **Important:** generated meshes are not automatically accurate engineering solids. Fabrication-critical dimensions, clearances, threads and tolerances require validation.
 
+## License and third-party software
+
+The original OrkiCAD AI source code is licensed under the **Apache License, Version 2.0** (SPDX `Apache-2.0`). See [LICENSE](LICENSE) and [NOTICE](NOTICE). This permits use, modification and redistribution under the license conditions, including commercial use; it does not grant rights to use the official OrkiCAD AI branding for unrelated products.
+
+The official project name and logo are governed separately; see [branding rules](docs/BRANDING.md). Third-party engines, packages, ComfyUI, AI models and optional native libraries keep their **own licenses and model terms**; see [third-party notices](THIRD_PARTY_NOTICES.md). This source license does **not** certify a distributable executable or bundled dependencies.
+
+**ComfyUI integration policy:** only tested, headless, composable Core operations should become nodes. Graph automation is optional and does not replicate the CAD 2D/3D/Drawing UI. See [ComfyUI parity policy](docs/COMFYUI_PARITY.md).
+
 ## Documentation
 
 - [Project status](docs/STATUS.md)

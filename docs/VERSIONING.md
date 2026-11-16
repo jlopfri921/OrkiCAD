@@ -16,3 +16,24 @@
 - Several commits, even across one or multiple days, can belong to the same `[Unreleased]` development cycle. **Do not increment version by calendar day or for each commit.**
 - Increment the prerelease suffix (`alpha.2`, `alpha.3`) only when a new testable snapshot is intentionally tagged and released; use beta after integrations stabilize.
 - Project release identifiers and package metadata should be synchronized at release time. For now, `CHANGELOG.md` entries remain under `[Unreleased]`.
+
+## Canonical development version and identity — 2026-11-16
+
+- **Official name:** OrkiCAD AI; desktop editor: OrkiCAD AI Studio.
+- **Current development identifier:** `v0.0.1 · DEV`, not a public release. Display in Web and Desktop header/footer; Desktop window title: `OrkiCAD AI Studio`.
+- Versions must match between `pyproject.toml`, `studio/frontend/package.json` and `studio/frontend/src-tauri/tauri.conf.json`.
+- Update the `[Unreleased]` section of `CHANGELOG.md` with each substantial merged change and its test/acceptance status. Do not label an unmerged PR as released.
+- Starting or building Studio runs `studio/frontend/scripts/check-version.mjs`; mismatches are errors, not warnings.
+- Do not increment numbers for each commit. For a genuine tagged release, update all metadata, move shipped changes into a dated version heading, run CI/native build acceptance, and publish the tag and release notes.
+
+## About dialog, license and ComfyUI scope (2026-11-16)
+
+- The Studio menu provides **Acerca de OrkiCAD AI / About OrkiCAD AI**, displaying the build version, project creator, Core technologies, engineering philosophy and current license status.
+- The project has **not chosen a LICENSE yet**. `docs/LICENSING_DECISION.md` compares Apache-2.0 and copyleft alternatives; no legal permission is granted merely by recommending one.
+- ComfyUI releases only source-verified **and runtime-accepted** headless nodes that compose naturally in a workflow. See `docs/COMFYUI_PARITY.md`.
+
+## Code license and dependency audit (2026-11-16)
+
+- The original OrkiCAD AI source is licensed under `Apache-2.0`, subject to merger of PR #5; `LICENSE` and `NOTICE` must accompany source distributions.
+- Separate rights apply to third-party geometry engines, runtimes, models, and official branding; consult `THIRD_PARTY_NOTICES.md`.
+- The roadmap for image/hand-sketch/multi-view technical-plan reconstruction is `docs/RECONSTRUCTION_MULTIVIEW_PLAN.md`. This is not an implemented feature or reason to increment the current `v0.0.1 · DEV` version.

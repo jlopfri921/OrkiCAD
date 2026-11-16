@@ -1,7 +1,10 @@
 /* OrkiCAD Studio: shared Web / Desktop design system.
    Dark technical workspace; no external fonts or CDN dependencies. */
 :root{
-  font-family:Inter,"Segoe UI Variable",Segoe UI,system-ui,-apple-system,sans-serif;
+  /* Windows-first CAD identity; offline system-font fallbacks for Web/Desktop. */
+  font-family:"Segoe UI Variable Text","Segoe UI Variable","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-technical:"Bahnschrift","Bahnschrift SemiCondensed","Arial Narrow","Segoe UI Variable Display",sans-serif;
+  --font-code:"Cascadia Code","Consolas","Lucida Console",monospace;
   color:#e9f1fa;background:#090f19;font-synthesis:none;
   --base:#090f19;--panel:#101925;--raised:#162335;--line:#28384b;
   --text:#e9f1fa;--muted:#8396ac;--accent:#59d7c9;--cyan:#7ed4f5;
@@ -319,3 +322,134 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .parametric-catalog input,.parametric-catalog select{width:100%;min-height:35px;padding:7px 9px;font-size:12px}
 .parametric-catalog .catalog-result-count{font-size:10px;color:#8baac0}
 .parametric-catalog .catalog-no-results{font-size:11px;color:#f0c493;line-height:1.4}
+
+/* OrkiCAD visual identity. Do not stretch the official logo or load remote fonts. */
+.studio-brand-logo{display:block;object-fit:contain;object-position:left center;width:178px;height:48px;max-width:100%;flex:none}
+.brand-version{font:650 10px/1 var(--font-code);letter-spacing:.15px;color:#8da9b9;
+  border:1px solid #294459;padding:5px 7px;border-radius:5px;white-space:nowrap}
+.brand-studio{font-family:var(--font-technical);font-size:11px;letter-spacing:2px;margin-left:6px}
+.studio-topbar .studio-brand{gap:8px}
+.studio-brand strong,.sidebar-header h1,.sidebar-header h2,.viewport-heading h2,.sidebar-section-title,
+.inspector-section-toggle,.section-overline,.studio-disclosure summary,.source-panel summary,
+button,.studio-top-actions select,.parametric-catalog label{font-family:var(--font-technical)}
+.sidebar-header h1,.sidebar-header h2,.viewport-heading h2{letter-spacing:.15px}
+.section-overline{letter-spacing:2.1px}
+textarea,input,select{font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+code,pre,.brand-version,.studio-footer-version,.text-counter,.datum-legend,
+.studio-statusbar{font-family:var(--font-code)}
+.studio-footer-version{color:#84a6b4;font-size:10px;white-space:nowrap}
+
+/* Compact bilingual learning area: no extra scrolling until a disclosure opens. */
+.prompt-guide{display:grid;gap:8px}
+.prompt-guide-body{padding:0 12px 12px;display:grid;gap:8px}
+.prompt-guide-body label{margin:0}
+.prompt-guide-body select{padding:8px 10px;font-size:12px}
+.prompt-example-preview{margin:0;padding:11px;border-radius:7px;border:1px solid #30485b;
+  background:#142338;color:#c9dae9;font-size:12px;line-height:1.55;max-height:175px;overflow:auto;
+  user-select:text;overflow-wrap:anywhere;white-space:pre-wrap}
+.prompt-example-actions{display:flex;flex-wrap:wrap;gap:7px}
+.prompt-example-actions button{flex:1;min-width:110px;padding:8px 9px;font-size:12px}
+.prompt-guide-note{margin:2px 0 0;color:#94a9bb;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.prompt-tips{margin:0;padding:0 0 0 20px;display:grid;gap:10px}
+.prompt-tips li{padding-left:2px;font-size:11px;line-height:1.5;color:#9aafc1}
+.prompt-tips li strong{display:block;color:#daedf6;margin-bottom:2px;font:650 12px/1.45 var(--font-technical)}
+.prompt-tips li span{display:block}
+@media(max-width:1260px){
+  .studio-brand-logo{width:142px;height:42px}
+  .studio-brand .brand-studio{display:none}
+}
+@media(max-width:1040px){
+  .studio-brand-logo{width:128px}
+  .brand-version{font-size:9px}
+}
+@media(max-width:900px){
+  .studio-footer-version{display:none}
+}
+
+
+/* Accessible, bilingual About dialog: offline and shared by Web/Desktop. */
+.studio-about-trigger{font-size:11px;padding:7px 10px;background:#162b3b;border:1px solid #3b596b;
+  color:#d0eef0;white-space:nowrap}
+.studio-about-trigger span{font-size:15px;vertical-align:middle;margin-right:3px}
+.about-backdrop{position:fixed;inset:0;z-index:1000;display:flex;justify-content:center;align-items:center;
+  padding:18px;background:#020911cc;backdrop-filter:blur(5px)}
+.about-dialog{width:min(760px,100%);max-height:min(90vh,900px);display:flex;flex-direction:column;
+  border-radius:15px;background:#101e2d;border:1px solid #4f7180;
+  box-shadow:0 20px 85px #000c;color:#e5f4fb;overflow:hidden}
+.about-header{display:flex;align-items:center;gap:16px;padding:20px 22px;
+  border-bottom:1px solid #30485b;background:#12283b}
+.about-logo{width:130px;height:65px;object-fit:contain;flex:none}
+.about-heading{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.about-heading h2{font:750 23px/1.15 var(--font-technical);margin:0;color:#eafffc}
+.about-build{font:600 11px/1.5 var(--font-code);color:#94bfb9}
+.about-close{width:36px;height:36px;font-size:24px;line-height:1;padding:0;flex:none}
+.about-content{overflow-y:auto;padding:18px 23px;display:grid;gap:17px}
+.about-lead{font-size:13px;line-height:1.75;color:#c3dce9;margin:0}
+.about-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.about-facts>div{display:grid;gap:5px;padding:11px;border-radius:8px;border:1px solid #2a465a;background:#152b3e}
+.about-facts span{font-size:10px;color:#91afc3}
+.about-facts strong{font:650 12px/1.45 var(--font-technical);overflow-wrap:anywhere}
+.about-section{border-top:1px solid #294457;padding-top:14px;display:grid;gap:8px}
+.about-section h3{font:750 14px/1.4 var(--font-technical);margin:0;color:#a6efe6}
+.about-section p,.about-section li{font-size:12px;line-height:1.65;color:#c1d4df;margin:0;overflow-wrap:anywhere}
+.about-section ul{padding-left:19px;margin:0;display:grid;gap:4px}
+.about-section .about-muted{font-size:11px;color:#a1b6c4}
+.about-section a{color:#86e9df;text-decoration:underline;text-underline-offset:3px}
+.about-links{display:flex;flex-wrap:wrap;gap:14px}
+.about-footer{display:flex;justify-content:space-between;align-items:center;gap:15px;
+  padding:14px 22px;border-top:1px solid #30485b;background:#12283b}
+.about-footer span{font-size:10px;color:#9eb3c1;line-height:1.5}
+.about-footer button{min-width:86px}
+@media(max-width:680px){
+  .about-header{gap:8px;padding:12px}
+  .about-logo{width:72px;height:48px}
+  .about-heading h2{font-size:18px}
+  .about-facts{grid-template-columns:1fr}
+  .about-content{padding:14px}
+  .about-footer{padding:10px 12px}
+  .studio-about-trigger{padding:6px}
+}
+
+/* Three CAD workspaces share the AI prompt, parametric catalog and document state. */
+.cad-workspace-tabs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  padding:5px;border:1px solid #2c485c;background:#0d1d2d;border-radius:11px}
+.cad-workspace-tabs button{flex:1 1 110px;background:transparent;border:1px solid transparent;
+  color:#a6c6d6;padding:10px 9px;min-height:36px}
+.cad-workspace-tabs button.active{background:#1b3f4b;border-color:#4dada9;color:#d5fffb;
+  box-shadow:inset 0 -2px 0 #65dbc9}
+.cad-workspace-body{display:flex;flex-direction:column;gap:13px;min-height:460px;flex:1;min-width:0}
+.cad-workspace-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:12px;padding:12px 14px;background:#132336;border:1px solid #2b4558;border-radius:10px}
+.cad-workspace-label{display:grid;gap:4px}
+.cad-workspace-label strong{font-size:15px;color:#d7eff6}
+.cad-workspace-label span{font-size:11px;color:#90acba}
+.cad-dimension-toggle,.cad-3d-dimension-toggle{display:flex;align-items:center;gap:7px;
+  margin:0;color:#c5f2eb;font-size:12px;font-weight:600}
+.cad-dimension-toggle input,.cad-3d-dimension-toggle input{width:15px;height:15px;margin:0;accent-color:#5fe1c6}
+.cad-projection-tabs{display:flex;gap:7px;flex-wrap:wrap}
+.cad-projection-tabs button{flex:1 1 100px;min-height:36px;padding:9px 12px}
+.cad-projection-tabs button.active{border-color:#5de0d0;background:#1c4448;color:#dafff6}
+.cad-drawing-canvas{flex:1;display:flex;align-items:center;justify-content:center;
+  min-height:350px;overflow:hidden;background:#0c1a29;border-radius:12px;border:1px solid #344f62}
+.cad-drawing-svg{width:100%;height:100%;max-height:680px;max-width:100%;min-height:330px}
+.cad-drawing-svg text{font-family:"Consolas","Cascadia Code",monospace}
+.cad-drawing-unsupported{max-width:490px;padding:22px;color:#eacb94;text-align:center;
+  font-size:13px;line-height:1.7}
+.cad-drawing-unsupported p{margin:8px 0 0;color:#9eb5c6}
+.cad-drawing-details{padding:13px 16px;display:grid;gap:6px;color:#a5c2d2;
+  font-size:12px;line-height:1.5;border-radius:10px;background:#142639;border:1px solid #2e4d60}
+.cad-drawing-details strong{color:#dff3f7;font-size:13px}
+.cad-drawing-scope{color:#e0bc88;font-size:11px}
+.cad-3d-dimension-toggle{position:absolute;z-index:8;left:12px;top:63px;
+  padding:7px 10px;background:#112333e8;border:1px solid #315969;border-radius:8px}
+.cad-3d-dimension-hud{position:absolute;z-index:6;bottom:44px;right:12px;
+  display:flex;flex-wrap:wrap;gap:8px;max-width:min(420px,80%);padding:8px 10px;
+  background:#122536dd;border:1px solid #39616c;border-radius:8px;
+  font-family:"Cascadia Code","Consolas",monospace;font-size:11px;color:#9dede1;
+  pointer-events:none}
+.cad-3d-dimension-hud small{flex-basis:100%;color:#aabcc7;font:10px/1.4 "Segoe UI",sans-serif}
+@media(max-width:830px){
+  .cad-workspace-tabs{gap:3px}
+  .cad-workspace-tabs button{font-size:11px;padding:7px 5px;flex-basis:85px}
+  .cad-3d-dimension-toggle{top:107px;left:8px}
+}

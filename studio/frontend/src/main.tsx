@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
+import appPackage from '../package.json'
+import PromptGuide from './PromptGuide'
+import AboutDialog from './AboutDialog'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
 import CircularPlatePlan from './CircularPlatePlan'
+import DrawingWorkspace, { describePrimitive } from './DrawingWorkspace'
 import { apiFetch } from './api'
 import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
 import { fieldForSelectedFace, faceAxisLabel, type FaceSelection } from './selection'
@@ -75,20 +79,11 @@ const SCREW_OPTION_LABELS: Record<string, { es: string; en: string }> = {
 type ParamValue = number | string | Feature[]
 type AIProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini'
 type Definition = { label: string; params: Record<string, ParamValue> }
-const PROMPT_EXAMPLES = {
-  es: [
-    'Diseña una placa circular maciza de radio exterior 50 mm y espesor 4 mm. Realiza 5 agujeros pasantes de diámetro 3 mm, igualmente espaciados en un círculo de radio 20 mm desde el centro de la placa. La base debe ser un disco, nunca un cuadrado. Usa circular_plate.',    'Diseña una placa de 90 × 55 × 6 mm con esquinas redondeadas de radio 5 mm y dos agujeros de 6 mm separados de los extremos 17 mm. Usa corner_plate.',
-    'Diseña un bloque mecanizado de 100 × 60 × 15 mm, dos agujeros pasantes de diámetro 6 mm a 12 mm de ambos extremos y un vaciado central de 48 × 30 mm y 6 mm de profundidad. Usa machined_block.',
-    'Crea un feature_model con un bloque base de 100 × 60 × 12 mm: resta un vaciado de 48 × 30 × 6.2 mm en [26,15,6], resta dos cilindros de radio 3 y altura 12.2 en [12,30,-0.1] y [88,30,-0.1], y añade un cilindro de radio 7 y altura 8 en [50,50,11.8]. Incluye todos los campos.'
-  ],
-  en: [
-    'Make a solid circular plate of outer radius 50 mm and thickness 4 mm, with 5 equally spaced through holes of diameter 3 mm on a pitch circle of radius 20 mm. The outer solid is a disk, never a box. Use circular_plate.',    'Design a 90 x 55 x 6 mm corner_plate with rounded corners of radius 5 mm and two 6 mm holes 17 mm from the ends.',
-    'Design a machined_block 100 x 60 x 15 mm, two 6 mm through holes 12 mm from both ends and a centered 48 x 30 mm pocket 6 mm deep.',
-    'Make a feature_model from a 100 x 60 x 12 mm block: cut a 48 x 30 x 6.2 mm box at [26,15,6], cut two radius 3 height 12.2 cylinders at [12,30,-0.1] and [88,30,-0.1], then add a radius 7 height 8 cylinder at [50,50,11.8]. Include all required fields.'
-  ]
-} as const
-
 const catalog: Record<PartType, Definition> = {
+  bevel_gear_straight: { label: 'Straight bevel gear', params: { module: 2, teeth: 20, mate_teeth: 20, shaft_angle: 90, face_width: 8, pressure_angle: 20, bore_diameter: 8, backlash: 0.1 } },
+  solid_shaft: { label: 'Solid shaft', params: { diameter: 12, length: 80 } },
+  hollow_tube: { label: 'Hollow tube', params: { outer_diameter: 30, inner_diameter: 24, length: 100 } },
+  angle_bracket: { label: 'Angle bracket', params: { width: 40, depth: 50, height: 35, thickness: 4 } },
   circular_plate: { label: 'Circular plate', params: { outer_radius: 50, thickness: 4, hole_count: 5, hole_diameter: 3, bolt_circle_radius: 20 } },
   washer: { label: 'Washer', params: { outer_diameter: 18, inner_diameter: 6.5, thickness: 2 } },
   mounting_plate: { label: 'Mounting plate', params: { width: 80, depth: 50, thickness: 5, hole_diameter: 5, hole_inset: 10 } },
@@ -105,6 +100,9 @@ const catalog: Record<PartType, Definition> = {
 
 function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage)
+  const [workspace, setWorkspace] = useState<'2d' | '3d' | 'drawings'>('3d')
+  const [showDimensions, setShowDimensions] = useState(true)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [units, setUnits] = useState<UnitSystem>('metric')
   const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
@@ -125,7 +123,6 @@ function App() {
   const [error, setError] = useState('')
   const [working, setWorking] = useState(false)
   const [reviewApproved, setReviewApproved] = useState(false)
-  const [copiedExample, setCopiedExample] = useState<number | null>(null)
   const [savePending, setSavePending] = useState<ExportFormat | null>(null)
   const [saveStem, setSaveStem] = useState('')
   const [saveBusy, setSaveBusy] = useState(false)
@@ -313,20 +310,6 @@ function App() {
     if (next === 'circular_plate') setShowReferencePlanes(false)
     setShowCircularPlan(next === 'circular_plate')
     setType(next); setParams({ ...activeCatalog[next].params }); setScad(''); setPreviewReady(false); setError(''); setReviewApproved(false); setAiNote(''); setSelectedFace(null); setSelectedDimension(null)
-  }
-  function useExample(index: number) {
-    setPrompt(PROMPT_EXAMPLES[language][index]); setAiNote(""); setError(""); setCopiedExample(null)
-  }
-  async function copyExample(index: number) {
-    try {
-      await navigator.clipboard.writeText(PROMPT_EXAMPLES[language][index])
-      setCopiedExample(index)
-      setError("")
-    } catch {
-      // Browser clipboard permissions are optional; the "Use" button remains available.
-      setPrompt(PROMPT_EXAMPLES[language][index]); setCopiedExample(null)
-      setError(t.clipboardFallback)
-    }
   }
   async function generate() {
     if (aiNote && !reviewApproved) { setError(t.approvalRequired); return }
@@ -533,15 +516,21 @@ function App() {
   return <div className="studio-shell">
     <header className="studio-topbar">
       <div className="studio-brand">
-        <span className="brand-icon" aria-hidden="true">◈</span>
-        <strong>Orki<span>CAD</span></strong><span className="brand-ai">AI</span>
+        <img className="studio-brand-logo" src="/logo_OrkiCAD-AI.png" alt="OrkiCAD AI" />
         <span className="brand-studio">STUDIO</span>
+        <span className="brand-version" title={language === 'es' ? 'Versión de desarrollo' : 'Development version'}>v{appPackage.version} · DEV</span>
       </div>
       <div className="studio-document">
         <span>{ui.workspace}</span><span aria-hidden="true">/</span><strong>{ui.project}</strong>
         <span className="document-dot" aria-hidden="true"></span>
       </div>
       <div className="studio-top-actions">
+        <button type="button" className="studio-about-trigger"
+          onClick={() => setAboutOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={language === 'es' ? 'Acerca de OrkiCAD AI' : 'About OrkiCAD AI'}>
+          <span aria-hidden="true">ⓘ</span> {language === 'es' ? 'Acerca de' : 'About'}
+        </button>
         <span className="connection-status"><i></i>{working ? t.working : ui.status}</span>
         <select aria-label={t.language} value={language}
           onChange={e => setLanguage(e.target.value as Language)}>
@@ -567,22 +556,7 @@ function App() {
             aria-label={t.aiPromptLabel} placeholder={t.aiPlaceholder} value={prompt}
             maxLength={2000} onChange={e => setPrompt(e.target.value)} />
           <div className="text-counter">{prompt.length} / 2000</div>
-          <details className="studio-disclosure">
-            <summary><span>▧</span> {ui.examples}<span className="disclosure-arrow">⌄</span></summary>
-            <div className="prompt-examples">
-              {PROMPT_EXAMPLES[language].map((example, index) =>
-                <article className="prompt-example" key={index}>
-                  <p>{example}</p>
-                  <div className="prompt-example-actions">
-                    <button type="button" className="secondary" onClick={() => useExample(index)}>{t.useExample}</button>
-                    <button type="button" className="secondary" onClick={() => copyExample(index)}>
-                      {copiedExample === index ? t.copiedExample : t.copyExample}
-                    </button>
-                  </div>
-                </article>
-              )}
-            </div>
-          </details>
+          <PromptGuide language={language} onInsert={value => { setPrompt(value); setAiNote(''); setError(''); setReviewApproved(false) }} />
           <div className="sidebar-section-title"><span>◉</span> {ui.settings}</div>
           <label htmlFor="ai-provider">{t.aiProvider}</label>
           <select id="ai-provider" value={aiProvider} onChange={e => {
@@ -637,6 +611,16 @@ function App() {
       </aside>
 
       <section className="studio-center" aria-label={ui.viewport}>
+        <nav className="cad-workspace-tabs" aria-label={language === 'es' ? 'Espacios de trabajo CAD' : 'CAD workspaces'}>
+          {(['2d', '3d', 'drawings'] as const).map(next =>
+            <button key={next} type="button" className={workspace === next ? 'active' : ''}
+              aria-current={workspace === next ? 'page' : undefined}
+              onClick={() => setWorkspace(next)}>
+              {next === '2d' ? '▤ CAD 2D' : next === '3d' ? '⬡ CAD 3D'
+                : language === 'es' ? '◫ Planimetría y secciones' : '◫ Drawings & sections'}
+            </button>)}
+        </nav>
+        {workspace === '3d' ? <>
         <div className="viewport-heading">
           <div><div className="section-overline">02 / MODEL</div><h2>{ui.viewport}</h2></div>
           <div className="viewport-badges">
@@ -666,13 +650,28 @@ function App() {
                 ? previewPhase === 'pending' ? 'Preparando cambios…' : 'Actualizando geometría…'
                 : previewPhase === 'pending' ? 'Preparing changes…' : 'Updating geometry…'}
             </div>}
-          {stl && !previewReady && (previewPhase === 'error' || previewPhase === 'idle') &&
+          {stl && !previewReady &&
             <div className="preview-stale" role="status">
               {language === 'es'
-                ? previewPhase === 'error' ? 'Última vista válida · revisa las medidas' : 'Vista anterior · pulsa Actualizar'
-                : previewPhase === 'error' ? 'Last valid view · check dimensions' : 'Previous view · click Update'}
+                ? previewPhase === 'error' ? 'Última vista válida · revisa las medidas' : previewPhase === 'idle' ? 'Vista anterior · pulsa Actualizar' : 'Vista anterior · regenerando…'
+                : previewPhase === 'error' ? 'Last valid view · check dimensions' : previewPhase === 'idle' ? 'Previous view · click Update' : 'Previous view · regenerating…'}
             </div>}
           <div className="viewport-grid" aria-hidden="true"></div>
+          <label className="cad-3d-dimension-toggle">
+            <input type="checkbox" checked={showDimensions}
+              onChange={event => setShowDimensions(event.target.checked)} />
+            {language === 'es' ? 'Cotas nominales' : 'Nominal dimensions'}
+          </label>
+          {showDimensions && (() => {
+            const primitive = describePrimitive(type, params)
+            return primitive ? <div className="cad-3d-dimension-hud" role="note"
+              aria-label={language === 'es' ? 'Medidas nominales del parámetro, no medición STL' : 'Nominal parameter dimensions, not STL measurement'}>
+              <span>X: {primitive.width.toLocaleString()} mm</span>
+              <span>Y: {primitive.depth.toLocaleString()} mm</span>
+              <span>Z: {primitive.height.toLocaleString()} mm</span>
+              <small>{language === 'es' ? 'Valores del diseño, no medidos del STL' : 'Design values, not measured from STL'}</small>
+            </div> : null
+          })()}
           {type === 'circular_plate' && showCircularPlan && <div className="circular-plan-overlay">
             <CircularPlatePlan outerRadius={Number(params.outer_radius)}
               pitchRadius={Number(params.bolt_circle_radius)}
@@ -698,7 +697,7 @@ function App() {
               <button title={language === 'es' ? 'Alejar' : 'Zoom out'} disabled={!stl} onClick={() => moveCamera('zoom-out')}>−</button>
             </div>
           </div>
-          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} showReferencePlanes={showReferencePlanes} cameraCommand={cameraCommand} />
+          <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} selectionEnabled={previewReady} showReferencePlanes={showReferencePlanes} cameraCommand={cameraCommand} />
           {!stl && <div className="viewport-empty" aria-hidden="true">
             <div className="viewport-empty-icon">⬡</div>
             <strong>{ui.empty}</strong><p>{ui.emptyHelp}</p>
@@ -711,14 +710,18 @@ function App() {
             <strong>⊙ (0,0,0)</strong>
           </div>
           <span className="viewport-caption">{stl
-            ? (language === 'es' ? 'Clic: seleccionar cara · Arrastrar: girar · Rueda: zoom' : 'Click: select face · Drag: orbit · Scroll: zoom')
+            ? !previewReady
+              ? (language === 'es'
+                ? 'Vista anterior: las medidas no coinciden con el diseño actual. Selección de caras suspendida.'
+                : 'Previous preview does not match current dimensions; face selection paused.')
+              : (language === 'es' ? 'Clic: seleccionar cara · Arrastrar: girar · Rueda: zoom' : 'Click: select face · Drag: orbit · Scroll: zoom')
             : ui.waiting}</span>
         </div>
         <div className="viewport-foot">
           <div className="current-part">
             <span className="part-icon">⬡</span><div><strong>{t.parts[type]}</strong><small>{ui.scene}</small></div>
           </div>
-          {selectedDimension && typeof params[selectedDimension] === 'number' &&
+          {selectedFace && previewReady && selectedDimension && typeof params[selectedDimension] === 'number' &&
             <div className="face-quick-adjust">
               <label htmlFor="selected-dimension-range">
                 {language === 'es' ? 'Ajuste rápido' : 'Quick adjust'} ·
@@ -770,6 +773,8 @@ function App() {
           <pre>{scad || t.empty}</pre>
           <button className="secondary" disabled={!scad} onClick={download}>{t.downloadSCAD}</button>
         </details>
+        </> : <DrawingWorkspace mode={workspace} part={type} parameters={params} language={language}
+          showDimensions={showDimensions} onToggleDimensions={setShowDimensions} />}
       </section>
 
       <aside className="studio-sidebar properties-sidebar" aria-label={ui.properties}>
@@ -880,6 +885,8 @@ function App() {
         </div>
       </aside>
     </main>
+    {aboutOpen && <AboutDialog language={language} version={appPackage.version}
+      onClose={() => setAboutOpen(false)} />}
     {savePending && <div className="save-overlay">
       <section className="save-dialog" role="dialog" aria-modal="true" aria-labelledby="save-dialog-title">
         <div className="section-overline">ORKICAD STUDIO / EXPORT</div>
@@ -915,6 +922,7 @@ function App() {
     <footer className="studio-statusbar">
       <span><span className="status-indicator"></span> {ui.status}</span>
       <span role="status">{saveStatus || 'OrkiCAD Core · STL / 3MF / STEP'}</span>
+      <span className="studio-footer-version">OrkiCAD AI Studio v{appPackage.version} · {language === 'es' ? 'Desarrollo' : 'Development'}</span>
       <span>{units === 'metric' ? 'Metric · mm' : 'Imperial · in'}</span>
     </footer>
   </div>

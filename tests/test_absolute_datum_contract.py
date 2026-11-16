@@ -32,7 +32,7 @@ class DatumPlaneContractTests(unittest.TestCase):
             "XY · Z=0",
             "XZ · Y=0",
             "YZ · X=0",
-            "Origen absoluto",
+            "Origen y sistema de coordenadas",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, app)
