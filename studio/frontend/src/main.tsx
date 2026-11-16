@@ -32,6 +32,35 @@ const PART_CATEGORY: Record<string, CatalogCategory> = {
   spur_gear: 'transmission', box_lid: 'enclosures', bottle_cap: 'printing',
   corner_plate: 'plates', machined_block: 'machining', feature_model: 'machining'
 }
+// Local enum fallback keeps categorical controls editable even before /api/catalog loads.
+const CATEGORICAL_OPTIONS: Record<string, string[]> = {
+  corner_style: ['round', 'chamfer'],
+  head: ['socket', 'button', 'hex', 'pan', 'flat', 'none'],
+  drive: ['hex', 'torx', 'none', 'slot', 'phillips'],
+  shape: ['hex', 'square'],
+}
+const SCREW_DRIVES_BY_HEAD: Record<string, string[]> = {
+  socket: ['hex', 'torx'],
+  button: ['hex', 'torx'],
+  hex: ['none'],
+  pan: ['slot', 'phillips'],
+  flat: ['hex', 'torx', 'slot', 'phillips'],
+  none: ['none'],
+}
+const SCREW_OPTION_LABELS: Record<string, { es: string; en: string }> = {
+  socket: { es: 'Cilíndrica Allen', en: 'Socket head' },
+  button: { es: 'Abombada', en: 'Button head' },
+  hex: { es: 'Hexagonal', en: 'Hexagonal' },
+  pan: { es: 'Alomada', en: 'Pan head' },
+  flat: { es: 'Avellanada', en: 'Countersunk' },
+  none: { es: 'Sin cabeza / sin accionamiento', en: 'Headless / no drive' },
+  torx: { es: 'Torx (estrella)', en: 'Torx' },
+  slot: { es: 'Ranura plana', en: 'Slotted' },
+  phillips: { es: 'Phillips (cruz)', en: 'Phillips' },
+  square: { es: 'Cuadrada', en: 'Square' },
+  round: { es: 'Redondeada', en: 'Rounded' },
+  chamfer: { es: 'Chaflán', en: 'Chamfer' },
+}
 type ParamValue = number | string | Feature[]
 type AIProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini'
 type Definition = { label: string; params: Record<string, ParamValue> }
@@ -249,7 +278,14 @@ function App() {
     }
   }
   function updateParameter(name: string, value: ParamValue) {
-    setParams(previous => ({ ...previous, [name]: value }))
+    setParams(previous => {
+      const updated = { ...previous, [name]: value }
+      if (type === 'metric_screw' && name === 'head' && typeof value === 'string') {
+        const compatible = SCREW_DRIVES_BY_HEAD[value] || ['none']
+        if (!compatible.includes(String(updated.drive))) updated.drive = compatible[0]
+      }
+      return updated
+    })
     setScad('')
     previewSerial.current += 1
     setPreviewReady(false)
@@ -797,10 +833,16 @@ function App() {
                           width={Number(params.width) || 100} depth={Number(params.depth) || 60}
                           height={Number(params.height) || 12}
                           onChange={next => updateParameter(name, next)} />
-                      : catalogData?.[type]?.fields.find(field => field.key === name)?.options
+                      : (type === 'metric_screw' && name === 'drive'
+                          ? SCREW_DRIVES_BY_HEAD[String(params.head)] || ['none']
+                          : catalogData?.[type]?.fields.find(field => field.key === name)?.options
+                            || CATEGORICAL_OPTIONS[name])
                         ? <select id={name} value={String(value)} onChange={e => updateParameter(name, e.target.value)}>
-                            {catalogData[type].fields.find(field => field.key === name)!.options!.map(option =>
-                              <option key={option} value={option}>{option}</option>)}
+                            {(type === 'metric_screw' && name === 'drive'
+                              ? SCREW_DRIVES_BY_HEAD[String(params.head)] || ['none']
+                              : catalogData?.[type]?.fields.find(field => field.key === name)?.options
+                                || CATEGORICAL_OPTIONS[name]).map(option =>
+                              <option key={option} value={option}>{SCREW_OPTION_LABELS[option]?.[language] || option}</option>)}
                           </select>
                         : <input id={name} type={typeof value === 'number' ? 'number' : 'text'}
                             step={name === 'teeth' || name === 'hole_count' || name === 'diameter' ? '1' : 'any'}
