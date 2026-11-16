@@ -68,9 +68,9 @@ def generate_scad(spec: Mapping[str, Any]) -> str:
         ]
         points = ",".join(f"[{_fmt(x)},{_fmt(y)}]" for x, y in
                           outer_points + inner_points)
-        return ("// Open ring: true concentric arcs and radial cut boundaries. Units mm.\\n"
+        return ("// Open ring: true concentric arcs and radial cut boundaries. Units mm.\n"
                 f"linear_extrude(height={_fmt(height)}) "
-                f"polygon(points=[{points}]);\\n")
+                f"polygon(points=[{points}]);\n")
     if kind == "solid_shaft":
         diameter = _number(spec, "diameter")
         length = _number(spec, "length")
