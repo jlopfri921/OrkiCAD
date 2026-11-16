@@ -42,6 +42,7 @@ export const messages = {
     wrongSTL: 'El servidor no devolvió un archivo STL',
     emptySTL: 'El archivo STL está vacío o incompleto.',
     parts: {
+      solid_shaft: 'Eje macizo', hollow_tube: 'Tubo hueco', angle_bracket: 'Escuadra en L',
       circular_plate: 'Placa circular con taladros radiales', washer: 'Arandela', mounting_plate: 'Placa de montaje', open_box: 'Caja abierta',
       metric_screw: 'Tornillo métrico', metric_nut: 'Tuerca métrica', spur_gear: 'Engranaje recto',
       box_lid: 'Tapadera de caja', bottle_cap: 'Tapón de botella',
@@ -108,6 +109,7 @@ export const messages = {
     wrongSTL: 'The server did not return an STL file',
     emptySTL: 'The STL file is empty or incomplete.',
     parts: {
+      solid_shaft: 'Solid shaft', hollow_tube: 'Hollow tube', angle_bracket: 'L-angle bracket',
       circular_plate: 'Circular plate with radial holes', washer: 'Washer', mounting_plate: 'Mounting plate', open_box: 'Open box',
       metric_screw: 'Metric screw', metric_nut: 'Metric nut', spur_gear: 'Spur gear',
       box_lid: 'Box lid', bottle_cap: 'Bottle cap',
