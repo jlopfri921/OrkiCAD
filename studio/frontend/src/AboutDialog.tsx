@@ -10,8 +10,8 @@ type Props = {
 /**
  * In-app legal/about information for OrkiCAD AI.
  *
- * Use accurate, non-redistributive licensing wording until the author chooses
- * and commits a license. Individual dependencies retain their own licenses.
+ * Original OrkiCAD AI source code: Apache-2.0.
+ * Branding and third-party dependencies retain their own conditions.
  */
 export default function AboutDialog({ language, version, onClose }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null)
@@ -83,8 +83,8 @@ export default function AboutDialog({ language, version, onClose }: Props) {
         <section className="about-section">
           <h3>{es ? 'Licencias y reconocimiento' : 'Licensing and attribution'}</h3>
           <p>{es
-            ? 'Licencia propia del proyecto: pendiente de elección y publicación. Hasta que exista un archivo LICENSE, no se concede mediante este repositorio un permiso general de reutilización, modificación o redistribución. Cada dependencia conserva sus propios derechos y condiciones.'
-            : 'Project license: pending selection and publication. Until a LICENSE file is provided, this repository grants no general permission for reuse, modification or redistribution. Dependencies retain their own rights and license conditions.'}</p>
+            ? 'El código original de OrkiCAD AI se publica bajo Apache 2.0 (SPDX: Apache-2.0). Permite usar, modificar y redistribuir bajo sus condiciones, pero no concede derechos de marca sobre el nombre o el logotipo. Cada dependencia conserva su licencia.'
+            : 'Original OrkiCAD AI code is licensed under Apache 2.0 (SPDX: Apache-2.0). It allows use, modification and redistribution under its terms but does not grant trademark rights to the project name or logo. Each dependency retains its own license.'}</p>
           <p><strong>Open CASCADE Technology (OCCT)</strong> — © 1999–2026 OPEN CASCADE S.A.S. ·
             LGPL-2.1 {es ? 'con excepción OCCT' : 'with OCCT exception'}. {' '}
             <a href="https://occt3d.com/dev/doc/overview/html/occt_public_license.html"
@@ -99,6 +99,10 @@ export default function AboutDialog({ language, version, onClose }: Props) {
           <div className="about-links">
             <a href="https://github.com/jlopfri921/orkicad-ai" target="_blank" rel="noreferrer">
               {es ? 'Repositorio de OrkiCAD AI' : 'OrkiCAD AI repository'}</a>
+            <a href="https://github.com/jlopfri921/orkicad-ai/blob/main/LICENSE"
+              target="_blank" rel="noreferrer">{es ? 'Licencia Apache 2.0' : 'Apache 2.0 license'}</a>
+            <a href="https://github.com/jlopfri921/orkicad-ai/blob/main/NOTICE"
+              target="_blank" rel="noreferrer">{es ? 'Créditos y atribuciones' : 'Credits and attribution'}</a>
             <a href="https://github.com/jlopfri921/orkicad-ai/blob/main/CHANGELOG.md"
               target="_blank" rel="noreferrer">Changelog</a>
             <a href="https://github.com/jlopfri921/orkicad-ai/blob/main/THIRD_PARTY_NOTICES.md"
