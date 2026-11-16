@@ -38,6 +38,15 @@ class CircularSketchContractTests(unittest.TestCase):
         self.assertIn("return null", self.model)
         self.assertNotIn("shape: 'rectangle'", self.model)
 
+    def test_open_ring_reuses_analytic_arc_and_radial_segment_model(self):
+        ring = (SRC / "SplitRingWorkspace.tsx").read_text(encoding="utf-8")
+        for token in ("export function radialRingSketch(", "kind: 'arc'",
+                      "kind: 'line'", "ring-outer-arc", "ring-inner-arc",
+                      "ring-cut-start", "ring-cut-end", "removedOuterArc / (2 * radius)"):
+            self.assertIn(token, self.model)
+        self.assertIn("import { radialRingSketch", ring)
+        self.assertIn("const model = radialRingSketch(outerDiameter, innerRadius, gapArc)", ring)
+
     def test_sketch_contours_are_selectable_and_have_driving_dimensions(self):
         for token in ("drivingDimension(entity)", "onClick={() => focusEntity(entity)}",
                       "onKeyDown={e =>", "onChangeParameter(field, value)",
