@@ -107,6 +107,17 @@ const catalog: Record<PartType, Definition> = {
 function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage)
   const [units, setUnits] = useState<UnitSystem>('metric')
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try { return window.localStorage.getItem('orkicad-theme') === 'light' ? 'light' : 'dark' }
+    catch { return 'dark' }
+  })
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    if (meta) meta.content = theme === 'light' ? '#f4f7fc' : '#0b1424'
+    try { window.localStorage.setItem('orkicad-theme', theme) } catch { /* private browsing: in-memory preference */ }
+  }, [theme])
   const [studioPage, setStudioPage] = useState<'home' | 'editor'>('home')
   const [assistantVisible, setAssistantVisible] = useState(true)
   const [inspectorVisible, setInspectorVisible] = useState(true)
@@ -555,6 +566,11 @@ function App() {
           <button type="button" className="studio-panel-toggle" aria-pressed={inspectorVisible} aria-controls="studio-inspector-panel" onClick={() => setInspectorVisible(v => !v)}>{language === 'es' ? 'Propiedades' : 'Properties'}</button>
         </div>
         <span className="connection-status"><i></i>{working ? t.working : ui.status}</span>
+        <select className="studio-theme-select" aria-label={language === 'es' ? 'Tema de apariencia' : 'Appearance theme'} value={theme}
+          onChange={event => setTheme(event.target.value as 'light' | 'dark')}>
+          <option value="light">{language === 'es' ? '☀ Claro' : '☀ Light'}</option>
+          <option value="dark">{language === 'es' ? '☾ Oscuro' : '☾ Dark'}</option>
+        </select>
         <select aria-label={t.language} value={language}
           onChange={e => setLanguage(e.target.value as Language)}>
           <option value="es">ES</option><option value="en">EN</option>
