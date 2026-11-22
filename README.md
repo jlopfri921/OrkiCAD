@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="logo_OrkiCAD-AI.png" alt="OrkiCAD AI — logo" width="420">
+  <img src="logo_OrkiCAD-AI.png" alt="OrkiCAD — logo" width="420">
 </p>
 
-<p align="center"><strong>Design. Refine. Make.</strong><br>Local-first, open-source parametric CAD and AI-assisted 2D/3D workflows.</p>
+<p align="center"><strong>Design. Refine. Make.</strong><br>Open-source parametric CAD, powered by AI.</p>
 
 <p align="center">
   <a href="ROADMAP.md"><img alt="Version 0.0.1 — internal prototype" src="https://img.shields.io/badge/version-0.0.1%20prototype-087F91"></a>
@@ -21,9 +21,9 @@
   <a href="#license-and-attribution">License</a>
 </p>
 
-# OrkiCAD AI
+# OrkiCAD
 
-Maintained by [jlopfri921](https://github.com/jlopfri921). **OrkiCAD AI** is an open-source, **local-first CAD workbench** for parametric mechanical design, AI-assisted part specification, technical drawing and digital fabrication. The project aims to make reliable 2D/3D creation approachable without hiding dimensions, assumptions or manufacturing limitations.
+Maintained by [jlopfri921](https://github.com/jlopfri921). **OrkiCAD** is an open-source, **local-first CAD workbench** for parametric mechanical design, AI-assisted part specification, technical drawing and digital fabrication. The project aims to make reliable 2D/3D creation approachable without hiding dimensions, assumptions or manufacturing limitations.
 
 > [!IMPORTANT]
 > **Early source prototype — not a stable release.** The internal version is **0.0.1** and there is **no official tagged release**, independently installable production Desktop package or secured public Web deployment. Some Windows workflows have been validated by the maintainer; source presence does not imply every platform, adapter or feature is verified. See [Status](docs/STATUS.md) and [Roadmap](ROADMAP.md).
@@ -108,8 +108,8 @@ Formats are **not** universally available for every input geometry or provider. 
 The commands below are for **developers running the source prototype**, not a one-click end-user installer.
 
 ```powershell
-git clone https://github.com/jlopfri921/orkicad-ai.git
-cd orkicad-ai
+git clone https://github.com/jlopfri921/OrkiCAD.git
+cd OrkiCAD
 py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e .
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
@@ -160,7 +160,7 @@ Support independent development through [Ko-fi](https://ko-fi.com/jorgelf). Dona
 
 ## License and attribution
 
-**OrkiCAD AI source code is licensed under the [Apache License, Version 2.0](LICENSE)** (SPDX: `Apache-2.0`).
+**OrkiCAD source code is licensed under the [Apache License, Version 2.0](LICENSE)** (SPDX: `Apache-2.0`).
 
 Copyright © 2026 Jorge López Frías and contributors, for contributions they own.
 
@@ -168,4 +168,4 @@ Third-party libraries, model weights, design files, fonts and brands may have **
 
 ---
 
-<p align="center"><strong>OrkiCAD AI — Design. Refine. Make.</strong><br>Open CAD, practical AI, and community-driven engineering.</p>
+<p align="center"><strong>OrkiCAD — Design. Refine. Make.</strong><br>Open CAD, practical AI, and community-driven engineering.</p>
