@@ -569,3 +569,28 @@ html[data-theme="light"] .welcome-foot{color:#526a83}
 html[data-theme="light"] .welcome-foot{border-top-color:#d6e1ed}
 html[data-theme="light"] .welcome-text-button{color:#12699f;background:transparent;border:0}
 html[data-theme="light"] .welcome-text-button:hover:not(:disabled){background:#e5f0fb}
+
+/* Minimal project shelf — same shared Studio visual language in both themes. */
+.project-save-button{white-space:nowrap;padding:8px 11px;font-size:11px}
+.welcome-projects{display:grid;gap:13px}
+.welcome-projects .welcome-section-head small{color:#9fb2c8;font-size:11px}
+.welcome-projects-empty{margin:0;padding:20px;background:#13243a;border:1px dashed #3a5573;border-radius:12px;color:#a9bdd1;font-size:12px;line-height:1.7}
+.welcome-project-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px}
+.welcome-project-card{display:flex;flex-direction:column;overflow:hidden;border-radius:13px;border:1px solid #304861;background:#13243a}
+.welcome-project-open{width:100%;min-height:124px;border:0;background:transparent;display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;padding:15px}
+.welcome-project-open>span{font-size:25px;color:#68bfff}
+.welcome-project-open strong{font-size:13px;color:#f0f7ff;overflow-wrap:anywhere}
+.welcome-project-open small{font-size:11px;color:#9cb3c8}
+.welcome-project-delete{align-self:flex-end;background:transparent;border:0;font-size:11px;color:#bdc9d7;padding:8px 13px}
+.welcome-project-delete:hover:not(:disabled){background:#432b3b;color:#ffd3d3}
+html[data-theme="light"] .welcome-projects .welcome-section-head small{color:#5e758d}
+html[data-theme="light"] .welcome-projects-empty,
+html[data-theme="light"] .welcome-project-card{background:#fff;border-color:#cad9e8;color:#4b657f}
+html[data-theme="light"] .welcome-project-open{background:transparent;border:0}
+html[data-theme="light"] .welcome-project-open:hover:not(:disabled){background:#edf6fd}
+html[data-theme="light"] .welcome-project-open strong{color:#1d3855}
+html[data-theme="light"] .welcome-project-open small{color:#5d7287}
+html[data-theme="light"] .welcome-project-delete{color:#79535b;background:transparent;border:0}
+html[data-theme="light"] .welcome-project-delete:hover:not(:disabled){color:#962f3b;background:#fff0f1}
+@media(max-width:760px){.project-save-button{order:0}.welcome-project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.welcome-project-grid{grid-template-columns:minmax(0,1fr)}}
