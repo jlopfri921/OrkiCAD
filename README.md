@@ -1,102 +1,171 @@
 <p align="center">
-  <img src="logo_OrkiCAD-AI.png" alt="OrkiCAD AI logo" width="420" />
+  <img src="logo_OrkiCAD-AI.png" alt="OrkiCAD — logo" width="420">
 </p>
 
-# OrkiCAD AI
+<p align="center"><strong>Design. Refine. Make.</strong><br>Open-source parametric CAD, powered by AI.</p>
 
-**Open-source multimodal CAD, 2D/3D reconstruction, AI-assisted design and manufacturing ecosystem.**
+<p align="center">
+  <a href="ROADMAP.md"><img alt="Version 0.0.1 — internal prototype" src="https://img.shields.io/badge/version-0.0.1%20prototype-087F91"></a>
+  <a href="LICENSE"><img alt="Apache 2.0 license" src="https://img.shields.io/badge/license-Apache%202.0-315DB3"></a>
+  <img alt="Target platforms: Windows, Linux and macOS" src="https://img.shields.io/badge/target-Windows%20%7C%20Linux%20%7C%20macOS-293C60">
+  <a href="https://ko-fi.com/jorgelf"><img alt="Support development on Ko-fi" src="https://img.shields.io/badge/Ko--fi-Support%20development-FF5E5B?logo=kofi&logoColor=white"></a>
+</p>
 
-> **Project status: active source prototype, no stable installers or hosted release.** Windows ComfyUI Desktop workflows for local Ollama, validated parametric features and STL/3MF/native OCCT STEP exports have been reported working by the maintainer. Studio Web source now has part/feature editing and STL/3MF/STEP routes, but its current update needs a new browser test. Independently installable Tauri apps and a secure hosted web service are **not yet shipped**.
+<p align="center">
+  <a href="#why-orkicad">Why OrkiCAD?</a> ·
+  <a href="#current-status">Status</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#product-architecture">Architecture</a> ·
+  <a href="#version-roadmap">Roadmap</a> ·
+  <a href="#contributing-and-support">Contribute</a> ·
+  <a href="#license-and-attribution">License</a>
+</p>
 
-OrkiCAD AI is designed around **one reusable Python CAD core and two user experiences**:
+# OrkiCAD
 
-- **OrkiCAD Studio Web + Desktop** — required browser edition and independently installable Tauri 2 / Rust desktop edition sharing the same React/TypeScript UI and Core contracts.
-- **OrkiCAD ComfyUI** — optional custom nodes and visual workflows sharing the same backend.
+Maintained by [jlopfri921](https://github.com/jlopfri921). **OrkiCAD** is an open-source, **local-first CAD workbench** for parametric mechanical design, AI-assisted part specification, technical drawing and digital fabrication. The project aims to make reliable 2D/3D creation approachable without hiding dimensions, assumptions or manufacturing limitations.
 
-## Three clients, one CAD product
+> [!IMPORTANT]
+> **Early source prototype — not a stable release.** The internal version is **0.0.1** and there is **no official tagged release**, independently installable production Desktop package or secured public Web deployment. Some Windows workflows have been validated by the maintainer; source presence does not imply every platform, adapter or feature is verified. See [Status](docs/STATUS.md) and [Roadmap](ROADMAP.md).
 
-The same validated part designs and ordered `feature_model` operations must work in **OrkiCAD Studio Web**, **OrkiCAD Studio Desktop** (Windows/Linux/macOS) and the optional **ComfyUI** extension. A feature is not considered fully delivered until relevant client support and tests are in place.
+## Why OrkiCAD?
 
-**User experience target:** one-click native STEP, STL and 3MF export using a product-managed CAD engine, without installing FreeCAD or entering Python/interpreter paths. In the development source tree, OCCT can be discovered automatically when installed into a project-local virtual environment; production installer bundling is still pending. Web exports run on a secured CAD backend, not natively inside the browser. See [ADR 0007](docs/adr/0007-three-clients-one-core.md), [architecture](docs/ARCHITECTURE.md) and [status](docs/STATUS.md).
+- **Conversational and parametric:** describe an idea, inspect the interpreted dimensions, then refine the editable part specification.
+- **CAD first:** deterministic geometry, dimensional validation and transparent assumptions rather than relying on a plausible-looking AI image.
+- **Local first:** design manually or use a locally installed Ollama model; cloud providers remain optional and require explicit approval.
+- **One core, three clients:** shared Python CAD contracts for Studio Web, Tauri Desktop and optional ComfyUI nodes/workflows.
+- **Manufacturing aware:** support inspection and interoperable geometry exports, with practical limits and validation before fabrication.
+- **Open and extensible:** collaborate on components, adapters, documentation, UI, tests and interoperable file formats.
 
-## First runnable source prototype
+## Current status
 
-The initial Python package generates validated OpenSCAD source for **washers, mounting plates with four holes, open-top boxes, metric screws/nuts and spur gears**. An installed OpenSCAD CLI can convert these templates to STL; screws, nuts and gears additionally require **BOSL2**. It includes JSON examples, basic unit tests and a GitHub Actions test workflow (execution not yet independently verified). See [Getting started](docs/GETTING_STARTED.md) and [BOSL2 setup](docs/BOSL2_SETUP.md).
+| Area | Current evidence / scope | Limitations |
+| --- | --- | --- |
+| **CAD Core** | Source generators and validated parameter schemas for initial shapes including washers, mounting plates, open boxes, screws, nuts and spur gears | Standards, clearances and manufacturing accuracy require further verification |
+| **STL / mesh** | Maintainer-confirmed Windows STL outputs and preliminary watertight/volume checks for selected sample parts | Results do not establish mechanical fit or accuracy across all designs |
+| **STEP / OCCT** | Maintainer-reported native OCCT STEP workflow in Windows ComfyUI and Studio export source | Clean-install bundles, external interoperability and multi-platform release tests remain pending |
+| **Studio Web** | React/TypeScript source with a 3D viewport, parameter/feature editing, local API and export routes | Latest browser end-to-end acceptance and secure hosted deployment remain pending |
+| **Studio Desktop** | Tauri 2 developer shell and shared frontend source | No production-grade standalone installer shipped |
+| **ComfyUI** | Optional nodes/workflows; maintainer-reported local generation/export tests | Broader compatibility and packaging still under validation |
+| **AI** | Local Ollama experiments; cloud-provider adapter architecture | Cloud providers must be individually tested/configured; no universal AI guarantees |
+| **Languages & units** | Spanish/English UI and mm/in display code in the prototype | Final usability and round-trip tests pending |
 
-## Planned capabilities
+The project distinguishes **planned**, **implemented in source**, **maintainer-verified**, and **released**. Detailed evidence and caveats live in [docs/STATUS.md](docs/STATUS.md).
 
-- Parametric screws, nuts, washers, gears, pulleys, brackets and enclosures.
-- Precise CAD through **native OpenCascade (OCCT)** B-rep exports and **OpenSCAD/BOSL2** meshes; FreeCAD support is optional and never required for STEP.
-- Text-to-parameters with **Ollama (local)** and optional **OpenAI**, **Anthropic Claude**, and **Google Gemini** adapters.
-- OCR, technical drawing vectorization and image-to-3D through ComfyUI integrations.
-- Engine-dependent exports: **SCAD, STL, 3MF, STEP, DXF, SVG, GLB**.
-- Validation, reproducible builds, dimensional tests and manufacturing-oriented checks.
+## What you can build
 
-**Important:** generated meshes are not automatically accurate engineering solids. Fabrication-critical dimensions, clearances, threads and tolerances require validation.
+**Starter parametric families:** washers, mounting plates, open boxes, metric fasteners and spur gears, subject to the active backend and its dependencies.
+
+**Long-term design library (planned):** plates and flanges, fasteners, gears and transmissions, shafts and bushings, supports and structural profiles, enclosures, 3D-printing parts, pipes and connections.
+
+**Expanded workflows (planned, not all working today):**
+
+- Natural-language **text → reviewed CAD parameters → editable solid**.
+- **Images, sketches, PDFs and dimensions → reconstructed 2D/3D geometry**, with explicit uncertainty and calibration.
+- Orthographic drawing **front/top/side views, sections, dimensions**, and appropriate DXF/SVG/PDF output.
+- Geometry selection and feature history for cuts, holes, fillets, chamfers and variants.
+- Mesh inspection, repair and splitting for **3D-printing preparation**.
+- Compatible organic/visual asset workflows and formats when supported by an appropriate engine.
+
+A generated mesh is **not automatically a valid engineering solid**. Always verify units, tolerances, topology and fit before production.
+
+## Product architecture
+
+| Component | Role | Delivery |
+| --- | --- | --- |
+| **OrkiCAD Core** | Versioned part specifications, validated CAD generators, geometry and export adapters | Python source prototype |
+| **OrkiCAD Studio Web** | React/TypeScript design interface served with a secure CAD backend | Local developer prototype; hosted release pending |
+| **OrkiCAD Studio Desktop** | Tauri 2/Rust shell sharing the Studio interface and Core contracts | Developer shell; production installers pending |
+| **OrkiCAD ComfyUI** | Optional nodes and reproducible visual workflows | Early source and user-tested workflows |
+
+OrkiCAD prioritizes native **OpenCascade (OCCT)** B-rep/STEP where feasible, alongside **OpenSCAD/BOSL2** source/mesh generation. FreeCAD is an optional integration, **not** a required end-user dependency in the target product. See [Architecture](docs/ARCHITECTURE.md) and [ADR: three clients, one core](docs/adr/0007-three-clients-one-core.md).
+
+### AI and external CAD providers
+
+| Provider | Proposed role | Policy |
+| --- | --- | --- |
+| **Ollama** | Local text-to-structured-parameters interpretation | Local, configurable, optional |
+| **OpenAI / Claude / Gemini** | Cloud interpretation and assistance | Opt-in, user-configured, provider-specific terms |
+| **GrandpaCAD API** | Optional third-party CAD/3D generation and import pipeline | **Proposed integration only**; API agreement, technical contract, authentication, costs and permitted use must be confirmed |
+
+**GrandpaCAD is not integrated in this release.** A future adapter must be replaceable, disclose any external data transmission and validate imported results. A generated STEP file does not necessarily contain recoverable feature history. No API keys, private drawings or proprietary model weights are bundled with this repository. See [AI provider strategy](docs/AI_PROVIDERS.md) and [Security](SECURITY.md).
+
+## File formats
+
+| Format | Purpose | Note |
+| --- | --- | --- |
+| **SCAD** | Parametric source | OpenSCAD/BOSL2 path |
+| **STL / 3MF** | Mesh / 3D-print output | Verify backend support and mesh validity |
+| **STEP** | B-rep CAD interchange | OCCT export path; end-to-end compatibility still being validated |
+| **DXF / SVG / PDF** | Technical sketches and drawings | Planned or backend-dependent |
+| **FCStd** | FreeCAD native project | Optional integration, not equivalent to generic STEP |
+| **OBJ / GLB / glTF** | Visual meshes and assets | Planned or backend-dependent |
+
+Formats are **not** universally available for every input geometry or provider. Converting a mesh into CAD does not recreate a parametric design history.
+
+## Quick start
+
+The commands below are for **developers running the source prototype**, not a one-click end-user installer.
+
+```powershell
+git clone https://github.com/jlopfri921/OrkiCAD.git
+cd OrkiCAD
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m orkicad_core.cli examples\washer.json -o outputs\washer.scad
+```
+
+To render an STL, install a compatible OpenSCAD CLI separately and refer to [Getting started](docs/GETTING_STARTED.md). Fastener/gear rendering also requires [BOSL2 setup](docs/BOSL2_SETUP.md). For the Studio UI, follow [Studio Web developer guide](docs/STUDIO_PROTOTYPE.md), [Desktop developer guide](docs/STUDIO_DESKTOP.md), and [Local development](docs/LOCAL_DEVELOPMENT.md). **Do not expose a development API to the public Internet.**
+
+### Screenshots and demo
+
+An up-to-date, verified Studio screenshot and demo will be added after browser acceptance. The logo shown above is the [project's existing brand asset](docs/BRANDING.md), not a claim that the planned UI redesign is already shipped.
+
+## Version roadmap
+
+Version labels describe **proposed milestones**, not released features. The canonical plan remains [ROADMAP.md](ROADMAP.md); a revised UX/provider-focused plan can be reconciled there without discarding existing technical requirements.
+
+| Milestone | Intended focus | Status |
+| --- | --- | --- |
+| **0.0.1** | Core/Studio/ComfyUI early source prototype | Internal development, no tagged release |
+| **0.1.x** | Stabilize core + minimal Studio UX foundation | Planned / acceptance pending |
+| **0.2.x** | Improved projects, editor, parameters and navigation | Planned |
+| **0.3.x** | Optional external-provider architecture and GrandpaCAD feasibility | Proposed; external agreement required |
+| **0.4–0.8** | AI adapters, CAD features, reconstruction, fabrication, packaging | Planned |
+| **0.9** | Beta, compatibility, security and usability | Planned |
+| **1.0** | Supported, documented stable subset with real release evidence | Planned |
+
+**No release date or stability is implied by this table.** Consult [Changelog](CHANGELOG.md), [Versioning](docs/VERSIONING.md) and [Status](docs/STATUS.md).
 
 ## Documentation
 
-- [Project status](docs/STATUS.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Requirements and scope](docs/REQUIREMENTS.md)
-- [AI providers and security](docs/AI_PROVIDERS.md)
-- [Roadmap](ROADMAP.md)
-- [Changelog](CHANGELOG.md)
-- [Versioning and releases](docs/VERSIONING.md)
-- [Architecture decisions](docs/adr/README.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security](SECURITY.md)
+| Document | Description |
+| --- | --- |
+| [Getting started](docs/GETTING_STARTED.md) | Install and run the early CAD Core |
+| [Studio Web](docs/STUDIO_PROTOTYPE.md) · [Studio Desktop](docs/STUDIO_DESKTOP.md) | Developer setup and current limitations |
+| [Architecture](docs/ARCHITECTURE.md) · [Requirements](docs/REQUIREMENTS.md) | Product contracts and boundaries |
+| [Vision and workflows](docs/VISION_AND_WORKFLOWS.md) · [Workflow catalog](docs/WORKFLOW_CATALOG.md) | Intended multimodal experience |
+| [ComfyUI integration](docs/COMFYUI_INTEGRATION.md) | Optional node/workflow integration |
+| [AI providers](docs/AI_PROVIDERS.md) · [Security](SECURITY.md) | Provider and operational safeguards |
+| [I18N](docs/I18N.md) · [Branding](docs/BRANDING.md) | Languages, units and visual identity |
+| [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) · [Status](docs/STATUS.md) | Plans versus verified progress |
+| [Third-party notices](THIRD_PARTY_NOTICES.md) | External dependencies and their separate terms |
 
-## Guiding principles
+## Contributing and support
 
-1. **Engine-first:** deterministic parameters and geometry; AI assists interpretation but does not replace CAD validation.
-2. **Provider-neutral:** local-first; external API use is opt-in and replaceable.
-3. **One core:** Studio and ComfyUI consume the same typed contracts.
-4. **Safe by default:** no arbitrary untrusted code execution, no API keys in source control.
-5. **Transparent progress:** documentation distinguishes proposals, prototypes, verified capabilities and releases.
+OrkiCAD welcomes contributions to **CAD algorithms, test fixtures, parametric libraries, accessibility, translations, documentation, platform packaging and AI adapters**. Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change, and report security issues using [SECURITY.md](SECURITY.md).
 
-## Get involved
+Support independent development through [Ko-fi](https://ko-fi.com/jorgelf). Donations are **voluntary**, do not unlock basic CAD capabilities, and are not a substitute for paid third-party API credits. Sponsorship does not confer control over the project's technical decisions.
 
-See [ROADMAP.md](ROADMAP.md) and [CONTRIBUTING.md](CONTRIBUTING.md). This is an early-stage project; contributions and design discussion are welcome.
+## License and attribution
 
-## Multimodal CAD and 3D workflows — extended scope
+**OrkiCAD source code is licensed under the [Apache License, Version 2.0](LICENSE)** (SPDX: `Apache-2.0`).
 
-This is a **CAD-first 2D/3D ecosystem**, not just a parametric part generator. The following capabilities are **planned**:
+Copyright © 2026 Jorge López Frías and contributors, for contributions they own.
 
-- **Parametric components**: screws, nuts, washers, gears, pulleys, shafts, housings, enclosures and brackets.
-- **Text/chat/LLM → CAD**: structured dimensional specifications into constrained 2D plans or editable 3D parts.
-- **2D ↔ 3D**: plans, SVG/DXF or sketches to solids; 3D solids to orthographic views, sections and dimensioned 2D drawings.
-- **Image/sketch/PDF → CAD**: OCR and vectorization of linework, callouts and handwritten dimensions, followed by reconstruction.
-- **Single/multiple photos → 3D/CAD**: reconstruct objects from one or several angles, with user-specified dimensions in drawings, annotated photographs or chat. Calibration and engineering validation are mandatory for claimed accuracy.
-- **3D model and STL splitting**: split along chosen planes, separate components/shells, create printable sections, connectors, locating pins and clearances.
-- **3D printing preparation**: inspect/repair meshes, validate scale, thickness and watertightness; export STL/3MF and integrate slicers.
-- **Game/design asset preparation**: mesh optimization, UV mapping, PBR textures, LODs and GLB/glTF.
-- **Import/export**: SCAD, STEP, STL, 3MF, DXF, SVG, GLB where the backend and geometry representation permit.
+Third-party libraries, model weights, design files, fonts and brands may have **different licenses or usage terms**. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The Apache 2.0 software license does not grant rights to external provider trademarks, private APIs or third-party assets.
 
-Two planned interfaces share a core: **OrkiCAD Studio** (Tauri 2 + Rust + React/TypeScript) and **OrkiCAD ComfyUI** (custom nodes/workflows). AI providers: local **Ollama** and optional **OpenAI, Anthropic Claude, Google Gemini** APIs.
+---
 
-Read the [complete vision](docs/VISION_AND_WORKFLOWS.md), [workflow catalog](docs/WORKFLOW_CATALOG.md), [reconstruction requirements](docs/RECONSTRUCTION.md), [3D printing and assets](docs/3D_PRINTING_AND_ASSETS.md) and [mesh splitting](docs/MESH_SPLITTING.md).
-
-## External resources and local development
-
-The maintainer's Windows working directory is **`F:\orkicad-ai`**. All application paths must remain configurable rather than hardcoded. See [local development instructions](docs/LOCAL_DEVELOPMENT.md).
-
-See the [CAD, AI and 3D resources catalog](docs/DEPENDENCIES_AND_RESOURCES.md) for official source links, purposes, proposed integration roles and licensing/compatibility checks. Also see [third-party notices](THIRD_PARTY_NOTICES.md). External model weights and CAD applications are **not** included in this repository.
-
-## Brand asset
-
-The official [OrkiCAD AI logo](logo_OrkiCAD-AI.png) is stored in the repository root and displayed above. See [branding documentation](docs/BRANDING.md).
-
-## Mesh inspection and early Studio preview
-
-- **Mesh inspector:** basic watertightness, connected-component count, volume and bounding-box checks, with a JSON report; requires the optional Python `mesh` extra. [Mesh validation guide](docs/MESH_VALIDATION.md).
-- **Studio Web + Desktop developer prototype:** one shared React/TypeScript interface with a modern responsive three-panel CAD workspace, local AI and optional cloud models, parametric operation editor, real STL 3D viewport and SCAD/STL/3MF/native OCCT STEP exports. A Tauri 2 desktop developer shell now starts its local Core worker automatically. **No independently installable production Desktop package or secured hosted Web edition is released.** [Web instructions](docs/STUDIO_PROTOTYPE.md) · [Desktop developer setup and limits](docs/STUDIO_DESKTOP.md).
-- Windows validation of the initial STL samples is logged in [project status](docs/STATUS.md); the new inspector and Studio frontend still need local execution testing.
-
-## Languages
-
-OrkiCAD Studio is designed as a multilingual application. The initial React prototype has **Español** and **English** UI translations and a language selector; additional languages are planned. CAD parameter keys remain language-neutral. See [internationalization requirements](docs/I18N.md). This feature still requires validation in the maintainer's local build.
-
-## Measurement units
-
-OrkiCAD Studio now offers **Metric (mm)** and **Imperial (inches)** display/input for linear dimensions, independently of its Spanish/English interface selection. The core and exported files remain in millimetres; changing display units alone does not rescale the model. Standard metric thread identifiers and metric gear module are not converted into imperial standards. [Requirements and limitations](docs/REQUIREMENTS.md).
+<p align="center"><strong>OrkiCAD — Design. Refine. Make.</strong><br>Open CAD, practical AI, and community-driven engineering.</p>
