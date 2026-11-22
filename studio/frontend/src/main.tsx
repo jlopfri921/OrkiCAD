@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
 import StudioWelcome from './StudioWelcome'
+import { newLocalProjectId, readLocalProjects, removeLocalProject, saveLocalProject, type LocalCADProject } from './localProjects'
 import CircularPlatePlan from './CircularPlatePlan'
 import { apiFetch } from './api'
 import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
@@ -119,6 +120,10 @@ function App() {
     try { window.localStorage.setItem('orkicad-theme', theme) } catch { /* private browsing: in-memory preference */ }
   }, [theme])
   const [studioPage, setStudioPage] = useState<'home' | 'editor'>('home')
+  const [projectList, setProjectList] = useState<LocalCADProject[]>(readLocalProjects)
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
+  const [currentProjectName, setCurrentProjectName] = useState('')
+  const [projectMessage, setProjectMessage] = useState('')
   const [assistantVisible, setAssistantVisible] = useState(true)
   const [inspectorVisible, setInspectorVisible] = useState(true)
   const t = messages[language]
@@ -320,6 +325,9 @@ function App() {
     setSelectedFace(null)
   }
   function changeType(next: PartType) {
+    setCurrentProjectId(null)
+    setCurrentProjectName('')
+    setProjectMessage('')
     setExpandedInspector('size')
     previewSerial.current += 1
     // Changing part family changes topology: the last mesh must be cleared.
@@ -544,6 +552,70 @@ function App() {
     waiting: 'No model generated', status: 'Ready to design', intro: 'Intelligent CAD · local workspace',
     formats: 'Export', inspector: 'Inspector', scene: 'CAD model',
   }
+  const projectLabel = currentProjectName || ui.project
+  function saveProject() {
+    if (working) return
+    const chosenName = window.prompt(
+      language === 'es' ? 'Nombre del proyecto (guardado en este navegador)' : 'Project name (saved in this browser)',
+      currentProjectName || (language === 'es' ? 'Mi diseño' : 'My design'),
+    )
+    if (chosenName === null) return
+    const name = chosenName.trim()
+    if (!name || name.length > 100) {
+      setProjectMessage(language === 'es' ? 'Introduce un nombre de 1 a 100 caracteres.' : 'Enter a name between 1 and 100 characters.')
+      return
+    }
+    const id = currentProjectId || newLocalProjectId()
+    try {
+      const next = saveLocalProject({
+        schemaVersion: 1, id, name, partType: type, parameters: JSON.parse(JSON.stringify(params)),
+        prompt, updatedAt: new Date().toISOString()
+      })
+      setProjectList(next)
+      setCurrentProjectId(id)
+      setCurrentProjectName(name)
+      setProjectMessage(language === 'es' ? 'Proyecto guardado en este navegador.' : 'Project saved in this browser.')
+    } catch {
+      setProjectMessage(language === 'es' ? 'No se ha podido guardar: comprueba el espacio o los permisos del navegador.' : 'Could not save: check browser storage space or permissions.')
+    }
+  }
+  function openProject(project: LocalCADProject) {
+    if (!Object.prototype.hasOwnProperty.call(activeCatalog, project.partType)) {
+      setProjectMessage(language === 'es' ? 'Tipo de pieza no disponible en este catálogo.' : 'Part type not available in this catalog.')
+      return
+    }
+    const template = activeCatalog[project.partType].params
+    const cleanParams: Record<string, ParamValue> = { ...template }
+    for (const [key, value] of Object.entries(project.parameters)) {
+      if (!Object.prototype.hasOwnProperty.call(template, key)) continue
+      const expected = template[key]
+      if (typeof expected === 'number' && typeof value === 'number' && Number.isFinite(value)) cleanParams[key] = value
+      else if (typeof expected === 'string' && typeof value === 'string' && value.length < 100) cleanParams[key] = value
+      else if (Array.isArray(expected) && Array.isArray(value) && value.length <= 40) cleanParams[key] = value as Feature[]
+    }
+    previewSerial.current += 1
+    previewAbort.current?.abort()
+    setType(project.partType as PartType)
+    setParams(cleanParams)
+    setPrompt(project.prompt)
+    setCurrentProjectId(project.id)
+    setCurrentProjectName(project.name)
+    setAiNote(''); setReviewApproved(false); setError(''); setScad(''); setStl(null)
+    setPreviewReady(false); setSelectedFace(null); setSelectedDimension(null)
+    setExpandedInspector('size'); setInspectorVisible(true); setStudioPage('editor')
+    setProjectMessage(language === 'es' ? 'Proyecto cargado: revisa y genera la geometría.' : 'Project loaded: review and generate geometry.')
+  }
+  function deleteProject(project: LocalCADProject) {
+    const msg = language === 'es' ? '¿Eliminar "' + project.name + '" de este navegador?' : 'Remove "' + project.name + '" from this browser?'
+    if (!window.confirm(msg)) return
+    try {
+      setProjectList(removeLocalProject(project.id))
+      if (project.id === currentProjectId) { setCurrentProjectId(null); setCurrentProjectName('') }
+      setProjectMessage(language === 'es' ? 'Proyecto eliminado.' : 'Project removed.')
+    } catch {
+      setProjectMessage(language === 'es' ? 'No se pudo eliminar el proyecto.' : 'Could not remove the project.')
+    }
+  }
   const exportBlocked = working || saveBusy || (!!aiNote && !reviewApproved)
   return <div className={`studio-shell${assistantVisible ? '' : ' assistant-collapsed'}${inspectorVisible ? '' : ' inspector-collapsed'}`}>
     <header className="studio-topbar">
@@ -557,10 +629,11 @@ function App() {
         <button type="button" aria-current={studioPage === 'editor' ? 'page' : undefined} onClick={() => setStudioPage('editor')}>{language === 'es' ? 'Editor CAD' : 'CAD editor'}</button>
       </nav>
       <div className="studio-document">
-        <span>{ui.workspace}</span><span aria-hidden="true">/</span><strong>{ui.project}</strong>
+        <span>{ui.workspace}</span><span aria-hidden="true">/</span><strong>{projectLabel}</strong>
         <span className="document-dot" aria-hidden="true"></span>
       </div>
       <div className="studio-top-actions">
+        {studioPage === 'editor' && <button type="button" className="project-save-button" disabled={working} onClick={saveProject}>{language === 'es' ? 'Guardar proyecto' : 'Save project'}</button>}
         <div className="studio-layout-actions" role="group" aria-label={language === 'es' ? 'Mostrar u ocultar paneles' : 'Show or hide panels'}>
           <button type="button" className="studio-panel-toggle" aria-pressed={assistantVisible} aria-controls="studio-assistant-panel" onClick={() => setAssistantVisible(v => !v)}>{language === 'es' ? 'Asistente' : 'Assistant'}</button>
           <button type="button" className="studio-panel-toggle" aria-pressed={inspectorVisible} aria-controls="studio-inspector-panel" onClick={() => setInspectorVisible(v => !v)}>{language === 'es' ? 'Propiedades' : 'Properties'}</button>
@@ -583,8 +656,9 @@ function App() {
     </header>
 
     {studioPage === 'home' && <StudioWelcome language={language}
+      projects={projectList} onOpenProject={openProject} onDeleteProject={deleteProject}
       onOpenEditor={() => setStudioPage('editor')}
-      onUsePrompt={value => { setPrompt(value); setAiNote(''); setError(''); setAssistantVisible(true); setStudioPage('editor') }}
+      onUsePrompt={value => { setCurrentProjectId(null); setCurrentProjectName(''); setPrompt(value); setAiNote(''); setError(''); setAssistantVisible(true); setStudioPage('editor') }}
       onChoosePart={part => { changeType(part); setInspectorVisible(true); setStudioPage('editor') }} />}
     <main className="studio-main" hidden={studioPage !== 'editor'}>
       <aside id="studio-assistant-panel" className="studio-sidebar assistant-sidebar" aria-label={ui.assistant} hidden={!assistantVisible}>
@@ -946,7 +1020,7 @@ function App() {
     </div>}
     <footer className="studio-statusbar">
       <span><span className="status-indicator"></span> {ui.status}</span>
-      <span role="status">{saveStatus || 'OrkiCAD Core · STL / 3MF / STEP'}</span>
+      <span role="status">{projectMessage || saveStatus || 'OrkiCAD Core · STL / 3MF / STEP'}</span>
       <span>{units === 'metric' ? 'Metric · mm' : 'Imperial · in'}</span>
     </footer>
   </div>
