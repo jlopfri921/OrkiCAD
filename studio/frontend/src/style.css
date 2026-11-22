@@ -319,3 +319,82 @@ button:hover:not(:disabled){background:#29465d;border-color:#59819b}
 .parametric-catalog input,.parametric-catalog select{width:100%;min-height:35px;padding:7px 9px;font-size:12px}
 .parametric-catalog .catalog-result-count{font-size:10px;color:#8baac0}
 .parametric-catalog .catalog-no-results{font-size:11px;color:#f0c493;line-height:1.4}
+
+/* OrkiCAD Studio 0.1 — minimal workspace shell.
+   Layout-only improvements: existing CAD engine, workflows and controls are unchanged. */
+:root{
+  --base:#0b1424;
+  --panel:#111e30;
+  --raised:#192a42;
+  --line:#2a3b53;
+  --text:#edf4fc;
+  --muted:#a1b4c8;
+  --accent:#18a6f6;
+  --cyan:#66c6fb;
+  --focus:#74cafa;
+}
+.studio-shell{
+  background:#0b1424;
+}
+.studio-topbar{
+  background:#0d192b;
+  border-bottom-color:#2a3b53;
+  gap:18px;
+}
+.studio-brand{gap:10px}
+.brand-icon-image{display:block;width:36px;height:36px;border-radius:9px;flex:none}
+.studio-brand strong{letter-spacing:-.7px}
+.studio-brand strong span{color:#38b7ff}
+.brand-studio{color:#9bafc5;letter-spacing:1.5px;margin-left:4px}
+.studio-layout-actions{display:flex;align-items:center;gap:5px;padding:3px;border:1px solid #34475e;border-radius:10px}
+.studio-layout-actions .studio-panel-toggle{
+  padding:7px 11px;border:1px solid transparent;border-radius:7px;
+  background:transparent;color:#a6bad0;font-size:11px;white-space:nowrap
+}
+.studio-layout-actions .studio-panel-toggle[aria-pressed="true"]{
+  color:#e5f5ff;background:#223d59;border-color:#34628a
+}
+.studio-layout-actions .studio-panel-toggle:hover:not(:disabled){
+  background:#304e6a;color:#fff
+}
+.studio-main{grid-template-columns:minmax(275px,310px) minmax(370px,1fr) minmax(285px,320px)}
+.studio-shell.assistant-collapsed .studio-main{
+  grid-template-columns:minmax(380px,1fr) minmax(285px,320px)
+}
+.studio-shell.inspector-collapsed .studio-main{
+  grid-template-columns:minmax(275px,310px) minmax(380px,1fr)
+}
+.studio-shell.assistant-collapsed.inspector-collapsed .studio-main{grid-template-columns:minmax(0,1fr)}
+.studio-sidebar[hidden]{display:none!important}
+.studio-sidebar{background:#101d2f}
+.studio-center{padding:18px;gap:12px}
+.viewport-frame{border-radius:14px;border-color:#364a64;background:radial-gradient(ellipse at 50% 30%,#233853,#111f33 68%,#0b1728)}
+.sidebar-header{border-bottom-color:#293d55}
+.section-overline{color:#91abc4;letter-spacing:1.1px}
+.section-icon,.part-icon{color:#40b9ff}
+.action-primary{background:linear-gradient(110deg,#0f91e8,#54c2ff);color:#071b30;box-shadow:0 4px 16px #008de921}
+.action-primary:hover:not(:disabled){background:linear-gradient(110deg,#42adf3,#85d7ff)}
+.studio-disclosure,.inspector-section,.source-panel{border-radius:11px}
+.studio-statusbar{background:#0d192b}
+@media(min-width:1600px){
+  .studio-main{grid-template-columns:minmax(305px,350px) minmax(410px,1fr) minmax(310px,365px)}
+  .studio-shell.assistant-collapsed .studio-main{grid-template-columns:minmax(410px,1fr) minmax(310px,365px)}
+  .studio-shell.inspector-collapsed .studio-main{grid-template-columns:minmax(305px,350px) minmax(410px,1fr)}
+  .studio-shell.assistant-collapsed.inspector-collapsed .studio-main{grid-template-columns:minmax(0,1fr)}
+}
+@media(min-width:761px) and (max-width:1200px){
+  .studio-main{grid-template-columns:minmax(260px,310px) minmax(370px,1fr)}
+  .studio-shell.assistant-collapsed .studio-main{grid-template-columns:minmax(0,1fr)}
+  .studio-shell.inspector-collapsed .studio-main{grid-template-columns:minmax(260px,310px) minmax(370px,1fr)}
+  .studio-shell.assistant-collapsed.inspector-collapsed .studio-main{grid-template-columns:minmax(0,1fr)}
+  .studio-shell.assistant-collapsed .properties-sidebar{grid-column:1/-1}
+}
+@media(max-width:760px){
+  .studio-main,.studio-shell.assistant-collapsed .studio-main,
+  .studio-shell.inspector-collapsed .studio-main,
+  .studio-shell.assistant-collapsed.inspector-collapsed .studio-main{display:flex;flex-direction:column}
+  .studio-layout-actions{order:0;max-width:100%}
+  .studio-layout-actions .studio-panel-toggle{font-size:10px;padding:7px 8px}
+  .studio-top-actions{flex-wrap:wrap;justify-content:flex-end;min-width:0}
+  .studio-center{padding:12px}
+}

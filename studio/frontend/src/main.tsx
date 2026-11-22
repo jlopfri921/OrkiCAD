@@ -106,6 +106,8 @@ const catalog: Record<PartType, Definition> = {
 function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage)
   const [units, setUnits] = useState<UnitSystem>('metric')
+  const [assistantVisible, setAssistantVisible] = useState(true)
+  const [inspectorVisible, setInspectorVisible] = useState(true)
   const t = messages[language]
   const [type, setType] = useState<PartType>('washer')
   const [catalogCategory, setCatalogCategory] = useState('all')
@@ -530,11 +532,11 @@ function App() {
     formats: 'Export', inspector: 'Inspector', scene: 'CAD model',
   }
   const exportBlocked = working || saveBusy || (!!aiNote && !reviewApproved)
-  return <div className="studio-shell">
+  return <div className={`studio-shell${assistantVisible ? '' : ' assistant-collapsed'}${inspectorVisible ? '' : ' inspector-collapsed'}`}>
     <header className="studio-topbar">
       <div className="studio-brand">
-        <span className="brand-icon" aria-hidden="true">◈</span>
-        <strong>Orki<span>CAD</span></strong><span className="brand-ai">AI</span>
+        <img className="brand-icon-image" src="/favicon.svg" alt="" width="36" height="36" />
+        <strong>Orki<span>CAD</span></strong>
         <span className="brand-studio">STUDIO</span>
       </div>
       <div className="studio-document">
@@ -542,6 +544,10 @@ function App() {
         <span className="document-dot" aria-hidden="true"></span>
       </div>
       <div className="studio-top-actions">
+        <div className="studio-layout-actions" role="group" aria-label={language === 'es' ? 'Mostrar u ocultar paneles' : 'Show or hide panels'}>
+          <button type="button" className="studio-panel-toggle" aria-pressed={assistantVisible} aria-controls="studio-assistant-panel" onClick={() => setAssistantVisible(v => !v)}>{language === 'es' ? 'Asistente' : 'Assistant'}</button>
+          <button type="button" className="studio-panel-toggle" aria-pressed={inspectorVisible} aria-controls="studio-inspector-panel" onClick={() => setInspectorVisible(v => !v)}>{language === 'es' ? 'Propiedades' : 'Properties'}</button>
+        </div>
         <span className="connection-status"><i></i>{working ? t.working : ui.status}</span>
         <select aria-label={t.language} value={language}
           onChange={e => setLanguage(e.target.value as Language)}>
@@ -555,7 +561,7 @@ function App() {
     </header>
 
     <main className="studio-main">
-      <aside className="studio-sidebar assistant-sidebar" aria-label={ui.assistant}>
+      <aside id="studio-assistant-panel" className="studio-sidebar assistant-sidebar" aria-label={ui.assistant} hidden={!assistantVisible}>
         <div className="sidebar-header">
           <div className="section-overline">01 / INTELLIGENCE</div>
           <h1><span className="section-icon">✧</span> {ui.assistant}</h1>
@@ -772,7 +778,7 @@ function App() {
         </details>
       </section>
 
-      <aside className="studio-sidebar properties-sidebar" aria-label={ui.properties}>
+      <aside id="studio-inspector-panel" className="studio-sidebar properties-sidebar" aria-label={ui.properties} hidden={!inspectorVisible}>
         <div className="sidebar-header">
           <div className="section-overline">04 / INSPECTOR</div>
           <h2><span className="section-icon">☷</span> {ui.properties}</h2>
