@@ -100,6 +100,9 @@ html[data-theme="light"] .studio-layout-actions .studio-focus-toggle{border-righ
   .studio-layout-actions .studio-panel-toggle{padding:6px 8px}
 }
 @media(max-width:1050px){
+  .studio-shell{grid-template-rows:auto minmax(0,1fr) auto}
+  .studio-shell:has(.welcome-main){grid-template-rows:auto minmax(0,1fr) auto}
+  .studio-main{height:auto;min-height:0}
   .studio-topbar{flex-wrap:wrap;height:auto;min-height:66px;padding-block:10px}
   .studio-page-navigation{order:2}
   .studio-top-actions{margin-left:auto;flex-wrap:wrap}
