@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
+import StudioWelcome from './StudioWelcome'
 import CircularPlatePlan from './CircularPlatePlan'
 import { apiFetch } from './api'
 import { saveExport, type ExportFormat, normalizeExportName, isDesktop } from './saveFile'
@@ -106,6 +107,7 @@ const catalog: Record<PartType, Definition> = {
 function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage)
   const [units, setUnits] = useState<UnitSystem>('metric')
+  const [studioPage, setStudioPage] = useState<'home' | 'editor'>('home')
   const [assistantVisible, setAssistantVisible] = useState(true)
   const [inspectorVisible, setInspectorVisible] = useState(true)
   const t = messages[language]
@@ -539,6 +541,10 @@ function App() {
         <strong>Orki<span>CAD</span></strong>
         <span className="brand-studio">STUDIO</span>
       </div>
+      <nav className="studio-page-navigation" aria-label={language === 'es' ? 'Navegación de Studio' : 'Studio navigation'}>
+        <button type="button" aria-current={studioPage === 'home' ? 'page' : undefined} onClick={() => setStudioPage('home')}>{language === 'es' ? 'Inicio' : 'Home'}</button>
+        <button type="button" aria-current={studioPage === 'editor' ? 'page' : undefined} onClick={() => setStudioPage('editor')}>{language === 'es' ? 'Editor CAD' : 'CAD editor'}</button>
+      </nav>
       <div className="studio-document">
         <span>{ui.workspace}</span><span aria-hidden="true">/</span><strong>{ui.project}</strong>
         <span className="document-dot" aria-hidden="true"></span>
@@ -560,7 +566,11 @@ function App() {
       </div>
     </header>
 
-    <main className="studio-main">
+    {studioPage === 'home' && <StudioWelcome language={language}
+      onOpenEditor={() => setStudioPage('editor')}
+      onUsePrompt={value => { setPrompt(value); setAiNote(''); setError(''); setAssistantVisible(true); setStudioPage('editor') }}
+      onChoosePart={part => { changeType(part); setInspectorVisible(true); setStudioPage('editor') }} />}
+    <main className="studio-main" hidden={studioPage !== 'editor'}>
       <aside id="studio-assistant-panel" className="studio-sidebar assistant-sidebar" aria-label={ui.assistant} hidden={!assistantVisible}>
         <div className="sidebar-header">
           <div className="section-overline">01 / INTELLIGENCE</div>
