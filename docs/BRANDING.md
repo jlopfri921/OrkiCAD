@@ -9,9 +9,14 @@
 - **Repository:** [jlopfri921/OrkiCAD](https://github.com/jlopfri921/OrkiCAD).
 - **Software license:** [Apache License 2.0](../LICENSE). Third-party assets and marks may carry their own terms.
 
-## Current logo (legacy asset)
+## Approved SVG identity assets (first iteration)
 
-The repository currently contains [`logo_OrkiCAD-AI.png`](../logo_OrkiCAD-AI.png), shown in the README. **Its filename and artwork predate the OrkiCAD name decision.** Keep it unchanged until a new approved logo is available. Do not merely rename the PNG and claim that the visible wordmark has changed.
+- [Light-background wordmark](../assets/branding/orkicad-logo-light.svg)
+- [Dark-background wordmark](../assets/branding/orkicad-logo-dark.svg)
+- [App-icon vector source](../assets/branding/orkicad-icon.svg)
+- [Studio browser favicon](../studio/frontend/public/favicon.svg)
+
+These are first-pass vector recreations of the approved visual concept, not a vector extraction of the image-generation mockup. The original `logo_OrkiCAD-AI.png` remains in place for compatibility; the README now uses responsive light/dark OrkiCAD wordmarks.
 
 ## Proposed design principles
 
@@ -25,11 +30,11 @@ These are design requirements, not claims that the new interface is already impl
 
 ## Asset checklist (not yet delivered)
 
-- [ ] Approve a new `OrkiCAD` wordmark and standalone symbol.
-- [ ] Publish verified light and dark logo variants.
-- [ ] Produce an editable vector master and suitable PNG exports.
-- [ ] Add browser favicon and platform app icons with correct sizes.
-- [ ] Wire assets into React/Vite, Tauri and README.
+- [x] Add new `OrkiCAD` SVG wordmark and standalone symbol for design review.
+- [x] Publish initial light and dark SVG wordmark variants (visual review pending).
+- [x] Produce editable SVG assets; production raster exports still pending.
+- [x] Add a Studio SVG favicon; Tauri raster icons (ICO/ICNS/PNG sizes) still pending.
+- [x] Wire favicon into Vite and wordmark into README; Tauri bundle wiring pending.
 - [ ] Test color contrast, readability at small sizes, and dark/light backgrounds.
 - [ ] Review third-party font, icon and logo licensing before redistributing assets.
 

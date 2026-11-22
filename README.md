@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo_OrkiCAD-AI.png" alt="OrkiCAD project logo (legacy AI artwork)" width="420">
+  <picture>\n    <source media="(prefers-color-scheme: dark)" srcset="assets/branding/orkicad-logo-dark.svg">\n    <img src="assets/branding/orkicad-logo-light.svg" alt="OrkiCAD — Design. Refine. Make." width="570">\n  </picture>
 </p>
 
 <p align="center"><strong>Design. Refine. Make.</strong><br>Open-source parametric CAD, powered by AI.</p>
@@ -160,7 +160,7 @@ To produce an STL, install a compatible OpenSCAD CLI and follow [Getting started
 
 ### Screenshots and previews
 
-The hero uses the **existing project logo file** `logo_OrkiCAD-AI.png`. Its filename/artwork has not yet been rebranded to remove the older “AI” wording; changing visible identity requires a separately reviewed asset. A verified screenshot of the redesigned Studio will be included after UI acceptance.
+The README now uses the **OrkiCAD SVG wordmark**, with light/dark variants, and Studio uses the new SVG favicon. The older `logo_OrkiCAD-AI.png` remains archived for compatibility. Tauri raster/ICO/ICNS application icons and a verified screenshot of the redesigned Studio still require separate packaging and UI acceptance.
 
 ## Version history and roadmap
 
