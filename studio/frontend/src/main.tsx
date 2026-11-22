@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
+import './design-system.css'
 import STLViewer, { type CameraAction, type CameraCommand } from './STLViewer'
 import StudioWelcome from './StudioWelcome'
 import CircularPlatePlan from './CircularPlatePlan'
@@ -562,6 +563,7 @@ function App() {
       </div>
       <div className="studio-top-actions">
         <div className="studio-layout-actions" role="group" aria-label={language === 'es' ? 'Mostrar u ocultar paneles' : 'Show or hide panels'}>
+          <button type="button" className="studio-panel-toggle studio-focus-toggle" aria-pressed={!assistantVisible && !inspectorVisible} onClick={() => { const focus = assistantVisible || inspectorVisible; setAssistantVisible(!focus); setInspectorVisible(!focus) }} title={language === 'es' ? 'Ocultar o mostrar ambos paneles para centrarte en la pieza' : 'Hide or show both panels to focus on your model'}>{language === 'es' ? 'Enfoque' : 'Focus'}</button>
           <button type="button" className="studio-panel-toggle" aria-pressed={assistantVisible} aria-controls="studio-assistant-panel" onClick={() => setAssistantVisible(v => !v)}>{language === 'es' ? 'Asistente' : 'Assistant'}</button>
           <button type="button" className="studio-panel-toggle" aria-pressed={inspectorVisible} aria-controls="studio-inspector-panel" onClick={() => setInspectorVisible(v => !v)}>{language === 'es' ? 'Propiedades' : 'Properties'}</button>
         </div>
@@ -589,7 +591,7 @@ function App() {
     <main className="studio-main" hidden={studioPage !== 'editor'}>
       <aside id="studio-assistant-panel" className="studio-sidebar assistant-sidebar" aria-label={ui.assistant} hidden={!assistantVisible}>
         <div className="sidebar-header">
-          <div className="section-overline">01 / INTELLIGENCE</div>
+          <div className="section-overline">{language === 'es' ? 'DISEÑO ASISTIDO' : 'ASSISTED DESIGN'}</div>
           <h1><span className="section-icon">✧</span> {ui.assistant}</h1>
           <p>{t.aiDescription}</p>
         </div>
@@ -670,7 +672,7 @@ function App() {
 
       <section className="studio-center" aria-label={ui.viewport}>
         <div className="viewport-heading">
-          <div><div className="section-overline">02 / MODEL</div><h2>{ui.viewport}</h2></div>
+          <div><div className="section-overline">{language === 'es' ? 'ÁREA DE TRABAJO' : 'WORKSPACE'}</div><h2>{ui.viewport}</h2></div>
           <div className="viewport-badges">
             {type === 'circular_plate' && <button type="button"
               className="secondary circular-plan-toggle" aria-pressed={showCircularPlan}
@@ -786,7 +788,7 @@ function App() {
           </div>
         </div>
         <div className="output-bar">
-          <div><div className="section-overline">03 / OUTPUT</div><h3>{ui.output}</h3></div>
+          <div><div className="section-overline">{language === 'es' ? 'ARCHIVOS DE DISEÑO' : 'DESIGN FILES'}</div><h3>{ui.output}</h3></div>
           <div className="output-actions">
             <button disabled={exportBlocked} onClick={generate}>SCAD</button>
             <button disabled={exportBlocked} onClick={() => exportFormat('3mf')}>3MF</button>
@@ -806,7 +808,7 @@ function App() {
 
       <aside id="studio-inspector-panel" className="studio-sidebar properties-sidebar" aria-label={ui.properties} hidden={!inspectorVisible}>
         <div className="sidebar-header">
-          <div className="section-overline">04 / INSPECTOR</div>
+          <div className="section-overline">{language === 'es' ? 'EDICIÓN PARAMÉTRICA' : 'PARAMETRIC EDITING'}</div>
           <h2><span className="section-icon">☷</span> {ui.properties}</h2>
           <p>{ui.library}</p>
         </div>
