@@ -1,10 +1,14 @@
 import React, { useState } from 'react'
 import type { Language } from './i18n'
+import type { LocalCADProject } from './localProjects'
 
 type StarterPart = 'washer' | 'spur_gear' | 'mounting_plate' | 'open_box'
 
 type Props = {
   language: Language
+  projects: LocalCADProject[]
+  onOpenProject: (project: LocalCADProject) => void
+  onDeleteProject: (project: LocalCADProject) => void
   onOpenEditor: () => void
   onUsePrompt: (prompt: string) => void
   onChoosePart: (part: StarterPart) => void
@@ -17,7 +21,7 @@ const samples: Array<{ part: StarterPart; icon: string; es: string; en: string; 
   { part: 'washer', icon: '◎', es: 'Arandela', en: 'Washer', detailEs: '18 × 6,5 × 2 mm', detailEn: '18 × 6.5 × 2 mm' },
 ]
 
-export default function StudioWelcome({ language, onOpenEditor, onUsePrompt, onChoosePart }: Props) {
+export default function StudioWelcome({ language, projects, onOpenProject, onDeleteProject, onOpenEditor, onUsePrompt, onChoosePart }: Props) {
   const [prompt, setPrompt] = useState('')
   const es = language === 'es'
   function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -58,6 +62,28 @@ export default function StudioWelcome({ language, onOpenEditor, onUsePrompt, onC
           <small>{es ? item.detailEs : item.detailEn}</small>
         </button>)}
       </div>
+      <section className="welcome-projects" aria-label={es ? 'Mis proyectos' : 'My projects'}>
+        <div className="welcome-section-head">
+          <h2>{es ? 'Mis proyectos' : 'My projects'}</h2>
+          <small>{es ? 'Guardados solo en este navegador' : 'Stored in this browser only'}</small>
+        </div>
+        {projects.length === 0 ? <p className="welcome-projects-empty">{es
+          ? 'Todavía no tienes diseños guardados. Abre el editor y utiliza «Guardar proyecto».'
+          : 'No saved designs yet. Open the editor and use “Save project”.'}</p>
+        : <div className="welcome-project-grid">{projects.map(project =>
+          <article className="welcome-project-card" key={project.id}>
+            <button type="button" className="welcome-project-open" onClick={() => onOpenProject(project)}>
+              <span aria-hidden="true">▧</span>
+              <strong>{project.name}</strong>
+              <small>{project.partType.replace(/_/g, ' ')}</small>
+              <small>{new Date(project.updatedAt).toLocaleDateString(es ? 'es-ES' : 'en-US')}</small>
+            </button>
+            <button type="button" className="welcome-project-delete" onClick={() => onDeleteProject(project)}
+              aria-label={(es ? 'Eliminar proyecto ' : 'Delete project ') + project.name}>
+              {es ? 'Eliminar' : 'Delete'}
+            </button>
+          </article>)}</div>}
+      </section>
       <div className="welcome-foot">
         <span>{es ? 'Diseño local primero · IA opcional · parámetros editables' : 'Local-first design · Optional AI · Editable parameters'}</span>
         <span>Apache-2.0 · OrkiCAD Core</span>
