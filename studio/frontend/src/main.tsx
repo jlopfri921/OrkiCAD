@@ -820,7 +820,7 @@ function App() {
             </div>
           </section>}
           {undoEdit && <button type="button" className="secondary ai-undo-button" onClick={undoLastEdit}>{language === 'es' ? '↶ Deshacer última modificación IA' : '↶ Undo last AI edit'}</button>}
-          {aiNote && <p className="ai-review" role="status">{aiNote}</p>
+          {aiNote && <p className="ai-review" role="status">{aiNote}</p>}
           {error && <p className="error" role="alert">{error}</p>}
         </div>
         <div className="sidebar-footer">{ui.intro}</div>
