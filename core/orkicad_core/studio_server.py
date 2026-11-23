@@ -59,19 +59,31 @@ class StudioHandler(BaseHTTPRequestHandler):
                 if not isinstance(spec, dict):
                     raise ValueError("Expected an object containing a prompt")
                 provider = spec.get("provider", "ollama")
+                mode = spec.get("mode", "create")
+                if mode not in ("create", "modify"):
+                    raise ValueError("Unsupported AI design mode")
+                current_spec = (validated_spec(spec.get("current_spec"))
+                                if mode == "modify" else None)
+                if current_spec is not None and current_spec["type"] == "feature_model":
+                    raise ValueError("AI editing of operation-history models is not available yet")
                 # A fully dimensioned simple disk needs no probabilistic
                 # template choice: preserve the user's actual circular shape.
                 exact = parse_explicit_circular_plate(spec.get("prompt", ""))
-                if exact is not None:
+                if mode == "create" and exact is not None:
                     proposal = exact
                 elif provider == "ollama":
-                    proposal = interpret(spec.get("prompt", ""), model=spec.get("model"))
+                    if mode == "modify":
+                        proposal = interpret(spec.get("prompt", ""), model=spec.get("model"),
+                                             current_spec=current_spec)
+                    else:
+                        proposal = interpret(spec.get("prompt", ""), model=spec.get("model"))
                 elif provider in ("openai", "anthropic", "gemini"):
                     proposal = interpret_cloud(
                         spec.get("prompt", ""),
                         provider=provider,
                         model=spec.get("model", ""),
                         api_key=spec.get("api_key", ""),
+                        **({"current_spec": current_spec} if mode == "modify" else {}),
                     )
                 else:
                     raise ValueError("Unsupported AI provider")
@@ -83,8 +95,13 @@ class StudioHandler(BaseHTTPRequestHandler):
             self._json(422, {"error": str(exc)})
             return
         if self.path == "/api/interpret":
-            self._json(200, {"spec": proposal, "review_required": True,
-                             "message": "Review ALL dimensions and assumptions before generating."})
+            if mode == "modify":
+                self._json(200, {"spec": proposal["spec"], "changes": proposal["changes"],
+                                 "review_required": True, "mode": "modify",
+                                 "message": "Review proposed changes before applying them."})
+            else:
+                self._json(200, {"spec": proposal, "review_required": True,
+                                 "message": "Review ALL dimensions and assumptions before generating."})
         elif self.path == "/api/scad":
             self._json(200, {"scad": scad})
         else:
