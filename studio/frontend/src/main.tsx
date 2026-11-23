@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import studioPackage from '../package.json'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import './design-system.css'
@@ -1126,7 +1127,7 @@ function App() {
     <footer className="studio-statusbar">
       <span><span className="status-indicator"></span> {ui.status}</span>
       <span role="status">{projectMessage || saveStatus || 'OrkiCAD Core · STL / 3MF / STEP'}</span>
-      <span>{units === 'metric' ? 'Metric · mm' : 'Imperial · in'}</span>
+      <span>{units === 'metric' ? 'Metric · mm' : 'Imperial · in'} · OrkiCAD v{studioPackage.version} · {language === 'es' ? 'Desarrollo' : 'Development'}</span>
     </footer>
   </div>
 }
