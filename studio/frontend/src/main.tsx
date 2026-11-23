@@ -139,6 +139,10 @@ function App() {
   const [ollamaModels, setOllamaModels] = useState<string[]>([])
   const [modelsError, setModelsError] = useState('')
   const [aiNote, setAiNote] = useState('')
+  const [aiMode, setAiMode] = useState<'create' | 'modify'>('create')
+  const [pendingEdit, setPendingEdit] = useState<{ before: Record<string, ParamValue>; next: Record<string, ParamValue>; changes: Record<string, ParamValue>; type: PartType } | null>(null)
+  const [undoEdit, setUndoEdit] = useState<{ type: PartType; params: Record<string, ParamValue> } | null>(null)
+  const currentSpecRef = useRef<{ type: PartType; params: Record<string, ParamValue> }>({ type: 'washer', params: catalog.washer.params })
   const [providerInfo, setProviderInfo] = useState('')
   const [params, setParams] = useState<Record<string, ParamValue>>(catalog.washer.params)
   const [scad, setScad] = useState('')
@@ -227,6 +231,7 @@ function App() {
           desc.fields.map(field => [field.key, field.default])) }
       ])) as Record<string, Definition>
     : catalog
+  currentSpecRef.current = { type, params }
   const partIds = Object.keys(activeCatalog) as PartType[]
   const catalogCategoryFor = (id: string): string => {
     const backendCategory = (catalogData?.[id] as { category?: unknown } | undefined)?.category
@@ -253,15 +258,20 @@ function App() {
       [id, label, categoryLabel(category)].some(value => value.toLocaleLowerCase(language).includes(normalizedCatalogSearch)))
   })
   async function interpretPrompt() {
-    setWorking(true); setError(''); setAiNote('')
+    setWorking(true); setError(''); setAiNote(''); setPendingEdit(null)
+    const editing = aiMode === 'modify'
+    const beforeType = type
+    const beforeParams = JSON.parse(JSON.stringify(params)) as Record<string, ParamValue>
     try {
       const response = await apiFetch('/api/interpret', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-OrkiCAD-Client': 'studio' },
-        body: JSON.stringify({ prompt, model: aiModel || undefined, provider: aiProvider, ...(aiProvider === 'ollama' ? {} : { api_key: apiKey }) })
+        body: JSON.stringify({ prompt, model: aiModel || undefined, provider: aiProvider,
+          ...(editing ? { mode: 'modify', current_spec: { type: beforeType, ...beforeParams } } : {}),
+          ...(aiProvider === 'ollama' ? {} : { api_key: apiKey }) })
       })
       const raw = await response.text()
-      let result: { error?: string; spec?: Record<string, ParamValue>; review_required?: boolean }
+      let result: { error?: string; spec?: Record<string, ParamValue>; changes?: Record<string, ParamValue>; review_required?: boolean }
       try { result = JSON.parse(raw) } catch {
         throw new Error(`${t.badJSON} (HTTP ${response.status})`)
       }
@@ -271,6 +281,17 @@ function App() {
         throw new Error('AI returned an unsupported part type')
       }
       const nextType = proposal.type as PartType
+      if (editing) {
+        if (nextType !== beforeType || !result.changes || !Object.keys(result.changes).length) {
+          throw new Error(language === 'es' ? 'La IA no ha propuesto cambios compatibles con esta pieza.' : 'AI did not propose compatible changes for this part.')
+        }
+        if (currentSpecRef.current.type !== beforeType || JSON.stringify(currentSpecRef.current.params) !== JSON.stringify(beforeParams)) {
+          throw new Error(language === 'es' ? 'La pieza cambió durante la consulta. Repite la petición para evitar sobrescribir medidas.' : 'The part changed while waiting. Retry to avoid overwriting dimensions.')
+        }
+        const nextParams = Object.fromEntries(Object.entries(proposal).filter(([key]) => key !== 'type')) as Record<string, ParamValue>
+        setPendingEdit({ type: beforeType, before: beforeParams, next: nextParams, changes: result.changes })
+        return
+      }
       const template = activeCatalog[nextType].params
       const next = Object.fromEntries(Object.keys(template).map(key => [key, proposal[key] ?? template[key]]))
       previewSerial.current += 1
@@ -309,7 +330,34 @@ function App() {
       })
     }
   }
+  function applyPendingEdit() {
+    if (!pendingEdit) return
+    if (type !== pendingEdit.type || JSON.stringify(params) !== JSON.stringify(pendingEdit.before)) {
+      setError(language === 'es' ? 'La pieza ha cambiado desde la propuesta. Vuelve a interpretarla.' : 'The part changed after the proposal. Please interpret again.')
+      setPendingEdit(null)
+      return
+    }
+    setUndoEdit({ type, params: { ...params } })
+    setParams(pendingEdit.next)
+    setScad(''); setStl(null); setPreviewReady(false)
+    previewSerial.current += 1
+    previewAbort.current?.abort()
+    setSelectedFace(null); setSelectedDimension(null)
+    setAiNote(''); setReviewApproved(false); setPendingEdit(null)
+    setProjectMessage(language === 'es' ? 'Cambios aplicados. Guarda el proyecto para conservarlos.' : 'Changes applied. Save the project to keep them.')
+  }
+  function undoLastEdit() {
+    if (!undoEdit || undoEdit.type !== type) return
+    setParams(undoEdit.params)
+    setScad(''); setStl(null); setPreviewReady(false)
+    previewSerial.current += 1
+    previewAbort.current?.abort()
+    setSelectedFace(null); setSelectedDimension(null)
+    setUndoEdit(null); setPendingEdit(null); setAiNote('')
+  }
   function updateParameter(name: string, value: ParamValue) {
+    setPendingEdit(null)
+    setUndoEdit(null)
     setParams(previous => {
       const updated = { ...previous, [name]: value }
       if (type === 'metric_screw' && name === 'head' && typeof value === 'string') {
@@ -326,6 +374,7 @@ function App() {
     setSelectedFace(null)
   }
   function changeType(next: PartType) {
+    setPendingEdit(null); setUndoEdit(null)
     setCurrentProjectId(null)
     setCurrentProjectName('')
     setProjectMessage('')
@@ -581,6 +630,7 @@ function App() {
     }
   }
   function openProject(project: LocalCADProject) {
+    setPendingEdit(null); setUndoEdit(null)
     if (!Object.prototype.hasOwnProperty.call(activeCatalog, project.partType)) {
       setProjectMessage(language === 'es' ? 'Tipo de pieza no disponible en este catálogo.' : 'Part type not available in this catalog.')
       return
@@ -670,6 +720,13 @@ function App() {
           <p>{t.aiDescription}</p>
         </div>
         <div className="sidebar-content">
+          <div className="ai-mode-choice" role="group" aria-label={language === 'es' ? 'Modo del asistente' : 'Assistant mode'}>
+            <button type="button" aria-pressed={aiMode === 'create'} onClick={() => { setAiMode('create'); setPendingEdit(null) }}>{language === 'es' ? 'Crear diseño' : 'Create design'}</button>
+            <button type="button" aria-pressed={aiMode === 'modify'} onClick={() => { setAiMode('modify'); setPendingEdit(null) }}>{language === 'es' ? 'Modificar diseño actual' : 'Modify current design'}</button>
+          </div>
+          <p className="ai-mode-hint">{aiMode === 'modify'
+            ? (language === 'es' ? 'La IA solo propondrá cambios sobre la pieza actual. Revísalos antes de aplicarlos.' : 'AI will propose changes only to the current part. Review before applying.')
+            : (language === 'es' ? 'La IA generará una nueva propuesta de pieza.' : 'AI will propose a new part.')}</p>
           <label htmlFor="cad-ai-prompt">{t.aiPromptLabel}</label>
           <textarea id="cad-ai-prompt" className="ai-prompt" rows={8}
             aria-label={t.aiPromptLabel} placeholder={t.aiPlaceholder} value={prompt}
@@ -749,7 +806,18 @@ function App() {
           <button className="action-primary propose-button"
             disabled={working || prompt.trim().length < 3 || !aiModel.trim() || (aiProvider !== 'ollama' && apiKey.trim().length < 8)}
             onClick={interpretPrompt}><span aria-hidden="true">✧</span> {working ? t.working : t.aiInterpret}</button>
-          {aiNote && <p className="ai-review" role="status">{aiNote}</p>}
+          {pendingEdit && <section className="ai-edit-preview" aria-label={language === 'es' ? 'Revisar cambios propuestos' : 'Review proposed changes'}>
+            <strong>{language === 'es' ? 'Cambios propuestos (sin aplicar)' : 'Proposed changes (not applied)'}</strong>
+            <ul>{Object.entries(pendingEdit.changes).map(([key, value]) =>
+              <li key={key}><span>{t.fields[key as keyof typeof t.fields] ?? key}</span>
+                <span>{String(pendingEdit.before[key])} → <strong>{String(value)}</strong></span></li>)}</ul>
+            <div className="ai-edit-actions">
+              <button type="button" className="secondary" onClick={() => setPendingEdit(null)}>{language === 'es' ? 'Cancelar' : 'Cancel'}</button>
+              <button type="button" className="action-primary" onClick={applyPendingEdit}>{language === 'es' ? 'Aplicar cambios' : 'Apply changes'}</button>
+            </div>
+          </section>}
+          {undoEdit && <button type="button" className="secondary ai-undo-button" onClick={undoLastEdit}>{language === 'es' ? '↶ Deshacer última modificación IA' : '↶ Undo last AI edit'}</button>}
+          {aiNote && <p className="ai-review" role="status">{aiNote}</p>
           {error && <p className="error" role="alert">{error}</p>}
         </div>
         <div className="sidebar-footer">{ui.intro}</div>
