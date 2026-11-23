@@ -47,6 +47,55 @@ def build_cad_instruction() -> str:
 
 
 
+def build_edit_instruction(current_spec: dict) -> str:
+    """Describe a strictly incremental edit of an existing, validated part."""
+    current = validated_spec(current_spec)
+    if current["type"] == "feature_model":
+        raise ValueError("AI edits of operation-history models are not supported yet")
+    allowed = list(PARTS[current["type"]]["fields"])
+    return (
+        "You edit an EXISTING CAD part. Return STRICT JSON with exactly one "
+        "top-level key named changes, containing ONLY the parameters explicitly "
+        "requested to change. Never output a full part, explanations, code, "
+        "a new type, unchanged fields, or additional keys. Dimensions in mm. "
+        "Preserve all other properties exactly as provided. "
+        "If the request cannot be expressed by changing existing parameters, "
+        'return {"changes":{}}. '
+        "Current validated CAD specification: " +
+        json.dumps(current, ensure_ascii=False) +
+        ". Allowed keys in changes: " + json.dumps(allowed)
+    )
+
+
+def merge_edit_changes(current_spec: dict, response: dict) -> tuple[dict, dict]:
+    """Reject unexpected or type-changing modifications; validate merged CAD."""
+    current = validated_spec(current_spec)
+    if current["type"] == "feature_model":
+        raise ValueError("AI edits of operation-history models are not supported yet")
+    if not isinstance(response, dict) or set(response) != {"changes"}:
+        raise AIError("Expected JSON object with only a changes property")
+    changes = response["changes"]
+    if not isinstance(changes, dict) or not changes:
+        raise AIError("No supported parameter changes identified. No model was modified.")
+    allowed = set(PARTS[current["type"]]["fields"])
+    if set(changes) - allowed:
+        raise AIError("AI proposed unsupported parameters or a part-type change")
+    for key, value in changes.items():
+        old = current[key]
+        if isinstance(old, bool) or type(old) not in (str, int, float):
+            raise AIError("Unsupported parameter value type")
+        if (type(old) is str and type(value) is not str) or (
+            type(old) in (int, float) and
+            (type(value) not in (int, float) or isinstance(value, bool))
+        ):
+            raise AIError("AI proposed a parameter with an invalid value type")
+    updated = validated_spec({**current, **changes})
+    changed = {key: updated[key] for key in changes if updated[key] != current[key]}
+    if not changed:
+        raise AIError("AI proposed no effective changes. No model was modified.")
+    return updated, changed
+
+
 def validate_prompt_shape(prompt: str, spec: dict) -> dict:
     """Reject a model silently substituting a box for a requested circular disk.
 
@@ -67,7 +116,7 @@ def validate_prompt_shape(prompt: str, spec: dict) -> dict:
     return spec
 
 
-def interpret(prompt: str, *, model: str | None = None) -> dict:
+def interpret(prompt: str, *, model: str | None = None, current_spec: dict | None = None) -> dict:
     if not isinstance(prompt, str) or not 3 <= len(prompt.strip()) <= MAX_REQUEST:
         raise ValueError("Prompt must contain between 3 and 2000 characters")
     endpoint = os.environ.get("ORKICAD_OLLAMA_URL", "http://127.0.0.1:11434")
@@ -83,7 +132,7 @@ def interpret(prompt: str, *, model: str | None = None) -> dict:
     ):
         raise ValueError("Invalid Ollama model name")
 
-    instruction = build_cad_instruction()
+    instruction = build_edit_instruction(current_spec) if current_spec is not None else build_cad_instruction()
     timeout_raw = os.environ.get("ORKICAD_OLLAMA_TIMEOUT", str(DEFAULT_TIMEOUT_SECONDS))
     try:
         timeout = float(timeout_raw)
@@ -135,9 +184,12 @@ def interpret(prompt: str, *, model: str | None = None) -> dict:
         response = json.loads(raw)
         content = response["message"]["content"]
         raw_spec = json.loads(content)
+        if current_spec is not None:
+            merged, changes = merge_edit_changes(current_spec, raw_spec)
+            return {"spec": merged, "changes": changes}
         return validate_prompt_shape(prompt, validated_spec(raw_spec))
     except (KeyError, TypeError, ValueError, json.JSONDecodeError,
-            ParameterError) as exc:
+            ParameterError, AIError) as exc:
         raise AIError(
             "Ollama returned invalid or unsupported CAD parameters. "
             "Try specifying exact dimensions or choosing a catalog part manually. "

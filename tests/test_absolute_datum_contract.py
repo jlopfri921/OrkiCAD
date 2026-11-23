@@ -32,7 +32,7 @@ class DatumPlaneContractTests(unittest.TestCase):
             "XY · Z=0",
             "XZ · Y=0",
             "YZ · X=0",
-            "Origen absoluto",
+            "El origen absoluto es (0,0,0)",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, app)

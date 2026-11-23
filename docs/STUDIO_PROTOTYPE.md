@@ -41,6 +41,21 @@ npm run dev
 
 Open http://127.0.0.1:5173, select a part, adjust parameters, and generate an STL. Choose **Feature model** to edit the ordered add/subtract operations. **Export 3MF** and **Export STEP (OCCT)** use the shared Python core through the development API: `/api/3mf` and `/api/step`, not a browser-side CAD executable. When the project-local `.venv-occt` contains OCP, the source prototype can discover it with the default `Auto` runtime setting. These are developer-mode conveniences; future production installers will bundle the CAD engine and expose no Python path field.
 
+## Create vs. modify an existing CAD part (proposed Studio workflow)
+
+The assistant has two explicit modes in the editor:
+
+- **Create design**: interpret a new part description using the selected provider. The AI proposal replaces the unsaved design after review; saving it creates a separate local project rather than overwriting an earlier opened project.
+- **Modify current design**: interpret the request relative to the currently selected **parametric part**. The request sends its validated specification to the selected provider (local Ollama by default; cloud providers only when selected explicitly). The model must return only a JSON `changes` object containing modified, allowlisted parameters. OrkiCAD validates the merged geometry and shows a **before → after** review; no changes apply until the user clicks **Apply changes**.
+
+**Cancel** leaves the model unchanged. **Undo last AI edit** restores the parameters from immediately before the most recent accepted AI edit. The previous mesh is cleared only when changes are applied, then regenerated through the normal CAD workflow. Save the local project after applying changes; undo does not automatically rewrite an earlier saved snapshot.
+
+This first version changes existing **part parameters only**. AI modifications to the `feature_model` operation tree, new booleans, changes of part family, importing topology, and undo history across sessions are out of scope. Use the manual inspector for operation-history modeling. The assistant does **not** keep conversational chat history; each modification includes current CAD parameters, not prior discussion turns.
+
+**Privacy:** cloud AI edit requests include the design's dimensional specification as context and require the same per-request API credentials as creation; use Ollama for fully local edits.
+
+**Manual E4 regression:** create and save a mounting plate 100 × 60 × 5 mm with 6 mm holes and 10 mm inset. Switch to **Modify current design**, ask to change only width to 120 mm and hole diameter to 8 mm. Confirm the review lists those two changes and the original solid is still displayed until Apply. Cancel once; retry and Apply. Check other dimensions unchanged, regenerated geometry correct, undo restores the original dimensions, and saving updates the local project. Test error handling for unsupported modifications and both themes.
+
 ## Boundaries and security
 
 - Frontend is React + TypeScript + Vite.
