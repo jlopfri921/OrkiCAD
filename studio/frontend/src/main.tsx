@@ -258,9 +258,9 @@ function App() {
       [id, label, categoryLabel(category)].some(value => value.toLocaleLowerCase(language).includes(normalizedCatalogSearch)))
   })
   async function interpretPrompt() {
-    setWorking(true); setError(''); setAiNote(''); setPendingEdit(null)
     const editing = aiMode === 'modify'
-    if (!editing) setUndoEdit(null)
+    setWorking(true); setError(''); setPendingEdit(null)
+    if (!editing) { setAiNote(''); setUndoEdit(null) }
     const beforeType = type
     const beforeParams = JSON.parse(JSON.stringify(params)) as Record<string, ParamValue>
     try {
