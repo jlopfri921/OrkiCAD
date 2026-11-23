@@ -202,3 +202,21 @@ html[data-theme="light"] .ai-settings-disclosure{background:#fff;border-color:va
 html[data-theme="light"] .ai-settings-disclosure>summary{color:var(--oc-heading)}
 html[data-theme="light"] .ai-settings-content{background:#fff}
 @media(max-width:760px){.ai-settings-content{padding:12px}.ai-provider-summary{font-size:10px}}
+
+/* Assistant: deliberate create/edit workflow, proposal review and undo. */
+.ai-mode-choice{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;border:1px solid var(--oc-border);border-radius:11px;background:var(--oc-chip)}
+.ai-mode-choice button{padding:9px 6px;border:0;background:transparent;color:var(--oc-subtle);font-size:11px;line-height:1.4}
+.ai-mode-choice button[aria-pressed="true"]{background:var(--oc-surface);color:var(--oc-heading);box-shadow:var(--oc-elevation)}
+.ai-mode-hint{color:var(--oc-subtle);font-size:11px;line-height:1.55;margin:0}
+.ai-edit-preview{display:grid;gap:12px;padding:15px;background:var(--oc-surface);border:1px solid var(--oc-border);border-radius:12px}
+.ai-edit-preview>strong{font-size:12px;color:var(--oc-heading)}
+.ai-edit-preview ul{list-style:none;display:grid;gap:8px;padding:0;margin:0}
+.ai-edit-preview li{display:flex;justify-content:space-between;gap:10px;font-size:11px;overflow-wrap:anywhere;border-bottom:1px solid var(--oc-border);padding-bottom:7px}
+.ai-edit-preview li>span:first-child{color:var(--oc-subtle)}
+.ai-edit-preview li>span:last-child{color:var(--oc-heading);text-align:right}
+.ai-edit-actions{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap}
+.ai-edit-actions button{min-height:36px}
+.ai-undo-button{width:100%;margin:0}
+html[data-theme="light"] .ai-edit-preview{background:#fff}
+html[data-theme="light"] .ai-mode-choice button[aria-pressed="true"]{background:#fff;color:#165e92}
+@media(max-width:420px){.ai-mode-choice button{font-size:10px;padding:8px 4px}.ai-edit-actions button{flex:1}}
