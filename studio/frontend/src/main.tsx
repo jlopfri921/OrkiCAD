@@ -617,7 +617,9 @@ function App() {
               )}
             </div>
           </details>
-          <div className="sidebar-section-title"><span>◉</span> {ui.settings}</div>
+          <details className="studio-disclosure ai-settings-disclosure">
+            <summary><span aria-hidden="true">⚙</span> {ui.settings}<span className="ai-provider-summary">{aiProvider === 'ollama' ? 'Ollama · Local' : aiProvider === 'anthropic' ? 'Claude · API' : aiProvider === 'openai' ? 'OpenAI · API' : 'Gemini · API'}</span><span className="disclosure-arrow" aria-hidden="true">⌄</span></summary>
+            <div className="ai-settings-content">
           <label htmlFor="ai-provider">{t.aiProvider}</label>
           <select id="ai-provider" value={aiProvider} onChange={e => {
             const selected = e.target.value as AIProvider
@@ -661,6 +663,15 @@ function App() {
               placeholder={t.apiKeyPlaceholder} onChange={e => setApiKey(e.target.value)} />
             <p className="muted-note">{t.cloudSecurityNotice}</p>
           </>}
+            </div>
+          </details>
+          <p className="ai-config-hint">{language === 'es'
+            ? aiModel.trim()
+              ? 'Modelo listo: ' + aiModel
+              : 'Selecciona un modelo en Configuración de IA para interpretar tu diseño.'
+            : aiModel.trim()
+              ? 'Selected model: ' + aiModel
+              : 'Choose a model in AI settings to interpret your design.'}</p>
           <button className="action-primary propose-button"
             disabled={working || prompt.trim().length < 3 || !aiModel.trim() || (aiProvider !== 'ollama' && apiKey.trim().length < 8)}
             onClick={interpretPrompt}><span aria-hidden="true">✧</span> {working ? t.working : t.aiInterpret}</button>
