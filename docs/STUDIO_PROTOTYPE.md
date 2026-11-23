@@ -8,6 +8,19 @@
 - Node.js and npm available on PATH.
 - OpenSCAD/BOSL2 needed later for rendering mechanical SCAD files, not for the code-generation UI.
 
+## Windows quick launch (new)
+
+On an installed Windows development checkout, start both the Python CAD API and the Vite UI from the repository root:
+
+```powershell
+cd F:\orkicad-ai-github
+.\Start-OrkiCAD-Web.ps1
+```
+
+Alternatively, double-click `Start-OrkiCAD-Web.cmd` in Explorer. The launcher opens the API and frontend in their own PowerShell windows, checks their local endpoints and opens `http://127.0.0.1:5173/` when both are ready. Already running compatible services are reused, not duplicated.
+
+**First installation:** create `.venv`, install the Python project with `.\.venv\Scripts\python.exe -m pip install -e .`, then run `npm install` inside `studio/frontend`. The launcher does not install dependencies automatically, change security settings globally, or expose network ports beyond localhost. For errors, inspect the two separate PowerShell windows. Close those windows with Ctrl+C to stop services.
+
 ## Windows instructions — use two PowerShell windows
 
 **Window 1: Python CAD core API**
