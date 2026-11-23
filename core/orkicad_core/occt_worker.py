@@ -107,7 +107,8 @@ def make_shape(spec):
         edges = TopExp_Explorer(base, TopAbs_EDGE)
         selected = set()
         while edges.More():
-            edge = TopoDS.Edge_s(edges.Current())
+            edge = (TopoDS.Edge_s(edges.Current()) if hasattr(TopoDS, "Edge_s")
+                    else TopoDS.Edge(edges.Current()))
             curve = BRepAdaptor_Curve(edge)
             first = curve.Value(curve.FirstParameter())
             last = curve.Value(curve.LastParameter())
