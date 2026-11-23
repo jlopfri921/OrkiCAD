@@ -60,7 +60,7 @@ def build_edit_instruction(current_spec: dict) -> str:
         "a new type, unchanged fields, or additional keys. Dimensions in mm. "
         "Preserve all other properties exactly as provided. "
         "If the request cannot be expressed by changing existing parameters, "
-        "return {\\\"changes\\\":{}}. "
+        'return {"changes":{}}. '
         "Current validated CAD specification: " +
         json.dumps(current, ensure_ascii=False) +
         ". Allowed keys in changes: " + json.dumps(allowed)
