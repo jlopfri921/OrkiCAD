@@ -43,7 +43,8 @@ class FaceSelectionContractTests(unittest.TestCase):
     def test_does_not_falsely_claim_mesh_semantic_feature_identity(self):
         code = (ROOT / "selection.ts").read_text(encoding="utf-8")
         self.assertIn("STL knows triangles", code)
-        self.assertIn("return null", code)
+        self.assertIn("face.outerBoundary", code)
+        self.assertIn("return candidates.find(key => available.includes(key)) ?? null", code)
 
 
 if __name__ == "__main__":
