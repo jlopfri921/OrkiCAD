@@ -828,7 +828,7 @@ function App() {
             <p className="inspector-guidance">{language === 'es' ? 'Selecciona una pieza y ajusta sus medidas. Las opciones avanzadas están agrupadas por función.' : 'Choose a part and edit its dimensions. Advanced settings are grouped by function.'}</p>
             <span>{language === 'es' ? 'Catálogo paramétrico' : 'Parametric catalog'}</span>
             <details className="catalog-filter-disclosure">
-              <summary>{language === 'es' ? 'Buscar y filtrar piezas' : 'Search and filter parts'}</summary>
+              <summary>{language === 'es' ? 'Buscar y filtrar piezas' : 'Search and filter parts'}{(catalogSearch || catalogCategory !== 'all') && <span className="catalog-active-filter">{language === 'es' ? ' · filtro activo' : ' · filter active'}</span>}</summary>
               <div className="catalog-filter-fields">
             <label htmlFor="catalog-search">{language === 'es' ? 'Buscar piezas o categorías' : 'Search parts or categories'}</label>
             <input id="catalog-search" type="search" value={catalogSearch}
