@@ -119,6 +119,36 @@ class StudioServerTests(unittest.TestCase):
                 api_key="test-secret-123456"
             )
 
+    def test_modify_route_preserves_current_part_and_returns_changes(self):
+        current = {"type": "mounting_plate", "width": 100, "depth": 60,
+                   "thickness": 5, "hole_diameter": 6, "hole_inset": 10}
+        updated = {**current, "width": 120}
+        request = json.dumps({"prompt": "Aumenta solo la anchura a 120 mm",
+                              "provider": "ollama", "model": "local-coder",
+                              "mode": "modify", "current_spec": current})
+        with patch("orkicad_core.studio_server.interpret",
+                   return_value={"spec": updated, "changes": {"width": 120}}) as local:
+            status, result = self.request("POST", "/api/interpret", request, {
+                "X-OrkiCAD-Client": "studio",
+            })
+        self.assertEqual(status, 200)
+        self.assertEqual(result["mode"], "modify")
+        self.assertEqual(result["spec"], updated)
+        self.assertEqual(result["changes"], {"width": 120})
+        local.assert_called_once_with(
+            "Aumenta solo la anchura a 120 mm", model="local-coder",
+            current_spec=current)
+
+    def test_modify_route_requires_valid_existing_part(self):
+        for current in (None, {"type": "unknown"}, {"type": "washer"}):
+            request = json.dumps({"prompt": "Aumenta el diámetro a 30",
+                                  "mode": "modify", "current_spec": current})
+            status, body = self.request("POST", "/api/interpret", request, {
+                "X-OrkiCAD-Client": "studio",
+            })
+            self.assertEqual(status, 400)
+            self.assertIn("error", body)
+
     def test_ollama_route_keeps_existing_local_interpreter(self):
         request = json.dumps({"prompt": "Diseña una arandela", "provider": "ollama",
                               "model": "local-coder"})
