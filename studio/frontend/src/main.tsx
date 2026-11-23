@@ -376,6 +376,7 @@ function App() {
     setSelectedFace(null)
   }
   function changeType(next: PartType) {
+    if (next === 'feature_model') setAiMode('create')
     setPendingEdit(null); setUndoEdit(null)
     setCurrentProjectId(null)
     setCurrentProjectName('')
