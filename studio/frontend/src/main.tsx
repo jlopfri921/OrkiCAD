@@ -260,6 +260,7 @@ function App() {
   async function interpretPrompt() {
     setWorking(true); setError(''); setAiNote(''); setPendingEdit(null)
     const editing = aiMode === 'modify'
+    if (!editing) setUndoEdit(null)
     const beforeType = type
     const beforeParams = JSON.parse(JSON.stringify(params)) as Record<string, ParamValue>
     try {
@@ -292,6 +293,7 @@ function App() {
         setPendingEdit({ type: beforeType, before: beforeParams, next: nextParams, changes: result.changes })
         return
       }
+      setCurrentProjectId(null); setCurrentProjectName('')
       const template = activeCatalog[nextType].params
       const next = Object.fromEntries(Object.keys(template).map(key => [key, proposal[key] ?? template[key]]))
       previewSerial.current += 1
@@ -710,8 +712,8 @@ function App() {
     {studioPage === 'home' && <StudioWelcome language={language}
       projects={projectList} onOpenProject={openProject} onDeleteProject={deleteProject}
       onOpenEditor={() => setStudioPage('editor')}
-      onUsePrompt={value => { setCurrentProjectId(null); setCurrentProjectName(''); setPrompt(value); setAiNote(''); setError(''); setAssistantVisible(true); setStudioPage('editor') }}
-      onChoosePart={part => { changeType(part); setInspectorVisible(true); setStudioPage('editor') }} />}
+      onUsePrompt={value => { setAiMode('create'); setPendingEdit(null); setUndoEdit(null); setCurrentProjectId(null); setCurrentProjectName(''); setPrompt(value); setAiNote(''); setError(''); setAssistantVisible(true); setStudioPage('editor') }}
+      onChoosePart={part => { setAiMode('create'); changeType(part); setInspectorVisible(true); setStudioPage('editor') }} />}
     <main className="studio-main" hidden={studioPage !== 'editor'}>
       <aside id="studio-assistant-panel" className="studio-sidebar assistant-sidebar" aria-label={ui.assistant} hidden={!assistantVisible}>
         <div className="sidebar-header">
@@ -722,7 +724,7 @@ function App() {
         <div className="sidebar-content">
           <div className="ai-mode-choice" role="group" aria-label={language === 'es' ? 'Modo del asistente' : 'Assistant mode'}>
             <button type="button" aria-pressed={aiMode === 'create'} onClick={() => { setAiMode('create'); setPendingEdit(null) }}>{language === 'es' ? 'Crear diseño' : 'Create design'}</button>
-            <button type="button" aria-pressed={aiMode === 'modify'} onClick={() => { setAiMode('modify'); setPendingEdit(null) }}>{language === 'es' ? 'Modificar diseño actual' : 'Modify current design'}</button>
+            <button type="button" aria-pressed={aiMode === 'modify'} disabled={type === 'feature_model'} title={type === 'feature_model' ? (language === 'es' ? 'Las modificaciones por IA del historial de operaciones aún no están disponibles.' : 'AI edits of operation history are not yet available.') : undefined} onClick={() => { setAiMode('modify'); setPendingEdit(null) }}>{language === 'es' ? 'Modificar diseño actual' : 'Modify current design'}</button>
           </div>
           <p className="ai-mode-hint">{aiMode === 'modify'
             ? (language === 'es' ? 'La IA solo propondrá cambios sobre la pieza actual. Revísalos antes de aplicarlos.' : 'AI will propose changes only to the current part. Review before applying.')
