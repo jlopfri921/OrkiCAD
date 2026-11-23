@@ -11,7 +11,8 @@ import re
 import urllib.error
 import urllib.request
 
-from .ai_interpreter import AIError, build_cad_instruction, validate_prompt_shape, MAX_REQUEST
+from .ai_interpreter import (AIError, build_cad_instruction, build_edit_instruction,
+                             merge_edit_changes, validate_prompt_shape, MAX_REQUEST)
 from .parts_catalog import validated_spec
 
 PROVIDERS = ("openai", "anthropic", "gemini")
@@ -26,7 +27,8 @@ CLOUD_TIMEOUT = 90
 MODEL_PATTERN = re.compile(r"^[a-zA-Z0-9_.:/-]{1,120}$")
 
 
-def interpret_cloud(prompt: str, *, provider: str, model: str, api_key: str) -> dict:
+def interpret_cloud(prompt: str, *, provider: str, model: str, api_key: str,
+                    current_spec: dict | None = None) -> dict:
     if not isinstance(prompt, str) or not 3 <= len(prompt.strip()) <= MAX_REQUEST:
         raise ValueError("Prompt must contain 3 to 2000 characters")
     if provider not in PROVIDERS:
@@ -38,7 +40,7 @@ def interpret_cloud(prompt: str, *, provider: str, model: str, api_key: str) -> 
     ):
         raise ValueError("Provide a valid API key for the selected provider")
 
-    instruction = build_cad_instruction()
+    instruction = build_edit_instruction(current_spec) if current_spec is not None else build_cad_instruction()
     if provider == "openai":
         url = "https://api.openai.com/v1/responses"
         headers = {"Authorization": "Bearer " + api_key}
@@ -94,8 +96,12 @@ def interpret_cloud(prompt: str, *, provider: str, model: str, api_key: str) -> 
                              for candidate in result["candidates"]
                              for part in candidate["content"]["parts"])
         # Responses stay JSON-only; no executing or evaluating source.
-        return validate_prompt_shape(prompt, validated_spec(json.loads(text)))
-    except (KeyError, IndexError, TypeError, ValueError) as exc:
+        response_spec = json.loads(text)
+        if current_spec is not None:
+            merged, changes = merge_edit_changes(current_spec, response_spec)
+            return {"spec": merged, "changes": changes}
+        return validate_prompt_shape(prompt, validated_spec(response_spec))
+    except (KeyError, IndexError, TypeError, ValueError, AIError) as exc:
         raise AIError(
             "Provider response did not contain a valid OrkiCAD CAD JSON specification. "
             "Try a more explicit dimensional prompt or a different model."
