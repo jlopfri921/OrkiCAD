@@ -130,3 +130,61 @@ html[data-theme="light"] .studio-layout-actions .studio-focus-toggle{border-righ
 @media(prefers-reduced-motion:reduce){
   .studio-shell *, .studio-shell *:before, .studio-shell *:after{scroll-behavior:auto!important}
 }
+
+/* Studio 0.1.2: progressive disclosure for CAD tools.
+   Camera and geometry controls remain accessible without cluttering the viewport. */
+.viewport-badges{align-items:center;flex-wrap:wrap;gap:7px}
+.viewport-badges .workspace-part-label{
+  display:inline-flex;align-items:center;max-width:200px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;padding:7px 10px;border-radius:8px;background:var(--oc-chip);
+  color:var(--oc-heading);font-size:11px;font-weight:750
+}
+.workspace-display-settings{position:relative;z-index:9}
+.workspace-display-settings>summary,
+.camera-more-views>summary,
+.catalog-filter-disclosure>summary{
+  list-style:none;cursor:pointer;user-select:none;border:1px solid var(--oc-border);
+  background:var(--oc-surface);color:var(--oc-heading);border-radius:9px;
+  padding:8px 11px;font-size:11px;font-weight:750;line-height:1.5
+}
+.workspace-display-settings>summary::-webkit-details-marker,
+.camera-more-views>summary::-webkit-details-marker,
+.catalog-filter-disclosure>summary::-webkit-details-marker{display:none}
+.workspace-display-settings>summary:after,
+.camera-more-views>summary:after,
+.catalog-filter-disclosure>summary:after{content:"⌄";margin-left:8px;color:var(--oc-subtle)}
+.workspace-display-settings[open]>summary:after,
+.camera-more-views[open]>summary:after,
+.catalog-filter-disclosure[open]>summary:after{content:"⌃"}
+.workspace-display-settings>summary:hover,
+.camera-more-views>summary:hover,
+.catalog-filter-disclosure>summary:hover{background:var(--oc-surface-hover)}
+.workspace-display-popover{
+  position:absolute;right:0;top:calc(100% + 7px);min-width:225px;padding:11px;
+  background:var(--oc-surface);border:1px solid var(--oc-border);border-radius:11px;
+  box-shadow:0 15px 35px #0004
+}
+.workspace-display-popover .reference-toggle{white-space:normal}
+.camera-more-views{position:relative;max-width:190px}
+.camera-more-views>summary{
+  text-align:center;background:#152b41d9;color:#d7e9f9;
+  border-color:#39566f
+}
+.camera-advanced-groups{display:grid;gap:6px;margin-top:6px}
+.camera-more-views .camera-toolbar-group{width:100%}
+.catalog-filter-disclosure{min-width:0}
+.catalog-filter-disclosure>summary{min-height:36px;display:flex;align-items:center}
+.catalog-filter-fields{
+  display:grid;gap:7px;margin-top:9px;padding:12px;
+  background:var(--oc-surface);border:1px solid var(--oc-border);border-radius:10px
+}
+.catalog-filter-fields label{margin:2px 0 0}
+.inspector-guidance{margin:0 0 4px;color:var(--oc-subtle);font-size:11px;line-height:1.6}
+html[data-theme="light"] .camera-more-views>summary{
+  background:#f7fbff;color:#20476a;border-color:#b9d0e6
+}
+@media(max-width:760px){
+  .viewport-badges{max-width:100%}
+  .viewport-badges .workspace-part-label{max-width:140px}
+  .workspace-display-popover{right:0;min-width:min(230px,80vw)}
+}
