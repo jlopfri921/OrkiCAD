@@ -674,6 +674,7 @@ function App() {
         <div className="viewport-heading">
           <div><div className="section-overline">{language === 'es' ? 'ÁREA DE TRABAJO' : 'WORKSPACE'}</div><h2>{ui.viewport}</h2></div>
           <div className="viewport-badges">
+            <span className="workspace-part-label">{(t.parts as Record<string, string>)[type] || type}</span>
             {type === 'circular_plate' && <button type="button"
               className="secondary circular-plan-toggle" aria-pressed={showCircularPlan}
               onClick={() => setShowCircularPlan(old => !old)}>
@@ -685,11 +686,16 @@ function App() {
               {language === 'es' ? 'Vista dinámica' : 'Live preview'}
             </label>
             <span>◈ 3D</span><span>{units === 'metric' ? 'mm' : 'in'}</span>
-            <label className="reference-toggle">
-              <input type="checkbox" checked={showReferencePlanes}
-                onChange={event => setShowReferencePlanes(event.target.checked)} />
-              {language === 'es' ? 'Planos 0,0,0' : 'Datum planes 0,0,0'}
-            </label>
+            <details className="workspace-display-settings">
+              <summary>{language === 'es' ? 'Opciones de vista' : 'View options'}</summary>
+              <div className="workspace-display-popover">
+                <label className="reference-toggle">
+                  <input type="checkbox" checked={showReferencePlanes}
+                    onChange={event => setShowReferencePlanes(event.target.checked)} />
+                  {language === 'es' ? 'Mostrar planos de origen' : 'Show datum planes'}
+                </label>
+              </div>
+            </details>
           </div>
         </div>
         <div className="viewport-frame">
@@ -720,6 +726,9 @@ function App() {
               <button title={language === 'es' ? 'Centrar sin cambiar orientación' : 'Center without changing view'} aria-label={language === 'es' ? 'Centrar' : 'Center'} disabled={!stl} onClick={() => moveCamera('center')}>⌖</button>
               <button title={language === 'es' ? 'Vista isométrica' : 'Isometric view'} disabled={!stl} onClick={() => moveCamera('iso')}>ISO</button>
             </div>
+            <details className="camera-more-views">
+              <summary>{language === 'es' ? 'Más vistas' : 'More views'}</summary>
+              <div className="camera-advanced-groups">
             <div className="camera-toolbar-group">
               <button title={language === 'es' ? 'Vista superior (XY)' : 'Top view (XY)'} disabled={!stl} onClick={() => moveCamera('top')}>XY</button>
               <button title={language === 'es' ? 'Vista frontal (XZ)' : 'Front view (XZ)'} disabled={!stl} onClick={() => moveCamera('front')}>XZ</button>
@@ -731,6 +740,8 @@ function App() {
               <button title={language === 'es' ? 'Acercar' : 'Zoom in'} disabled={!stl} onClick={() => moveCamera('zoom-in')}>＋</button>
               <button title={language === 'es' ? 'Alejar' : 'Zoom out'} disabled={!stl} onClick={() => moveCamera('zoom-out')}>−</button>
             </div>
+              </div>
+            </details>
           </div>
           <STLViewer data={stl} emptyMessage={ui.emptyHelp} onFaceSelect={selectModelFace} showReferencePlanes={showReferencePlanes} cameraCommand={cameraCommand} />
           {!stl && <div className="viewport-empty" aria-hidden="true">
@@ -814,7 +825,11 @@ function App() {
         </div>
         <div className="sidebar-content">
           <div className="inspector-compact-header parametric-catalog">
+            <p className="inspector-guidance">{language === 'es' ? 'Selecciona una pieza y ajusta sus medidas. Las opciones avanzadas están agrupadas por función.' : 'Choose a part and edit its dimensions. Advanced settings are grouped by function.'}</p>
             <span>{language === 'es' ? 'Catálogo paramétrico' : 'Parametric catalog'}</span>
+            <details className="catalog-filter-disclosure">
+              <summary>{language === 'es' ? 'Buscar y filtrar piezas' : 'Search and filter parts'}{(catalogSearch || catalogCategory !== 'all') && <span className="catalog-active-filter">{language === 'es' ? ' · filtro activo' : ' · filter active'}</span>}</summary>
+              <div className="catalog-filter-fields">
             <label htmlFor="catalog-search">{language === 'es' ? 'Buscar piezas o categorías' : 'Search parts or categories'}</label>
             <input id="catalog-search" type="search" value={catalogSearch}
               placeholder={language === 'es' ? 'Buscar por nombre…' : 'Search by name…'}
@@ -826,6 +841,8 @@ function App() {
               {catalogGroups.map(category =>
                 <option key={category} value={category}>{categoryLabel(category)} ({partIds.filter(id => catalogCategoryFor(id) === category).length})</option>)}
             </select>
+              </div>
+            </details>
             <label htmlFor="type">{t.partType}</label>
             <select id="type" aria-label={t.partType} value={filteredCatalogIds.includes(type) ? type : ''}
               onChange={e => { if (e.target.value) changeType(e.target.value as PartType) }}>
